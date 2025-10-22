@@ -2,28 +2,26 @@ import { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Dashboard } from './components/Dashboard';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { Settings } from './components/Settings';
-import { WalletConnect } from './components/WalletConnect';
-import { Toaster } from './components/ui/sonner';
-import { Web3Provider } from './lib/services';
-import { PreflightChecker, ContractRegistration } from './components/workflows';
 import { DomainManagement } from './components/domains';
 import { MetadataEditor, MetadataTools } from './components/metadata';
 import { SecurityMonitor, AuditLog } from './components/security';
 import { GovernancePanel } from './components/governance';
+import { Settings } from './components/Settings';
 import { ProtocolReference, BestPracticesView, NamingToolkit } from './components/reference';
 import { DAORegistry, IntegrationRegistry, ContractRegistry } from './components/registry';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { ContractRegistration } from './components/workflows';
+import { WalletConnect } from './components/WalletConnect';
+import { Web3Provider } from './lib/services';
+import { Toaster } from './components/ui/sonner';
 
-export type ViewType = 'preflight' | 'dashboard' | 'domains' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics';
+export type ViewType = 'dashboard' | 'domains' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewType>('preflight');
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
 
   const renderView = () => {
     switch (currentView) {
-      case 'preflight':
-        return <PreflightChecker />;
       case 'dashboard':
         return <Dashboard />;
       case 'domains':
@@ -71,8 +69,8 @@ export default function App() {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="text-slate-900">ens.tools</h1>
-                  <p className="text-slate-600">Management tools for your ENS infrastructure</p>
+                  <h1 className="text-slate-900">ENS Enterprise Management System</h1>
+                  <p className="text-slate-600">Centralized control for your ENS infrastructure</p>
                 </div>
               </div>
               <WalletConnect />
