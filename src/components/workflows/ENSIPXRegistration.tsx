@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Separator } from './ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Badge } from '../ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Separator } from '../ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   FileCode,
   CheckCircle2,
@@ -22,8 +22,8 @@ import {
   GitBranch,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../lib/web3-provider';
-import { setTextRecord, createSubdomain, combineFuses } from '../lib/ens-write-operations';
+import { useWeb3 } from '../../lib/services';
+import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens';
 import {
   ENSIPXMetadata,
   ENSIPX_CATEGORIES,
@@ -36,12 +36,12 @@ import {
   generateMetadataHash,
   normalizeVersion,
   ENSIPX_SUBCATEGORIES,
-} from '../lib/ensip19-utils';
-import { validateENSIPXFull, QAValidator } from '../lib/ensip19-validator';
+} from '../../lib/metadata';
+import { validateENSIPXFull, QAValidator } from '../../lib/metadata';
 import {
   generateHierarchicalDomain,
   getRecommendedSubcategories,
-} from '../lib/ensip19-hierarchical';
+} from '../../lib/metadata';
 
 export function ENSIPXRegistration() {
   const { walletClient, publicClient, address } = useWeb3();
