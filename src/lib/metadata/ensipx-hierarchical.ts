@@ -1,9 +1,9 @@
 /**
- * ENSIP-19 Hierarchical Schema System
+ * ENSIP-X Hierarchical Schema System
  * Implements 5-level domain hierarchy with cns.eth root
  */
 
-import { ENSIP19Category, ENSIP19_SUBCATEGORIES } from './ensip19-utils';
+import { ENSIPXCategory, ENSIPX_SUBCATEGORIES } from './ensip19-utils';
 
 /**
  * Domain hierarchy levels
@@ -152,7 +152,7 @@ export function parseHierarchicalDomain(domain: string): {
  */
 export function generateHierarchicalDomain(params: {
   org: string;
-  category?: ENSIP19Category;
+  category?: ENSIPXCategory;
   subcategory?: string;
   contract?: string;
 }): string {
@@ -196,18 +196,18 @@ export function getInheritanceChain(domain: string): string[] {
  * Validate subcategory for category
  */
 export function validateSubcategoryForCategory(
-  category: ENSIP19Category,
+  category: ENSIPXCategory,
   subcategory: string
 ): boolean {
-  const validSubcategories = ENSIP19_SUBCATEGORIES[category];
+  const validSubcategories = ENSIPX_SUBCATEGORIES[category];
   return validSubcategories ? validSubcategories.includes(subcategory) : false;
 }
 
 /**
  * Get recommended subcategories for category
  */
-export function getRecommendedSubcategories(category: ENSIP19Category): string[] {
-  return ENSIP19_SUBCATEGORIES[category] || [];
+export function getRecommendedSubcategories(category: ENSIPXCategory): string[] {
+  return ENSIPX_SUBCATEGORIES[category] || [];
 }
 
 /**
@@ -303,7 +303,7 @@ export function validateHierarchicalDomain(domain: string): {
   // Validate subcategory if present
   if (parsed.subcategory && parsed.category) {
     const isValid = validateSubcategoryForCategory(
-      parsed.category as ENSIP19Category,
+      parsed.category as ENSIPXCategory,
       parsed.subcategory
     );
     if (!isValid) {

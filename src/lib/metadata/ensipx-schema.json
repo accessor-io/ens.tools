@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ENS Contract Metadata - ENSIP-19",
+  "title": "ENS Contract Metadata - ENSIP-X",
   "type": "object",
   "required": [
     "id",
@@ -21,7 +21,7 @@
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9.-]+$",
-      "description": "Canonical identifier following ENSIP-19 grammar"
+      "description": "Canonical identifier following ENSIP-X grammar"
     },
     "org": {
       "type": "string",

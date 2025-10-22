@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Badge } from '../ui/badge';
-import { Alert, AlertDescription } from '../ui/alert';
-import { Separator } from '../ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Badge } from './ui/badge';
+import { Alert, AlertDescription } from './ui/alert';
+import { Separator } from './ui/separator';
 import { 
   FileCode, 
   Shield, 
@@ -22,13 +22,13 @@ import {
   Info
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { validateENSIP19Full, QAValidator } from '../../lib/metadata/ensip19-validator';
-import type { ENSIP19Metadata } from '../../lib/metadata/ensip19-utils';
+import { validateENSIPXFull, QAValidator } from '../lib/ensip19-validator';
+import type { ENSIPXMetadata } from '../lib/ensip19-utils';
 
 interface SchemaPreviewEditorProps {
   domain?: string;
-  initialMetadata?: Partial<ENSIP19Metadata>;
-  onSave?: (metadata: ENSIP19Metadata) => void;
+  initialMetadata?: Partial<ENSIPXMetadata>;
+  onSave?: (metadata: ENSIPXMetadata) => void;
   readOnly?: boolean;
 }
 
@@ -38,7 +38,7 @@ export function SchemaPreviewEditor({
   onSave,
   readOnly = false 
 }: SchemaPreviewEditorProps) {
-  const [metadata, setMetadata] = useState<Partial<ENSIP19Metadata>>(initialMetadata);
+  const [metadata, setMetadata] = useState<Partial<ENSIPXMetadata>>(initialMetadata);
   const [validationResult, setValidationResult] = useState<any>(null);
   const [complianceScore, setComplianceScore] = useState<any>(null);
   const [previewMode, setPreviewMode] = useState<'json' | 'form'>('form');
@@ -46,7 +46,7 @@ export function SchemaPreviewEditor({
 
   useEffect(() => {
     if (Object.keys(metadata).length > 0) {
-      const result = validateENSIP19Full(metadata);
+      const result = validateENSIPXFull(metadata);
       setValidationResult(result);
       
       const score = QAValidator.calculateComplianceScore(metadata);
@@ -97,9 +97,9 @@ export function SchemaPreviewEditor({
     }
 
     if (onSave) {
-      onSave(metadata as ENSIP19Metadata);
+      onSave(metadata as ENSIPXMetadata);
       toast.success('Metadata saved', {
-        description: 'ENSIP-19 metadata has been saved successfully'
+        description: 'ENSIP-X metadata has been saved successfully'
       });
     }
   };
@@ -286,10 +286,10 @@ export function SchemaPreviewEditor({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileCode className="h-5 w-5" />
-              ENSIP-19 Metadata Editor
+              ENSIP-X Metadata Editor
             </CardTitle>
             <CardDescription>
-              Edit contract metadata following ENSIP-19 specification
+              Edit contract metadata following ENSIP-X specification
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -326,7 +326,7 @@ export function SchemaPreviewEditor({
                       placeholder="org.protocol.category.role.v1.1"
                       disabled={readOnly}
                     />
-                    <p className="text-xs text-slate-500">Unique identifier following ENSIP-19 grammar</p>
+                    <p className="text-xs text-slate-500">Unique identifier following ENSIP-X grammar</p>
                   </div>
 
                   <div className="space-y-2">
@@ -614,7 +614,7 @@ export function SchemaPreviewEditor({
         <Card className="border-2">
           <CardHeader>
             <CardTitle>JSON Preview</CardTitle>
-            <CardDescription>Raw ENSIP-19 metadata</CardDescription>
+            <CardDescription>Raw ENSIP-X metadata</CardDescription>
           </CardHeader>
           <CardContent>
             <pre className="bg-slate-50 p-4 rounded border overflow-auto max-h-96">

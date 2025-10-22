@@ -137,87 +137,6 @@ export async function setTextRecord(
 }
 
 /**
- * Wrapper function for setText - compatibility with DomainProfile
- */
-export async function setText(
-  walletClient: WalletClient,
-  publicClient: PublicClient,
-  params: { name: string; key: string; value: string }
-): Promise<string> {
-  return setTextRecord(walletClient, publicClient, {
-    name: params.name,
-    recordType: 'text',
-    key: params.key,
-    value: params.value,
-  });
-}
-
-/**
- * Wrapper function for setAddr - compatibility with DomainProfile
- */
-export async function setAddr(
-  walletClient: WalletClient,
-  publicClient: PublicClient,
-  params: { name: string; coinType?: number; value: string }
-): Promise<string> {
-  return setAddressRecord(walletClient, publicClient, {
-    name: params.name,
-    recordType: 'address',
-    value: params.value,
-  });
-}
-
-/**
- * Wrapper function for setContenthash - compatibility with DomainProfile
- */
-export async function setContenthash(
-  walletClient: WalletClient,
-  publicClient: PublicClient,
-  params: { name: string; value: string }
-): Promise<string> {
-  return setAddressRecord(walletClient, publicClient, {
-    name: params.name,
-    recordType: 'contenthash',
-    value: params.value,
-  });
-}
-
-/**
- * Set resolver for an ENS name
- */
-export async function setResolver(
-  walletClient: WalletClient,
-  publicClient: PublicClient,
-  params: { name: string; resolver: Address }
-): Promise<string> {
-  if (!walletClient.account) {
-    throw new Error('Wallet not connected');
-  }
-
-  const normalizedName = normalize(params.name);
-  const node = namehash(normalizedName);
-
-  await simulateContract(publicClient, {
-    address: ENS_REGISTRY_ADDRESS,
-    abi: ENS_REGISTRY_ABI,
-    functionName: 'setResolver',
-    args: [node, params.resolver],
-    account: walletClient.account,
-  });
-
-  const hash = await writeContract(walletClient, {
-    address: ENS_REGISTRY_ADDRESS,
-    abi: ENS_REGISTRY_ABI,
-    functionName: 'setResolver',
-    args: [node, params.resolver],
-    account: walletClient.account,
-    chain: walletClient.chain || null,
-  });
-
-  return hash;
-}
-
-/**
  * Create a subdomain
  */
 export async function createSubdomain(
@@ -443,6 +362,71 @@ export async function setApprovalForAll(
     ] as const,
     functionName: 'setApprovalForAll',
     args: [operator, approved],
+    account: walletClient.account,
+    chain: walletClient.chain || null,
+  });
+
+  return hash;
+}
+
+/**
+ * Transfer wrapped name via NameWrapper ERC-1155
+ */
+export async function transferWrappedName(
+  walletClient: WalletClient,
+  publicClient: PublicClient,
+  name: string,
+  to: Address
+): Promise<Hex> {
+  if (!walletClient.account) {
+    throw new Error('Wallet not connected');
+  }
+
+  const normalizedName = normalize(name);
+  const node = namehash(normalizedName);
+  const tokenId = BigInt(node);
+
+  await simulateContract(publicClient, {
+    address: NAME_WRAPPER_ADDRESS,
+    abi: [
+      {
+        name: 'safeTransferFrom',
+        type: 'function',
+        stateMutability: 'nonpayable',
+        inputs: [
+          { name: 'from', type: 'address' },
+          { name: 'to', type: 'address' },
+          { name: 'tokenId', type: 'uint256' },
+          { name: 'amount', type: 'uint256' },
+          { name: 'data', type: 'bytes' },
+        ],
+        outputs: [],
+      },
+    ] as const,
+    functionName: 'safeTransferFrom',
+    args: [walletClient.account.address, to, tokenId, BigInt(1), '0x'],
+    account: walletClient.account,
+  });
+
+  const hash = await writeContract(walletClient, {
+    address: NAME_WRAPPER_ADDRESS,
+    abi: [
+      {
+        name: 'safeTransferFrom',
+        type: 'function',
+        stateMutability: 'nonpayable',
+        inputs: [
+          { name: 'from', type: 'address' },
+          { name: 'to', type: 'address' },
+          { name: 'tokenId', type: 'uint256' },
+          { name: 'amount', type: 'uint256' },
+          { name: 'data', type: 'bytes' },
+        ],
+        outputs: [],
+      },
+    ] as const,
+    functionName: 'safeTransferFrom',
+    args: [walletClient.account.address, to, tokenId, BigInt(1), '0x'],
     account: walletClient.account,
     chain: walletClient.chain || null,
   });

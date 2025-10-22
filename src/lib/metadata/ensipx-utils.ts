@@ -1,14 +1,14 @@
 /**
- * ENSIP-19 Utilities
- * Implements the ENSIP-19 specification for ENS contract metadata
+ * ENSIP-X Utilities
+ * Implements the ENSIP-X specification for ENS contract metadata
  * Based on ens-metadata-tools-repo standards
  */
 
 /**
- * ENSIP-19 Category enum
+ * ENSIP-X Category enum
  * All approved root domain categories
  */
-export const ENSIP19_CATEGORIES = [
+export const ENSIPX_CATEGORIES = [
   'defi',
   'dao',
   'l2',
@@ -30,12 +30,12 @@ export const ENSIP19_CATEGORIES = [
   'art',
 ] as const;
 
-export type ENSIP19Category = typeof ENSIP19_CATEGORIES[number];
+export type ENSIPXCategory = typeof ENSIPX_CATEGORIES[number];
 
 /**
  * Subcategories by category
  */
-export const ENSIP19_SUBCATEGORIES: Record<ENSIP19Category, string[]> = {
+export const ENSIPX_SUBCATEGORIES: Record<ENSIPXCategory, string[]> = {
   defi: [
     'amm',
     'lending',
@@ -116,10 +116,10 @@ export const LIFECYCLE_STATUSES = [
 export type LifecycleStatus = typeof LIFECYCLE_STATUSES[number];
 
 /**
- * ENSIP-19 Metadata interface
+ * ENSIP-X Metadata interface
  * Complete specification for contract metadata
  */
-export interface ENSIP19Metadata {
+export interface ENSIPXMetadata {
   // Display
   displayName?: string;
 
@@ -127,7 +127,7 @@ export interface ENSIP19Metadata {
   id: string;
   org: string;
   protocol: string;
-  category: ENSIP19Category;
+  category: ENSIPXCategory;
   role: string;
   version: string;
   chainId: number;
@@ -211,7 +211,7 @@ export interface ENSIP19Metadata {
 }
 
 /**
- * Generate canonical ID following ENSIP-19 grammar
+ * Generate canonical ID following ENSIP-X grammar
  * Format: org.protocol.category.role[.variant].version.chainId
  *
  * @param org Organization identifier (lowercase, hyphen-separated)
@@ -226,7 +226,7 @@ export interface ENSIP19Metadata {
 export function generateCanonicalId(params: {
   org: string;
   protocol: string;
-  category: ENSIP19Category;
+  category: ENSIPXCategory;
   role: string;
   version: string;
   chainId: number;
@@ -241,8 +241,8 @@ export function generateCanonicalId(params: {
   if (!protocol.match(/^[a-z0-9.-]+$/)) {
     throw new Error('Protocol must be lowercase, hyphen-separated');
   }
-  if (!ENSIP19_CATEGORIES.includes(category)) {
-    throw new Error(`Category must be one of: ${ENSIP19_CATEGORIES.join(', ')}`);
+  if (!ENSIPX_CATEGORIES.includes(category)) {
+    throw new Error(`Category must be one of: ${ENSIPX_CATEGORIES.join(', ')}`);
   }
   if (!role.match(/^[a-z0-9-]+$/)) {
     throw new Error('Role must be lowercase, hyphen-separated');
@@ -323,10 +323,10 @@ export function parseCanonicalId(id: string): {
  * Canonical JSON format (sorted keys, no whitespace)
  * Uses Web Crypto API for browser compatibility
  *
- * @param metadata ENSIP-19 metadata object
+ * @param metadata ENSIP-X metadata object
  * @returns Hex-encoded hash with 0x prefix
  */
-export async function generateMetadataHash(metadata: Partial<ENSIP19Metadata>): Promise<string> {
+export async function generateMetadataHash(metadata: Partial<ENSIPXMetadata>): Promise<string> {
   // Create a copy without the metadataHash field itself
   const metadataCopy = { ...metadata };
   delete metadataCopy.metadataHash;
@@ -411,9 +411,9 @@ export function generateEnsRoot(params: {
 }
 
 /**
- * Validate complete ENSIP-19 metadata
+ * Validate complete ENSIP-X metadata
  */
-export function validateENSIP19Metadata(metadata: Partial<ENSIP19Metadata>): {
+export function validateENSIPXMetadata(metadata: Partial<ENSIPXMetadata>): {
   valid: boolean;
   errors: string[];
   warnings: string[];
@@ -441,8 +441,8 @@ export function validateENSIP19Metadata(metadata: Partial<ENSIP19Metadata>): {
   if (metadata.protocol && !metadata.protocol.match(/^[a-z0-9.-]+$/)) {
     errors.push('Protocol must be lowercase, hyphen-separated');
   }
-  if (metadata.category && !ENSIP19_CATEGORIES.includes(metadata.category)) {
-    errors.push(`Category must be one of: ${ENSIP19_CATEGORIES.join(', ')}`);
+  if (metadata.category && !ENSIPX_CATEGORIES.includes(metadata.category)) {
+    errors.push(`Category must be one of: ${ENSIPX_CATEGORIES.join(', ')}`);
   }
   if (metadata.role && !metadata.role.match(/^[a-z0-9-]+$/)) {
     errors.push('Role must be lowercase, hyphen-separated');
@@ -482,7 +482,7 @@ export function validateENSIP19Metadata(metadata: Partial<ENSIP19Metadata>): {
 
   // Validate subcategory
   if (metadata.subcategory && metadata.category) {
-    const validSubcategories = ENSIP19_SUBCATEGORIES[metadata.category];
+    const validSubcategories = ENSIPX_SUBCATEGORIES[metadata.category];
     if (validSubcategories && !validSubcategories.includes(metadata.subcategory)) {
       warnings.push(
         `Subcategory "${metadata.subcategory}" is not in the standard list for category "${metadata.category}"`

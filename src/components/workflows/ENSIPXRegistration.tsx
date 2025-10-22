@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Separator } from '../ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Badge } from './ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Separator } from './ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import {
   FileCode,
   CheckCircle2,
@@ -22,12 +22,12 @@ import {
   GitBranch,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
-import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens';
+import { useWeb3 } from '../lib/web3-provider';
+import { setTextRecord, createSubdomain, combineFuses } from '../lib/ens-write-operations';
 import {
-  ENSIP19Metadata,
-  ENSIP19_CATEGORIES,
-  ENSIP19Category,
+  ENSIPXMetadata,
+  ENSIPX_CATEGORIES,
+  ENSIPXCategory,
   ProxyType,
   PROXY_TYPES,
   LifecycleStatus,
@@ -35,15 +35,15 @@ import {
   generateCanonicalId,
   generateMetadataHash,
   normalizeVersion,
-  ENSIP19_SUBCATEGORIES,
-} from '../../lib/metadata/ensip19-utils';
-import { validateENSIP19Full, QAValidator } from '../../lib/metadata/ensip19-validator';
+  ENSIPX_SUBCATEGORIES,
+} from '../lib/ensip19-utils';
+import { validateENSIPXFull, QAValidator } from '../lib/ensip19-validator';
 import {
   generateHierarchicalDomain,
   getRecommendedSubcategories,
-} from '../../lib/metadata/ensip19-hierarchical';
+} from '../lib/ensip19-hierarchical';
 
-export function ENSIP19Registration() {
+export function ENSIPXRegistration() {
   const { walletClient, publicClient, address } = useWeb3();
   const [step, setStep] = useState<'basic' | 'classification' | 'security' | 'lifecycle' | 'review'>('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +60,7 @@ export function ENSIP19Registration() {
   const [deployedBlock, setDeployedBlock] = useState('');
 
   // Classification
-  const [category, setCategory] = useState<ENSIP19Category>('defi');
+  const [category, setCategory] = useState<ENSIPXCategory>('defi');
   const [subcategory, setSubcategory] = useState('');
   const [tags, setTags] = useState('');
 
@@ -83,7 +83,7 @@ export function ENSIP19Registration() {
 
   const availableSubcategories = getRecommendedSubcategories(category);
 
-  const generateMetadata = async (): Promise<Partial<ENSIP19Metadata>> => {
+  const generateMetadata = async (): Promise<Partial<ENSIPXMetadata>> => {
     const canonicalId = generateCanonicalId({
       org,
       protocol,
@@ -94,7 +94,7 @@ export function ENSIP19Registration() {
       variant: variant || undefined,
     });
 
-    const metadata: Partial<ENSIP19Metadata> = {
+    const metadata: Partial<ENSIPXMetadata> = {
       id: canonicalId,
       org,
       protocol,
@@ -184,7 +184,7 @@ export function ENSIP19Registration() {
   const handleValidate = async () => {
     try {
       const metadata = await generateMetadata();
-      const validation = validateENSIP19Full(metadata);
+      const validation = validateENSIPXFull(metadata);
       const score = QAValidator.calculateComplianceScore(metadata);
 
       setComplianceScore(score.score);
@@ -194,7 +194,7 @@ export function ENSIP19Registration() {
           description: validation.errors.join('; '),
         });
       } else {
-        toast.success(`ENSIP-19 compliant! Score: ${score.score}/100 (${score.level})`, {
+        toast.success(`ENSIP-X compliant! Score: ${score.score}/100 (${score.level})`, {
           description: validation.warnings.length > 0
             ? `Warnings: ${validation.warnings.join('; ')}`
             : 'All validations passed',
@@ -223,7 +223,7 @@ export function ENSIP19Registration() {
       const metadata = await generateMetadata();
 
       // Validate
-      const validation = validateENSIP19Full(metadata);
+      const validation = validateENSIPXFull(metadata);
       if (!validation.valid) {
         toast.error('Metadata validation failed', {
           description: validation.errors.join('; '),
@@ -241,7 +241,7 @@ export function ENSIP19Registration() {
       // Register metadata as JSON in a text record
       const metadataJson = JSON.stringify(metadata, null, 2);
       
-      toast.info('Setting ENSIP-19 metadata...');
+      toast.info('Setting ENSIP-X metadata...');
       
       // Store canonical ID
       await setTextRecord(walletClient, publicClient, {
@@ -275,7 +275,7 @@ export function ENSIP19Registration() {
         value: contractAddress,
       });
 
-      toast.success('ENSIP-19 registration complete!', {
+      toast.success('ENSIP-X registration complete!', {
         description: `${ensName} is now fully compliant`,
       });
 
@@ -327,10 +327,10 @@ export function ENSIP19Registration() {
         <div>
           <h2 className="text-slate-900 flex items-center gap-2">
             <Award className="h-6 w-6 text-blue-600" />
-            ENSIP-19 Compliant Registration
+            ENSIP-X Compliant Registration
           </h2>
           <p className="text-slate-600">
-            Register contracts with full ENSIP-19 metadata specification
+            Register contracts with full ENSIP-X metadata specification
           </p>
         </div>
         {complianceScore !== null && (
@@ -345,9 +345,9 @@ export function ENSIP19Registration() {
 
       <Alert className="border-blue-200 bg-blue-50">
         <Info className="h-4 w-4 text-blue-600" />
-        <AlertTitle className="text-blue-900">ENSIP-19 Standard</AlertTitle>
+        <AlertTitle className="text-blue-900">ENSIP-X Standard</AlertTitle>
         <AlertDescription className="text-blue-800">
-          This registration follows the ENSIP-19 specification with canonical ID grammar, metadata hashing, and full compliance validation.
+          This registration follows the ENSIP-X specification with canonical ID grammar, metadata hashing, and full compliance validation.
         </AlertDescription>
       </Alert>
 
@@ -531,7 +531,7 @@ export function ENSIP19Registration() {
                 Category Classification
               </CardTitle>
               <CardDescription>
-                Categorize your contract within the ENSIP-19 taxonomy
+                Categorize your contract within the ENSIP-X taxonomy
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -540,14 +540,14 @@ export function ENSIP19Registration() {
                   Primary Category <span className="text-red-600">*</span>
                 </Label>
                 <Select value={category} onValueChange={(v) => {
-                  setCategory(v as ENSIP19Category);
+                  setCategory(v as ENSIPXCategory);
                   setSubcategory('');
                 }}>
                   <SelectTrigger id="category">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ENSIP19_CATEGORIES.map((cat) => (
+                    {ENSIPX_CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat.toUpperCase()}
                       </SelectItem>
@@ -791,7 +791,7 @@ export function ENSIP19Registration() {
             <CardHeader>
               <CardTitle>Review & Validate</CardTitle>
               <CardDescription>
-                Verify all information and check ENSIP-19 compliance
+                Verify all information and check ENSIP-X compliance
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -839,15 +839,15 @@ export function ENSIP19Registration() {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleValidate} className="flex-1">
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Validate ENSIP-19
+                  Validate ENSIP-X
                 </Button>
               </div>
 
               <Alert className="border-amber-200 bg-amber-50">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertTitle className="text-amber-900">ENSIP-19 Compliance Check</AlertTitle>
+                <AlertTitle className="text-amber-900">ENSIP-X Compliance Check</AlertTitle>
                 <AlertDescription className="text-amber-800">
-                  Click "Validate ENSIP-19" to check compliance before registering. All metadata will be stored on-chain.
+                  Click "Validate ENSIP-X" to check compliance before registering. All metadata will be stored on-chain.
                 </AlertDescription>
               </Alert>
 

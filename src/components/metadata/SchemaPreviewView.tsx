@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { SchemaPreviewEditor } from './SchemaPreviewEditor';
-import type { ENSIP19Metadata } from '../../lib/metadata';
+import type { ENSIPXMetadata } from '../../lib/metadata';
 
 export function SchemaPreviewView() {
   const [domain] = useState('example.defi.cns.eth');
   
-  const handleSave = (metadata: ENSIP19Metadata) => {
+  const handleSave = (metadata: ENSIPXMetadata) => {
     console.log('Saved metadata:', metadata);
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-slate-900">ENSIP-19 Schema Preview & Editor</h2>
+        <h2 className="text-2xl font-semibold text-slate-900">ENSIP-X Schema Preview & Editor</h2>
         <p className="text-slate-600">Advanced schema editing with ENS compliance validation</p>
       </div>
 

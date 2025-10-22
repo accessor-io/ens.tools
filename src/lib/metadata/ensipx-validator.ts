@@ -1,12 +1,12 @@
 /**
- * ENSIP-19 Validator
+ * ENSIP-X Validator
  * JSON Schema validation using AJV
  */
 
 import Ajv, { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import ensip19Schema from './ensip19-schema.json';
-import { ENSIP19Metadata, validateENSIP19Metadata } from './ensip19-utils';
+import { ENSIPXMetadata, validateENSIPXMetadata } from './ensip19-utils';
 
 /**
  * Validation result
@@ -42,9 +42,9 @@ function getValidator(): ValidateFunction {
 }
 
 /**
- * Validate ENSIP-19 metadata against JSON Schema
+ * Validate ENSIP-X metadata against JSON Schema
  */
-export function validateWithSchema(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+export function validateWithSchema(metadata: Partial<ENSIPXMetadata>): ValidationResult {
   const validator = getValidator();
   const valid = validator(metadata);
   
@@ -75,14 +75,14 @@ export function validateWithSchema(metadata: Partial<ENSIP19Metadata>): Validati
 }
 
 /**
- * Full ENSIP-19 validation combining schema and custom validation
+ * Full ENSIP-X validation combining schema and custom validation
  */
-export function validateENSIP19Full(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+export function validateENSIPXFull(metadata: Partial<ENSIPXMetadata>): ValidationResult {
   // Run schema validation
   const schemaResult = validateWithSchema(metadata);
   
   // Run custom validation
-  const customResult = validateENSIP19Metadata(metadata);
+  const customResult = validateENSIPXMetadata(metadata);
   
   // Combine results
   return {
@@ -101,14 +101,14 @@ export class QAValidator {
   /**
    * Standard 1: Metadata Schema Validation
    */
-  static validateStandard1(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+  static validateStandard1(metadata: Partial<ENSIPXMetadata>): ValidationResult {
     return validateWithSchema(metadata);
   }
 
   /**
    * Standard 2: Canonical ID Grammar
    */
-  static validateStandard2(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+  static validateStandard2(metadata: Partial<ENSIPXMetadata>): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -121,7 +121,7 @@ export class QAValidator {
     const pattern = /^([a-z0-9-]+)\.([a-z0-9.-]+)\.(defi|dao|l2|infra|token|nft|gaming|social|identity|privacy|security|wallet|analytics|rwa|supply|health|finance|dev|art)\.([a-z0-9-]+)(?:\.([a-z0-9-]+))?\.v([0-9]+(-[0-9]+)?(-[0-9]+)?)\.([0-9]+)$/;
     
     if (!pattern.test(metadata.id)) {
-      errors.push('Canonical ID does not match ENSIP-19 grammar: org.protocol.category.role[.variant].version.chainId');
+      errors.push('Canonical ID does not match ENSIP-X grammar: org.protocol.category.role[.variant].version.chainId');
     }
 
     return {
@@ -134,7 +134,7 @@ export class QAValidator {
   /**
    * Standard 3: Root Domain Categorization
    */
-  static validateStandard3(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+  static validateStandard3(metadata: Partial<ENSIPXMetadata>): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -160,7 +160,7 @@ export class QAValidator {
   /**
    * Standard 5: Security Standards
    */
-  static validateStandard5(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+  static validateStandard5(metadata: Partial<ENSIPXMetadata>): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -191,7 +191,7 @@ export class QAValidator {
   /**
    * Standard 6: Lifecycle Management
    */
-  static validateStandard6(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+  static validateStandard6(metadata: Partial<ENSIPXMetadata>): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -220,7 +220,7 @@ export class QAValidator {
   /**
    * Standard 10: Version and Compatibility
    */
-  static validateStandard10(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+  static validateStandard10(metadata: Partial<ENSIPXMetadata>): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -244,7 +244,7 @@ export class QAValidator {
   /**
    * Run all QA standards validation
    */
-  static validateAll(metadata: Partial<ENSIP19Metadata>): ValidationResult {
+  static validateAll(metadata: Partial<ENSIPXMetadata>): ValidationResult {
     const results = [
       this.validateStandard1(metadata),
       this.validateStandard2(metadata),
@@ -272,7 +272,7 @@ export class QAValidator {
   /**
    * Calculate compliance score
    */
-  static calculateComplianceScore(metadata: Partial<ENSIP19Metadata>): {
+  static calculateComplianceScore(metadata: Partial<ENSIPXMetadata>): {
     score: number;
     level: 'excellent' | 'good' | 'acceptable' | 'poor' | 'non-compliant';
     breakdown: Record<string, { passed: boolean; weight: number }>;

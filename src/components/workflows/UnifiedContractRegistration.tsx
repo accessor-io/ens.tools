@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Separator } from '../ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Badge } from './ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Separator } from './ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import {
   FileCode,
   CheckCircle2,
@@ -23,12 +23,12 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services';
-import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens';
+import { useWeb3 } from '../lib/web3-provider';
+import { setTextRecord, createSubdomain, combineFuses } from '../lib/ens-write-operations';
 import {
-  ENSIP19Metadata,
-  ENSIP19_CATEGORIES,
-  ENSIP19Category,
+  ENSIPXMetadata,
+  ENSIPX_CATEGORIES,
+  ENSIPXCategory,
   ProxyType,
   PROXY_TYPES,
   LifecycleStatus,
@@ -36,14 +36,14 @@ import {
   generateCanonicalId,
   generateMetadataHash,
   normalizeVersion,
-  ENSIP19_SUBCATEGORIES,
-} from '../../lib/metadata';
-import { validateENSIP19Full, QAValidator } from '../../lib/metadata';
+  ENSIPX_SUBCATEGORIES,
+} from '../lib/ensip19-utils';
+import { validateENSIPXFull, QAValidator } from '../lib/ensip19-validator';
 import {
   generateHierarchicalDomain,
   getRecommendedSubcategories,
-} from '../../lib/metadata';
-import { STANDARD_KEYS } from '../../lib/metadata';
+} from '../lib/ensip19-hierarchical';
+import { STANDARD_KEYS } from '../lib/metadata-schemas';
 
 type WorkflowStep = 'contract' | 'naming' | 'classification' | 'security' | 'lifecycle' | 'review';
 
@@ -66,7 +66,7 @@ export function UnifiedContractRegistration() {
   const [subdomainLabel, setSubdomainLabel] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
-  // ENSIP-19 Basic information
+  // ENSIP-X Basic information
   const [org, setOrg] = useState('');
   const [protocol, setProtocol] = useState('');
   const [role, setRole] = useState('');
@@ -75,7 +75,7 @@ export function UnifiedContractRegistration() {
   const [chainId, setChainId] = useState(1);
 
   // Classification
-  const [category, setCategory] = useState<ENSIP19Category>('defi');
+  const [category, setCategory] = useState<ENSIPXCategory>('defi');
   const [subcategory, setSubcategory] = useState('');
   const [tags, setTags] = useState('');
 
@@ -119,7 +119,7 @@ export function UnifiedContractRegistration() {
     }
   };
 
-  const generateENSIP19Metadata = async (): Promise<Partial<ENSIP19Metadata>> => {
+  const generateENSIPXMetadata = async (): Promise<Partial<ENSIPXMetadata>> => {
     const canonicalId = generateCanonicalId({
       org,
       protocol,
@@ -130,7 +130,7 @@ export function UnifiedContractRegistration() {
       variant: variant || undefined,
     });
 
-    const metadata: Partial<ENSIP19Metadata> = {
+    const metadata: Partial<ENSIPXMetadata> = {
       id: canonicalId,
       org,
       protocol,
@@ -219,8 +219,8 @@ export function UnifiedContractRegistration() {
 
   const handleValidate = async () => {
     try {
-      const metadata = await generateENSIP19Metadata();
-      const validation = validateENSIP19Full(metadata);
+      const metadata = await generateENSIPXMetadata();
+      const validation = validateENSIPXFull(metadata);
       const score = QAValidator.calculateComplianceScore(metadata);
 
       setComplianceScore(score.score);
@@ -230,7 +230,7 @@ export function UnifiedContractRegistration() {
           description: validation.errors.join('; '),
         });
       } else {
-        toast.success(`ENSIP-19 compliant! Score: ${score.score}/100 (${score.level})`, {
+        toast.success(`ENSIP-X compliant! Score: ${score.score}/100 (${score.level})`, {
           description: validation.warnings.length > 0
             ? `Warnings: ${validation.warnings.join('; ')}`
             : 'All validations passed',
@@ -259,11 +259,11 @@ export function UnifiedContractRegistration() {
       let metadataJson: string;
 
       if (validationMode === 'ensip19') {
-        // Generate full ENSIP-19 metadata
-        const metadata = await generateENSIP19Metadata();
+        // Generate full ENSIP-X metadata
+        const metadata = await generateENSIPXMetadata();
 
         // Validate
-        const validation = validateENSIP19Full(metadata);
+        const validation = validateENSIPXFull(metadata);
         if (!validation.valid) {
           toast.error('Metadata validation failed', {
             description: validation.errors.join('; '),
@@ -280,7 +280,7 @@ export function UnifiedContractRegistration() {
           description: ensName,
         });
 
-        // Store ENSIP-19 metadata
+        // Store ENSIP-X metadata
         await setTextRecord(walletClient, publicClient, {
           name: ensName,
           recordType: 'text',
@@ -359,7 +359,7 @@ export function UnifiedContractRegistration() {
       }
 
       toast.success('Contract registered successfully!', {
-        description: `${ensName} is now ${validationMode === 'ensip19' ? 'ENSIP-19 compliant' : 'registered'}`,
+        description: `${ensName} is now ${validationMode === 'ensip19' ? 'ENSIP-X compliant' : 'registered'}`,
       });
 
       // Reset form
@@ -425,7 +425,7 @@ export function UnifiedContractRegistration() {
             Unified Contract Registration
           </h2>
           <p className="text-slate-600">
-            Register contracts with optional ENSIP-19 compliance
+            Register contracts with optional ENSIP-X compliance
           </p>
         </div>
         {complianceScore !== null && (
@@ -472,7 +472,7 @@ export function UnifiedContractRegistration() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-slate-900">ENSIP-19 Compliant</h3>
+                    <h3 className="font-semibold text-slate-900">ENSIP-X Compliant</h3>
                     <p className="text-slate-600">Full specification compliance with canonical ID grammar</p>
                   </div>
                   {validationMode === 'ensip19' && (
@@ -488,9 +488,9 @@ export function UnifiedContractRegistration() {
       {validationMode === 'ensip19' && (
         <Alert className="border-blue-200 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-900">ENSIP-19 Standard</AlertTitle>
+          <AlertTitle className="text-blue-900">ENSIP-X Standard</AlertTitle>
           <AlertDescription className="text-blue-800">
-            This registration follows the ENSIP-19 specification with canonical ID grammar, metadata hashing, and full compliance validation.
+            This registration follows the ENSIP-X specification with canonical ID grammar, metadata hashing, and full compliance validation.
           </AlertDescription>
         </Alert>
       )}
@@ -729,17 +729,17 @@ export function UnifiedContractRegistration() {
           </Card>
         </TabsContent>
 
-        {/* Classification Step (ENSIP-19 only) */}
+        {/* Classification Step (ENSIP-X only) */}
         {validationMode === 'ensip19' && (
           <TabsContent value="classification">
             <Card className="border-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <GitBranch className="h-5 w-5 text-blue-600" />
-                  ENSIP-19 Classification
+                  ENSIP-X Classification
                 </CardTitle>
                 <CardDescription>
-                  Complete ENSIP-19 metadata for full compliance
+                  Complete ENSIP-X metadata for full compliance
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -835,14 +835,14 @@ export function UnifiedContractRegistration() {
                       Primary Category <span className="text-red-600">*</span>
                     </Label>
                     <Select value={category} onValueChange={(v) => {
-                      setCategory(v as ENSIP19Category);
+                      setCategory(v as ENSIPXCategory);
                       setSubcategory('');
                     }}>
                       <SelectTrigger id="category">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {ENSIP19_CATEGORIES.map((cat) => (
+                        {ENSIPX_CATEGORIES.map((cat) => (
                           <SelectItem key={cat} value={cat}>
                             {cat.toUpperCase()}
                           </SelectItem>
@@ -927,7 +927,7 @@ export function UnifiedContractRegistration() {
           </TabsContent>
         )}
 
-        {/* Security Step (ENSIP-19 only) */}
+        {/* Security Step (ENSIP-X only) */}
         {validationMode === 'ensip19' && (
           <TabsContent value="security">
             <Card className="border-2">
@@ -1031,7 +1031,7 @@ export function UnifiedContractRegistration() {
           </TabsContent>
         )}
 
-        {/* Lifecycle Step (ENSIP-19 only) */}
+        {/* Lifecycle Step (ENSIP-X only) */}
         {validationMode === 'ensip19' && (
           <TabsContent value="lifecycle">
             <Card className="border-2">
@@ -1179,7 +1179,7 @@ export function UnifiedContractRegistration() {
                   <div className="flex gap-2">
                     <Button variant="outline" onClick={handleValidate} className="flex-1">
                       <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Validate ENSIP-19
+                      Validate ENSIP-X
                     </Button>
                   </div>
                 </>
@@ -1189,7 +1189,7 @@ export function UnifiedContractRegistration() {
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
                 <AlertTitle className="text-amber-900">Confirm Transaction</AlertTitle>
                 <AlertDescription className="text-amber-800">
-                  This will {validationMode === 'ensip19' ? 'create an ENS subdomain and store ENSIP-19 metadata' : 'create a subdomain and set metadata records'}. Make sure all information is correct.
+                  This will {validationMode === 'ensip19' ? 'create an ENS subdomain and store ENSIP-X metadata' : 'create a subdomain and set metadata records'}. Make sure all information is correct.
                 </AlertDescription>
               </Alert>
 

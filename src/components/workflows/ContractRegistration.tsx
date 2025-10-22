@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Separator } from '../ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Badge } from './ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Separator } from './ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import {
   FileCode,
   CheckCircle2,
@@ -21,15 +21,15 @@ import {
   Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
-import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens';
+import { useWeb3 } from '../lib/web3-provider';
+import { setTextRecord, createSubdomain, combineFuses } from '../lib/ens-write-operations';
 import {
   ALL_SCHEMAS,
   getRecommendedSchema,
   validateMetadata,
   MetadataSchema,
   STANDARD_KEYS,
-} from '../../lib/metadata/metadata-schemas';
+} from '../lib/metadata-schemas';
 
 interface ContractInfo {
   address: string;
