@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -22,95 +22,63 @@ import {
   Clock,
   ExternalLink
 } from 'lucide-react';
-
-interface AuditEntry {
-  timestamp: string;
-  domain: string;
-  action: string;
-  actor: string;
-  txHash: string;
-  status: 'success' | 'warning' | 'failed';
-  details: string;
-}
+import { auditLogService, AuditEntry } from '../../lib/security';
 
 export function AuditLog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
 
-  const auditEntries: AuditEntry[] = [
-    {
-      timestamp: '2025-10-16 14:32:15',
-      domain: 'app.company.eth',
-      action: 'Text Record Updated',
-      actor: '0x742d35Cc6634C0532925a3b844Bc9e7595f35a3',
-      txHash: '0xabcd1234...',
-      status: 'success',
-      details: 'Updated "url" text record to https://app.company.com'
-    },
-    {
-      timestamp: '2025-10-15 09:21:44',
-      domain: 'dao.company.eth',
-      action: 'Fuse Burned',
-      actor: '0xdD870fA1b7C4700F2BD7f44238821C26f7392148',
-      txHash: '0xef567890...',
-      status: 'success',
-      details: 'Burned CANNOT_TRANSFER fuse via DAO multisig'
-    },
-    {
-      timestamp: '2025-10-14 16:45:22',
-      domain: 'vault.company.eth',
-      action: 'Resolver Changed',
-      actor: '0x583031D1113aD414F02576BD6afaBfb302140225',
-      txHash: '0x12345abc...',
-      status: 'warning',
-      details: 'Changed to custom resolver contract'
-    },
-    {
-      timestamp: '2025-10-14 11:18:09',
-      domain: 'app.company.eth',
-      action: 'Address Record Updated',
-      actor: '0x742d35Cc6634C0532925a3b844Bc9e7595f35a3',
-      txHash: '0x67890def...',
-      status: 'success',
-      details: 'Updated ETH address to new proxy contract'
-    },
-    {
-      timestamp: '2025-10-13 08:55:31',
-      domain: 'dev.company.eth',
-      action: 'Controller Transfer',
-      actor: '0xdD870fA1b7C4700F2BD7f44238821C26f7392148',
-      txHash: '0xfedcba98...',
-      status: 'success',
-      details: 'Controller delegated to operational wallet'
-    },
-    {
-      timestamp: '2025-10-12 15:22:18',
-      domain: 'staging.company.eth',
-      action: 'Renewal Failed',
-      actor: '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed',
-      txHash: '0x11223344...',
-      status: 'failed',
-      details: 'Insufficient funds for renewal transaction'
-    },
-    {
-      timestamp: '2025-10-11 13:40:55',
-      domain: 'dao.company.eth',
-      action: 'Name Wrapped',
-      actor: '0xdD870fA1b7C4700F2BD7f44238821C26f7392148',
-      txHash: '0x55667788...',
-      status: 'success',
-      details: 'Converted to ERC-1155 via Name Wrapper'
-    },
-    {
-      timestamp: '2025-10-10 10:15:42',
-      domain: 'app.company.eth',
-      action: 'Subdomain Created',
-      actor: '0x742d35Cc6634C0532925a3b844Bc9e7595f35a3',
-      txHash: '0x99aabbcc...',
-      status: 'success',
-      details: 'Created api.app.company.eth subdomain'
-    }
-  ];
+  useEffect(() => {
+    const unsubscribe = auditLogService.subscribe((entries) => {
+      setAuditEntries(entries);
+    });
+    
+    setAuditEntries(auditLogService.getEntries());
+    
+    return unsubscribe;
+  }, []);
+
+  const filteredEntries = auditEntries.filter(entry => {
+    const matchesSearch = searchQuery === '' || 
+      (entry.domain && entry.domain.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      entry.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (entry.actor && entry.actor.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesFilter = filterType === 'all' || entry.status === filterType;
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleExport = () => {
+    const csv = auditLogService.export('csv');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `audit-log-${new Date().toISOString()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const formatTimestamp = (date: Date) => {
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  };
+
+  const formatAction = (action: string) => {
+    return action.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
 
   const filteredEntries = auditEntries.filter(entry => {
     const matchesSearch = searchQuery === '' || 
@@ -240,24 +208,24 @@ export function AuditLog() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEntries.map((entry, index) => (
-                  <TableRow key={index}>
+                {filteredEntries.map((entry) => (
+                  <TableRow key={entry.id}>
                     <TableCell>
                       <div className="flex items-center gap-1 text-slate-700">
                         <Clock className="h-3 w-3" />
-                        {entry.timestamp}
+                        {formatTimestamp(entry.timestamp)}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-slate-900">{entry.domain}</span>
+                      <span className="text-slate-900">{entry.domain || 'N/A'}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-slate-700">{entry.action}</span>
+                      <span className="text-slate-700">{formatAction(entry.action)}</span>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <p className="text-slate-600 font-mono">
-                          {entry.actor.slice(0, 6)}...{entry.actor.slice(-4)}
+                          {entry.actor ? `${entry.actor.slice(0, 6)}...${entry.actor.slice(-4)}` : 'N/A'}
                         </p>
                       </div>
                     </TableCell>
@@ -280,13 +248,24 @@ export function AuditLog() {
                           Failed
                         </Badge>
                       )}
+                      {entry.status === 'info' && (
+                        <Badge variant="outline">
+                          <Clock className="h-3 w-3 mr-1" />
+                          Info
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Tx
-                        </Button>
+                        {entry.txHash && (
+                          <Button variant="ghost" size="sm" onClick={() => {
+                            window.open(`https://etherscan.io/tx/${entry.txHash}`, '_blank');
+                          }}>
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Tx
+                          </Button>
+                        )}
+                        <span className="text-slate-600 text-sm">{entry.details}</span>
                       </div>
                     </TableCell>
                   </TableRow>
