@@ -941,17 +941,17 @@ export function DomainManagement() {
                                   })()}
                                   
                                   {/* Comments Section */}
-                                  <div className="mt-8 pt-6 border-t border-slate-200 bg-purple-50/30 rounded-lg p-4 border-purple-100">
+                                  <div className="mt-8 pt-6 border-t-[2px] border-slate-200 bg-purple-50/30 rounded-lg p-4 border-[2px] border-purple-100">
                                     <div className="flex items-center justify-between mb-4">
                                       <div className="flex items-center gap-2">
                                         <MessageSquare className="h-5 w-5 text-purple-600" />
-                                        <h3 className="text-slate-900 font-semibold">Notes</h3>
+                                        <h3 className="text-base text-slate-900 font-semibold">Notes</h3>
                                       </div>
                                       <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => toggleComments(domain.name)}
-                                        className="hover:bg-purple-100"
+                                        className="hover:bg-purple-100 text-sm"
                                       >
                                         {showComments.has(domain.name) ? 'Hide' : 'Show'} Notes
                                       </Button>
@@ -967,14 +967,14 @@ export function DomainManagement() {
                                             newComments.set(domain.name, e.target.value);
                                             setDomainComments(newComments);
                                           }}
-                                          className="min-h-[100px] bg-white border-purple-200 focus:border-purple-400"
+                                          className="min-h-[100px] bg-white border-[2px] border-purple-200 focus:border-[2px] focus:border-purple-400 text-sm"
                                         />
                                         <div className="flex justify-end">
                                           <Button
                                             size="sm"
                                             onClick={() => saveComment(domain.name, domainComments.get(domain.name) || '')}
                                             disabled={!domainComments.get(domain.name)}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                                            className="bg-purple-600 hover:bg-purple-700 text-white text-sm"
                                           >
                                             <Save className="h-4 w-4 mr-2" />
                                             Save Notes
