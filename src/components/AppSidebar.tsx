@@ -9,7 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarFooter,
 } from "./ui/sidebar";
 import {
   LayoutDashboard,
@@ -20,7 +19,6 @@ import {
   ScrollText,
   Settings as SettingsIcon,
   Network,
-  User,
   BookOpen,
   Lightbulb,
   Sparkles,
@@ -31,7 +29,6 @@ import {
   BarChart3,
   PlusCircle,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "./ui/avatar";
 
 interface AppSidebarProps {
   currentView: ViewType;
@@ -274,20 +271,6 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter className="border-t p-4">
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="text-slate-900">Admin User</p>
-            <p className="text-slate-600">0x742d...35a3</p>
-          </div>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   );
 }
