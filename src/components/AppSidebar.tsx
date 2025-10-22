@@ -153,7 +153,7 @@ export function AppSidebar({
             <Network className="h-6 w-6 text-white" />
           </div>
           <div>
-            <p className="text-slate-900">ENS Enterprise</p>
+            <p className="text-slate-900">ens.tools</p>
             <p className="text-slate-600">Management Hub</p>
           </div>
         </div>
