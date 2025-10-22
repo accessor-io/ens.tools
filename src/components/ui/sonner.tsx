@@ -14,6 +14,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
       expand={true}
       position="top-right"
       visibleToasts={5}
+      gap={8}
+      toastOptions={{
+        style: {
+          marginBottom: '8px',
+        },
+      }}
       style={
         {
           "--normal-bg": "var(--popover)",
