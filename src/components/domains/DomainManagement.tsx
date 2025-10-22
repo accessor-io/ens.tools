@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Skeleton } from '../ui/skeleton';
+import { Card, CardContent } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Badge } from './ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Skeleton } from './ui/skeleton';
 import {
   Table,
   TableBody,
@@ -14,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../ui/table';
+} from './ui/table';
 import {
   Dialog,
   DialogContent,
@@ -22,16 +21,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../ui/dialog';
-import { Checkbox } from '../ui/checkbox';
+} from './ui/dialog';
+import { Checkbox } from './ui/checkbox';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { Label } from '../ui/label';
+} from './ui/select';
+import { Label } from './ui/label';
 import { 
   Search, 
   Shield, 
@@ -56,19 +55,17 @@ import {
   History,
   ArrowRightLeft,
   Clock,
-  MessageSquare,
-  Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../lib/web3-provider';
 import { 
   fetchENSNames, 
   getExpirationStatus, 
   getDaysUntilExpiration, 
   ENSDomain,
-} from '../../lib/ens';
+} from '../lib/ens-utils';
 import { DomainProfile } from './DomainProfile';
-import { eventTracker } from '../../lib/services/event-tracker';
+import { eventTracker } from '../lib/event-tracker';
 
 interface DomainGroup {
   id: string;
@@ -131,8 +128,6 @@ export function DomainManagement() {
   const [isColumnsDialogOpen, setIsColumnsDialogOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [domainHistoryCache, setDomainHistoryCache] = useState<Map<string, any[]>>(new Map());
-  const [domainComments, setDomainComments] = useState<Map<string, string>>(new Map());
-  const [showComments, setShowComments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isConnected && address) {
@@ -319,23 +314,6 @@ export function DomainManagement() {
           const sortedHistory = history.sort((a, b) => b.date.getTime() - a.date.getTime());
           setDomainHistoryCache(prev => new Map(prev).set(domainName, sortedHistory));
         }
-      }
-      return newSet;
-    });
-  };
-
-  const saveComment = (domainName: string, comment: string) => {
-    setDomainComments(prev => new Map(prev).set(domainName, comment));
-    toast.success('Comment saved successfully');
-  };
-
-  const toggleComments = (domainName: string) => {
-    setShowComments(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(domainName)) {
-        newSet.delete(domainName);
-      } else {
-        newSet.add(domainName);
       }
       return newSet;
     });
@@ -939,50 +917,6 @@ export function DomainManagement() {
                                       </Alert>
                                     );
                                   })()}
-                                  
-                                  {/* Comments Section */}
-                                  <div className="mt-8 pt-6 border-t-[2px] border-slate-200 bg-purple-50/30 rounded-lg p-4 border-[2px] border-purple-100">
-                                    <div className="flex items-center justify-between mb-4">
-                                      <div className="flex items-center gap-2">
-                                        <MessageSquare className="h-5 w-5 text-purple-600" />
-                                        <h3 className="text-base text-slate-900 font-semibold">Notes</h3>
-                                      </div>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => toggleComments(domain.name)}
-                                        className="hover:bg-purple-100 text-sm"
-                                      >
-                                        {showComments.has(domain.name) ? 'Hide' : 'Show'} Notes
-                                      </Button>
-                                    </div>
-                                    
-                                    {showComments.has(domain.name) && (
-                                      <div className="space-y-4">
-                                        <Textarea
-                                          placeholder="Add your notes about this domain..."
-                                          value={domainComments.get(domain.name) || ''}
-                                          onChange={(e) => {
-                                            const newComments = new Map(domainComments);
-                                            newComments.set(domain.name, e.target.value);
-                                            setDomainComments(newComments);
-                                          }}
-                                          className="min-h-[100px] bg-white border-[2px] border-purple-200 focus:border-[2px] focus:border-purple-400 text-sm"
-                                        />
-                                        <div className="flex justify-end">
-                                          <Button
-                                            size="sm"
-                                            onClick={() => saveComment(domain.name, domainComments.get(domain.name) || '')}
-                                            disabled={!domainComments.get(domain.name)}
-                                            className="bg-purple-600 hover:bg-purple-700 text-white text-sm"
-                                          >
-                                            <Save className="h-4 w-4 mr-2" />
-                                            Save Notes
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
                                 </div>
                               </div>
                             </TableCell>
