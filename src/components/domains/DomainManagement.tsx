@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -55,6 +56,8 @@ import {
   History,
   ArrowRightLeft,
   Clock,
+  MessageSquare,
+  Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services/web3-provider';
@@ -128,6 +131,8 @@ export function DomainManagement() {
   const [isColumnsDialogOpen, setIsColumnsDialogOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [domainHistoryCache, setDomainHistoryCache] = useState<Map<string, any[]>>(new Map());
+  const [domainComments, setDomainComments] = useState<Map<string, string>>(new Map());
+  const [showComments, setShowComments] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isConnected && address) {
@@ -314,6 +319,23 @@ export function DomainManagement() {
           const sortedHistory = history.sort((a, b) => b.date.getTime() - a.date.getTime());
           setDomainHistoryCache(prev => new Map(prev).set(domainName, sortedHistory));
         }
+      }
+      return newSet;
+    });
+  };
+
+  const saveComment = (domainName: string, comment: string) => {
+    setDomainComments(prev => new Map(prev).set(domainName, comment));
+    toast.success('Comment saved successfully');
+  };
+
+  const toggleComments = (domainName: string) => {
+    setShowComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(domainName)) {
+        newSet.delete(domainName);
+      } else {
+        newSet.add(domainName);
       }
       return newSet;
     });
@@ -917,6 +939,48 @@ export function DomainManagement() {
                                       </Alert>
                                     );
                                   })()}
+                                  
+                                  {/* Comments Section */}
+                                  <div className="mt-6 pt-6 border-t border-slate-200">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <div className="flex items-center gap-2">
+                                        <MessageSquare className="h-5 w-5 text-purple-600" />
+                                        <h3 className="text-slate-900 font-semibold">Notes</h3>
+                                      </div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleComments(domain.name)}
+                                      >
+                                        {showComments.has(domain.name) ? 'Hide' : 'Show'} Notes
+                                      </Button>
+                                    </div>
+                                    
+                                    {showComments.has(domain.name) && (
+                                      <div className="space-y-3">
+                                        <Textarea
+                                          placeholder="Add your notes about this domain..."
+                                          value={domainComments.get(domain.name) || ''}
+                                          onChange={(e) => {
+                                            const newComments = new Map(domainComments);
+                                            newComments.set(domain.name, e.target.value);
+                                            setDomainComments(newComments);
+                                          }}
+                                          className="min-h-[100px]"
+                                        />
+                                        <div className="flex justify-end">
+                                          <Button
+                                            size="sm"
+                                            onClick={() => saveComment(domain.name, domainComments.get(domain.name) || '')}
+                                            disabled={!domainComments.get(domain.name)}
+                                          >
+                                            <Save className="h-4 w-4 mr-2" />
+                                            Save Notes
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </TableCell>
