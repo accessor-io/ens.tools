@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Dashboard } from './components/Dashboard';
@@ -19,14 +19,51 @@ import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { ContractRegistration } from './components/ContractRegistration';
 import { ENSIP19Registration } from './components/ENSIP19Registration';
 import { UnifiedContractRegistration } from './components/UnifiedContractRegistration';
+import { SchemaPreviewView } from './components/SchemaPreviewView';
+import { ENSContractsRegistry } from './components/ENSContractsRegistry';
 import { WalletConnect } from './components/WalletConnect';
 import { Web3Provider } from './lib/web3-provider';
 import { Toaster } from './components/ui/sonner';
+import { notificationService } from './lib/notification-service';
 
-export type ViewType = 'dashboard' | 'domains' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'ensip19-registration' | 'unified-registration' | 'analytics';
+export type ViewType = 'dashboard' | 'domains' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'ensip19-registration' | 'unified-registration' | 'analytics' | 'schema-preview' | 'ens-contracts';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [alertConfig, setAlertConfig] = useState(() => {
+    try {
+      return notificationService.getConfig();
+    } catch (error) {
+      console.error('Error initializing notification config:', error);
+      return {
+        enabled: true,
+        emailEnabled: false,
+        webhookEnabled: false,
+        alertDuration: 15000,
+        maxVisibleAlerts: 5,
+        alertPosition: 'top-right' as const,
+        notifyOnExpiration: true,
+        notifyOnSecurityEvents: true,
+        notifyOnMetadataChanges: false,
+        notifyOnFailedTransactions: true,
+      };
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const interval = setInterval(() => {
+        try {
+          setAlertConfig(notificationService.getConfig());
+        } catch (error) {
+          console.error('Error getting notification config:', error);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    } catch (error) {
+      console.error('Error setting up notification interval:', error);
+    }
+  }, []);
 
   const renderView = () => {
     switch (currentView) {
@@ -66,6 +103,10 @@ export default function App() {
         return <UnifiedContractRegistration />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'schema-preview':
+        return <SchemaPreviewView />;
+      case 'ens-contracts':
+        return <ENSContractsRegistry />;
       default:
         return <Dashboard />;
     }
@@ -92,7 +133,11 @@ export default function App() {
             </div>
           </main>
         </div>
-        <Toaster />
+        <Toaster 
+          duration={alertConfig.alertDuration}
+          position={alertConfig.alertPosition}
+          visibleToasts={alertConfig.maxVisibleAlerts}
+        />
       </SidebarProvider>
     </Web3Provider>
   );

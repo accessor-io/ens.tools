@@ -1,7 +1,6 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { createPublicClient, createWalletClient, custom, http, PublicClient, WalletClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
-import { normalize } from 'viem/ens';
 
 interface Web3ContextType {
   address: string | null;
@@ -65,6 +64,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
         window.ethereum.removeListener('chainChanged', handleChainChanged);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAccountsChanged = (accounts: string[]) => {

@@ -1,5 +1,6 @@
 import { PublicClient } from 'viem';
 import { normalize } from 'viem/ens';
+import { addressDisplayService } from './address-display-service';
 
 export interface ENSDomain {
   name: string;
@@ -290,8 +291,8 @@ export async function getAllTextRecords(
 /**
  * Format address for display
  */
-export function formatAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+export function formatAddress(address: string, ensName?: string | null): string {
+  return addressDisplayService.formatAddress(address, ensName);
 }
 
 /**

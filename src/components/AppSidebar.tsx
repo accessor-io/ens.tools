@@ -30,6 +30,7 @@ import {
   FileCode,
   BarChart3,
   PlusCircle,
+  Code2,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
@@ -107,6 +108,11 @@ export function AppSidebar({
       icon: FileCode,
     },
     {
+      id: "ens-contracts" as ViewType,
+      label: "ENS Official Contracts",
+      icon: Code2,
+    },
+    {
       id: "integrations" as ViewType,
       label: "Integrations",
       icon: Plug,
@@ -123,6 +129,11 @@ export function AppSidebar({
       id: "metadata-tools" as ViewType,
       label: "Metadata Tools",
       icon: Database,
+    },
+    {
+      id: "schema-preview" as ViewType,
+      label: "Schema Preview",
+      icon: FileCode,
     },
   ];
 

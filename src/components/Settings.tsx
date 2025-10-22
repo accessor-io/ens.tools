@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -6,6 +7,8 @@ import { Switch } from './ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { 
   Wallet, 
   Bell, 
@@ -13,13 +16,34 @@ import {
   Zap,
   AlertTriangle,
   CheckCircle2,
-  Settings2
+  Settings2,
+  Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { notificationService, NotificationConfig } from '../lib/notification-service';
+import { addressDisplayService, AddressDisplayConfig, AddressDisplayFormat } from '../lib/address-display-service';
 
 export function Settings() {
+  const [alertConfig, setAlertConfig] = useState<NotificationConfig>(notificationService.getConfig());
+  const [addressConfig, setAddressConfig] = useState<AddressDisplayConfig>(addressDisplayService.getConfig());
+
+  useEffect(() => {
+    setAlertConfig(notificationService.getConfig());
+    setAddressConfig(addressDisplayService.getConfig());
+  }, []);
+
   const handleSaveSettings = () => {
+    notificationService.saveConfig(alertConfig);
+    addressDisplayService.saveConfig(addressConfig);
     toast.success('Settings saved successfully');
+  };
+
+  const updateAlertConfig = (updates: Partial<NotificationConfig>) => {
+    setAlertConfig({ ...alertConfig, ...updates });
+  };
+
+  const updateAddressConfig = (updates: Partial<AddressDisplayConfig>) => {
+    setAddressConfig({ ...addressConfig, ...updates });
   };
 
   return (
@@ -39,6 +63,7 @@ export function Settings() {
         <TabsList>
           <TabsTrigger value="wallets">Wallets & Access</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="display">Display</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="automation">Automation</TabsTrigger>
         </TabsList>
@@ -145,8 +170,125 @@ export function Settings() {
         <TabsContent value="notifications" className="space-y-6">
           <Card className="border-2">
             <CardHeader>
+              <CardTitle>Notification Channels</CardTitle>
+              <CardDescription>Choose how to receive alerts</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Enable email notifications</p>
+                  <p className="text-slate-600">Send alerts via email</p>
+                </div>
+                <Switch 
+                  checked={alertConfig.emailEnabled}
+                  onCheckedChange={(checked) => updateAlertConfig({ emailEnabled: checked })}
+                />
+              </div>
+
+              {alertConfig.emailEnabled && (
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input 
+                    id="email" 
+                    type="email"
+                    placeholder="admin@company.com"
+                    value={alertConfig.emailAddress || ''}
+                    onChange={(e) => updateAlertConfig({ emailAddress: e.target.value })}
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Enable webhook notifications</p>
+                  <p className="text-slate-600">Send alerts to webhook (Slack, Discord, etc.)</p>
+                </div>
+                <Switch 
+                  checked={alertConfig.webhookEnabled}
+                  onCheckedChange={(checked) => updateAlertConfig({ webhookEnabled: checked })}
+                />
+              </div>
+
+              {alertConfig.webhookEnabled && (
+                <div className="space-y-2">
+                  <Label htmlFor="webhook">Webhook URL</Label>
+                  <Input 
+                    id="webhook" 
+                    placeholder="https://hooks.slack.com/..."
+                    value={alertConfig.webhookUrl || ''}
+                    onChange={(e) => updateAlertConfig({ webhookUrl: e.target.value })}
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">In-app notifications</p>
+                  <p className="text-slate-600">Show alerts in the dashboard</p>
+                </div>
+                <Switch 
+                  checked={alertConfig.enabled}
+                  onCheckedChange={(checked) => updateAlertConfig({ enabled: checked })}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Alert Display Settings</CardTitle>
+              <CardDescription>Configure how alerts appear in the application</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="alert-duration">Alert Duration (seconds)</Label>
+                <Input 
+                  id="alert-duration" 
+                  type="number"
+                  placeholder="15"
+                  value={alertConfig.alertDuration / 1000}
+                  onChange={(e) => updateAlertConfig({ alertDuration: Number(e.target.value) * 1000 })}
+                />
+                <p className="text-slate-600">How long alerts remain visible</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="max-alerts">Maximum Visible Alerts</Label>
+                <Input 
+                  id="max-alerts" 
+                  type="number"
+                  placeholder="5"
+                  value={alertConfig.maxVisibleAlerts}
+                  onChange={(e) => updateAlertConfig({ maxVisibleAlerts: Number(e.target.value) })}
+                />
+                <p className="text-slate-600">Maximum number of alerts stacked on screen</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="alert-position">Alert Position</Label>
+                <Select 
+                  value={alertConfig.alertPosition}
+                  onValueChange={(value: any) => updateAlertConfig({ alertPosition: value })}
+                >
+                  <SelectTrigger id="alert-position">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="top-left">Top Left</SelectItem>
+                    <SelectItem value="top-right">Top Right</SelectItem>
+                    <SelectItem value="bottom-left">Bottom Left</SelectItem>
+                    <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-slate-600">Where alerts appear on screen</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2">
+            <CardHeader>
               <CardTitle>Alert Preferences</CardTitle>
-              <CardDescription>Configure when and how you receive notifications</CardDescription>
+              <CardDescription>Configure which events trigger notifications</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -154,7 +296,10 @@ export function Settings() {
                   <p className="text-slate-900">Domain expiration warnings</p>
                   <p className="text-slate-600">Alert 90, 30, and 7 days before expiration</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={alertConfig.notifyOnExpiration}
+                  onCheckedChange={(checked) => updateAlertConfig({ notifyOnExpiration: checked })}
+                />
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -162,23 +307,10 @@ export function Settings() {
                   <p className="text-slate-900">Security events</p>
                   <p className="text-slate-600">Notify on resolver changes, fuse burns, transfers</p>
                 </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <p className="text-slate-900">Governance proposals</p>
-                  <p className="text-slate-600">New ENS DAO proposals and voting deadlines</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <p className="text-slate-900">Failed transactions</p>
-                  <p className="text-slate-600">Alert when transactions fail or revert</p>
-                </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={alertConfig.notifyOnSecurityEvents}
+                  onCheckedChange={(checked) => updateAlertConfig({ notifyOnSecurityEvents: checked })}
+                />
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -186,41 +318,96 @@ export function Settings() {
                   <p className="text-slate-900">Metadata changes</p>
                   <p className="text-slate-600">Notify when records are updated</p>
                 </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle>Notification Channels</CardTitle>
-              <CardDescription>Choose how to receive alerts</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email"
-                  placeholder="admin@company.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="webhook">Webhook URL (Slack, Discord, etc.)</Label>
-                <Input 
-                  id="webhook" 
-                  placeholder="https://hooks.slack.com/..."
+                <Switch 
+                  checked={alertConfig.notifyOnMetadataChanges}
+                  onCheckedChange={(checked) => updateAlertConfig({ notifyOnMetadataChanges: checked })}
                 />
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
-                  <p className="text-slate-900">In-app notifications</p>
-                  <p className="text-slate-600">Show alerts in the dashboard</p>
+                  <p className="text-slate-900">Failed transactions</p>
+                  <p className="text-slate-600">Alert when transactions fail or revert</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={alertConfig.notifyOnFailedTransactions}
+                  onCheckedChange={(checked) => updateAlertConfig({ notifyOnFailedTransactions: checked })}
+                />
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Display */}
+        <TabsContent value="display" className="space-y-6">
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Address Display Settings</CardTitle>
+              <CardDescription>Configure how Ethereum addresses are displayed throughout the application</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <Label>Address Display Format</Label>
+                <RadioGroup 
+                  value={addressConfig.format}
+                  onValueChange={(value: AddressDisplayFormat) => updateAddressConfig({ format: value })}
+                >
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50">
+                    <RadioGroupItem value="abbreviated" id="format-abbreviated" />
+                    <Label htmlFor="format-abbreviated" className="flex-1 cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-slate-900">Abbreviated</p>
+                          <p className="text-slate-600">Show shortened addresses (0x742d...35a3)</p>
+                        </div>
+                        <Badge variant="outline">Default</Badge>
+                      </div>
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50">
+                    <RadioGroupItem value="full" id="format-full" />
+                    <Label htmlFor="format-full" className="flex-1 cursor-pointer">
+                      <div>
+                        <p className="text-slate-900">Full Address</p>
+                        <p className="text-slate-600">Show complete 42-character addresses</p>
+                      </div>
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50">
+                    <RadioGroupItem value="ens-name" id="format-ens" />
+                    <Label htmlFor="format-ens" className="flex-1 cursor-pointer">
+                      <div>
+                        <p className="text-slate-900">ENS Name</p>
+                        <p className="text-slate-600">Show ENS names when available, fallback to abbreviated</p>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Enable ENS Resolution</p>
+                  <p className="text-slate-600">Automatically resolve addresses to ENS names</p>
+                </div>
+                <Switch 
+                  checked={addressConfig.resolveENS}
+                  onCheckedChange={(checked) => updateAddressConfig({ resolveENS: checked })}
+                />
+              </div>
+
+              <Alert className="border-blue-200 bg-blue-50">
+                <Eye className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  Preview: An address will display as <code className="px-1 py-0.5 bg-white rounded">
+                    {addressConfig.format === 'full' ? '0x742d35Cc6634C0532925a3b844Bc9e7595f35a3' : 
+                     addressConfig.format === 'ens-name' ? 'vitalik.eth' : 
+                     '0x742d...35a3'}
+                  </code>
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </TabsContent>

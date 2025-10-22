@@ -42,7 +42,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../lib/web3-provider';
-import { ENSDomain, formatAddress, getAllTextRecords } from '../lib/ens-utils';
+import { ENSDomain, formatAddress, getAllTextRecords, reverseResolveAddress } from '../lib/ens-utils';
+import { addressDisplayService } from '../lib/address-display-service';
 import { 
   setTextRecord, 
   createSubdomain, 
@@ -90,9 +91,15 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
   const [selectedFuses, setSelectedFuses] = useState<string[]>([]);
   const [showFuseManager, setShowFuseManager] = useState(false);
 
+  // ENS name resolution state
+  const [ownerENSName, setOwnerENSName] = useState<string | null>(null);
+  const [resolverENSName, setResolverENSName] = useState<string | null>(null);
+  const [resolvedAddressENSName, setResolvedAddressENSName] = useState<string | null>(null);
+
   useEffect(() => {
     loadDomainDetails();
     loadSubdomains();
+    loadENSNames();
     
     // Set recommended schema
     const recommended = getRecommendedSchema(domain.name);
@@ -111,6 +118,36 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
       setMetadata(metadataObj);
     } catch (error) {
       console.error('Error loading domain details:', error);
+    }
+  };
+
+  const loadENSNames = async () => {
+    if (!publicClient) return;
+
+    try {
+      const ownerName = await reverseResolveAddress(publicClient, domain.owner);
+      setOwnerENSName(ownerName);
+      if (ownerName) {
+        addressDisplayService.setENSName(domain.owner, ownerName);
+      }
+
+      if (domain.resolver) {
+        const resolverName = await reverseResolveAddress(publicClient, domain.resolver);
+        setResolverENSName(resolverName);
+        if (resolverName) {
+          addressDisplayService.setENSName(domain.resolver, resolverName);
+        }
+      }
+
+      if (domain.resolvedAddress) {
+        const resolvedName = await reverseResolveAddress(publicClient, domain.resolvedAddress);
+        setResolvedAddressENSName(resolvedName);
+        if (resolvedName) {
+          addressDisplayService.setENSName(domain.resolvedAddress, resolvedName);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading ENS names:', error);
     }
   };
 
@@ -323,7 +360,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                     <div>
                       <Label className="text-slate-600">Owner</Label>
                       <div className="flex items-center gap-2 mt-1">
-                        <code className="text-slate-900">{formatAddress(domain.owner)}</code>
+                        <code className="text-slate-900">{formatAddress(domain.owner, ownerENSName)}</code>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -338,7 +375,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                       <div>
                         <Label className="text-slate-600">Resolved Address</Label>
                         <div className="flex items-center gap-2 mt-1">
-                          <code className="text-slate-900">{formatAddress(domain.resolvedAddress)}</code>
+                          <code className="text-slate-900">{formatAddress(domain.resolvedAddress, resolvedAddressENSName)}</code>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -377,7 +414,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                       <div className="md:col-span-2">
                         <Label className="text-slate-600">Resolver</Label>
                         <div className="flex items-center gap-2 mt-1">
-                          <code className="text-slate-900 break-all">{formatAddress(domain.resolver)}</code>
+                          <code className="text-slate-900 break-all">{formatAddress(domain.resolver, resolverENSName)}</code>
                           <Button
                             variant="ghost"
                             size="sm"

@@ -15,6 +15,7 @@ import { Wallet, ChevronDown, LogOut, Network, Copy, ExternalLink } from 'lucide
 import { toast } from 'sonner';
 import { formatAddress } from '../lib/ens-utils';
 import { reverseResolveAddress } from '../lib/ens-utils';
+import { addressDisplayService } from '../lib/address-display-service';
 
 export function WalletConnect() {
   const { address, isConnected, chainId, connect, disconnect, switchNetwork, publicClient } = useWeb3();
@@ -29,6 +30,9 @@ export function WalletConnect() {
         try {
           const name = await reverseResolveAddress(publicClient, address);
           setEnsName(name);
+          if (name) {
+            addressDisplayService.setENSName(address, name);
+          }
         } catch (error) {
           console.error('Error fetching ENS name:', error);
         } finally {
@@ -138,10 +142,10 @@ export function WalletConnect() {
             {ensName ? (
               <div>
                 <p className="text-slate-900">{ensName}</p>
-                <code className="text-slate-600 break-all">{address}</code>
+                <code className="text-slate-600 break-all">{formatAddress(address, ensName)}</code>
               </div>
             ) : (
-              <code className="text-slate-900 break-all">{address}</code>
+              <code className="text-slate-900 break-all">{formatAddress(address)}</code>
             )}
           </div>
 

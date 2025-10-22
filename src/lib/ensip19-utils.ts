@@ -120,6 +120,9 @@ export type LifecycleStatus = typeof LIFECYCLE_STATUSES[number];
  * Complete specification for contract metadata
  */
 export interface ENSIP19Metadata {
+  // Display
+  displayName?: string;
+
   // Required fields
   id: string;
   org: string;

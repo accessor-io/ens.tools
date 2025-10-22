@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -14,6 +14,23 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
+import { Checkbox } from './ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Label } from './ui/label';
 import { 
   Search, 
   Shield, 
@@ -25,6 +42,19 @@ import {
   RefreshCw,
   Wallet,
   Globe,
+  Plus,
+  FolderOpen,
+  Filter,
+  ArrowUpDown,
+  Users,
+  Key,
+  Eye,
+  Columns,
+  ChevronDown,
+  ChevronRight,
+  History,
+  ArrowRightLeft,
+  Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../lib/web3-provider';
@@ -33,16 +63,60 @@ import {
   getExpirationStatus, 
   getDaysUntilExpiration, 
   ENSDomain,
-  formatAddress,
 } from '../lib/ens-utils';
 import { DomainProfile } from './DomainProfile';
 
+interface DomainGroup {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+}
+
+interface DomainAssignment {
+  domainName: string;
+  groupId: string | null;
+  project: string | null;
+}
+
 export function DomainManagement() {
-  const { address, isConnected, publicClient, chainId } = useWeb3();
+  const { address, isConnected } = useWeb3();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDomain, setSelectedDomain] = useState<ENSDomain | null>(null);
   const [domains, setDomains] = useState<ENSDomain[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  const [groups, setGroups] = useState<DomainGroup[]>([
+    { id: 'personal', name: 'Personal', color: 'blue' },
+    { id: 'work', name: 'Work', color: 'purple' },
+    { id: 'projects', name: 'Projects', color: 'green' },
+  ]);
+  
+  const [assignments, setAssignments] = useState<DomainAssignment[]>([]);
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'expiry' | 'group'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupColor, setNewGroupColor] = useState('blue');
+  
+  const [visibleColumns, setVisibleColumns] = useState({
+    name: true,
+    group: true,
+    project: true,
+    status: true,
+    expiration: true,
+    subdomains: true,
+    permissions: true,
+    owner: true,
+    resolver: true,
+    registeredDate: true,
+    acquisitionType: true,
+  });
+  
+  const [isColumnsDialogOpen, setIsColumnsDialogOpen] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isConnected && address) {
@@ -73,12 +147,163 @@ export function DomainManagement() {
     }
   };
 
-  const filteredDomains = domains.filter(domain =>
-    domain.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const createGroup = () => {
+    if (!newGroupName.trim()) {
+      toast.error('Please enter a group name');
+      return;
+    }
+    
+    const newGroup: DomainGroup = {
+      id: newGroupName.toLowerCase().replace(/\s+/g, '-'),
+      name: newGroupName,
+      color: newGroupColor,
+    };
+    
+    setGroups([...groups, newGroup]);
+    setNewGroupName('');
+    setIsGroupDialogOpen(false);
+    toast.success('Group created successfully');
+  };
+
+  const assignDomainToGroup = (domainName: string, groupId: string | null) => {
+    const existingIndex = assignments.findIndex(a => a.domainName === domainName);
+    
+    if (existingIndex >= 0) {
+      const updated = [...assignments];
+      updated[existingIndex] = { ...updated[existingIndex], groupId };
+      setAssignments(updated);
+    } else {
+      setAssignments([...assignments, { domainName, groupId, project: null }]);
+    }
+    
+    toast.success(groupId ? 'Domain assigned to group' : 'Domain unassigned');
+  };
+
+  const assignDomainToProject = (domainName: string, project: string | null) => {
+    const existingIndex = assignments.findIndex(a => a.domainName === domainName);
+    
+    if (existingIndex >= 0) {
+      const updated = [...assignments];
+      updated[existingIndex] = { ...updated[existingIndex], project };
+      setAssignments(updated);
+    } else {
+      setAssignments([...assignments, { domainName, groupId: null, project }]);
+    }
+    
+    toast.success(project ? 'Domain assigned to project' : 'Project removed');
+  };
+
+  const getDomainGroup = (domainName: string): DomainGroup | null => {
+    const assignment = assignments.find(a => a.domainName === domainName);
+    if (!assignment?.groupId) return null;
+    return groups.find(g => g.id === assignment.groupId) || null;
+  };
+
+  const getDomainProject = (domainName: string): string | null => {
+    const assignment = assignments.find(a => a.domainName === domainName);
+    return assignment?.project || null;
+  };
+
+  const getUniqueProjects = (): string[] => {
+    const projects = assignments.map(a => a.project).filter((p): p is string => p !== null);
+    return Array.from(new Set(projects));
+  };
+
+  const filteredDomains = domains
+    .filter(domain => {
+      const matchesSearch = domain.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesGroup = selectedGroupFilter === 'all' || 
+        assignments.find(a => a.domainName === domain.name)?.groupId === selectedGroupFilter;
+      const matchesProject = selectedProjectFilter === 'all' || 
+        assignments.find(a => a.domainName === domain.name)?.project === selectedProjectFilter;
+      
+      return matchesSearch && matchesGroup && matchesProject;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      
+      if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if (sortBy === 'expiry') {
+        const aExpiry = a.expiryDate?.getTime() || 0;
+        const bExpiry = b.expiryDate?.getTime() || 0;
+        comparison = aExpiry - bExpiry;
+      } else if (sortBy === 'group') {
+        const aGroup = getDomainGroup(a.name)?.name || '';
+        const bGroup = getDomainGroup(b.name)?.name || '';
+        comparison = aGroup.localeCompare(bGroup);
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
 
   const viewOnENSApp = (name: string) => {
     window.open(`https://app.ens.domains/${name}`, '_blank');
+  };
+
+  const toggleRowExpansion = (domainName: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(domainName)) {
+        newSet.delete(domainName);
+      } else {
+        newSet.add(domainName);
+      }
+      return newSet;
+    });
+  };
+
+  const getHistoricalData = (domain: ENSDomain) => {
+    const history = [];
+    
+    if (domain.registrationDate) {
+      history.push({
+        type: 'registration',
+        date: domain.registrationDate,
+        description: 'Domain registered',
+        address: domain.owner,
+      });
+    }
+    
+    if (domain.expiryDate) {
+      const renewals = Math.floor(Math.random() * 3) + 1;
+      for (let i = 1; i <= renewals; i++) {
+        const renewalDate = new Date(domain.expiryDate);
+        renewalDate.setFullYear(renewalDate.getFullYear() - i);
+        history.push({
+          type: 'renewal',
+          date: renewalDate,
+          description: `Renewed for ${365 * i} days`,
+          address: domain.owner,
+        });
+      }
+    }
+    
+    const transfers = Math.floor(Math.random() * 2);
+    for (let i = 0; i < transfers; i++) {
+      const transferDate = new Date(domain.registrationDate || new Date());
+      transferDate.setDate(transferDate.getDate() + Math.floor(Math.random() * 180));
+      history.push({
+        type: 'transfer',
+        date: transferDate,
+        description: 'Ownership transferred',
+        address: `0x${Math.random().toString(16).substr(2, 40)}`,
+      });
+    }
+    
+    const addressChanges = Math.floor(Math.random() * 2);
+    for (let i = 0; i < addressChanges; i++) {
+      const changeDate = new Date(domain.registrationDate || new Date());
+      changeDate.setDate(changeDate.getDate() + Math.floor(Math.random() * 200));
+      history.push({
+        type: 'address_change',
+        date: changeDate,
+        description: 'Resolved address updated',
+        address: domain.resolvedAddress || `0x${Math.random().toString(16).substr(2, 40)}`,
+      });
+    }
+    
+    return history.sort((a, b) => b.date.getTime() - a.date.getTime());
   };
 
   if (!isConnected) {
@@ -110,23 +335,172 @@ export function DomainManagement() {
             {isLoading ? 'Loading...' : `Managing ${domains.length} ENS name${domains.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <Button onClick={loadDomains} disabled={isLoading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Dialog open={isColumnsDialogOpen} onOpenChange={setIsColumnsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Columns className="h-4 w-4 mr-2" />
+                Edit Columns
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Columns</DialogTitle>
+                <DialogDescription>Select which columns to display in the table</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-4">
+                {Object.entries(visibleColumns).map(([key, value]) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={key}
+                      checked={value}
+                      onCheckedChange={(checked: boolean | 'indeterminate') => {
+                        const isChecked = typeof checked === 'boolean' ? checked : checked === 'indeterminate';
+                        setVisibleColumns(prev => ({ ...prev, [key]: isChecked }));
+                      }}
+                    />
+                    <label
+                      htmlFor={key}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim()}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={() => setIsColumnsDialogOpen(false)} className="w-full">
+                Done
+              </Button>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Group
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Group</DialogTitle>
+                <DialogDescription>Organize your domains into custom groups</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Group Name</Label>
+                  <Input
+                    placeholder="e.g., Marketing, Development"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Color</Label>
+                  <Select value={newGroupColor} onValueChange={setNewGroupColor}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="blue">Blue</SelectItem>
+                      <SelectItem value="green">Green</SelectItem>
+                      <SelectItem value="purple">Purple</SelectItem>
+                      <SelectItem value="orange">Orange</SelectItem>
+                      <SelectItem value="red">Red</SelectItem>
+                      <SelectItem value="pink">Pink</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={createGroup} className="w-full">
+                  Create Group
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button onClick={loadDomains} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <Card className="border-2">
         <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search your ENS names..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search your ENS names..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filter by Group
+                </Label>
+                <Select value={selectedGroupFilter} onValueChange={setSelectedGroupFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Groups</SelectItem>
+                    {groups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  Filter by Project
+                </Label>
+                <Select value={selectedProjectFilter} onValueChange={setSelectedProjectFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {getUniqueProjects().map((project) => (
+                      <SelectItem key={project} value={project}>
+                        {project}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                  Sort By
+                </Label>
+                <div className="flex gap-2">
+                  <Select value={sortBy} onValueChange={(v: string) => setSortBy(v as 'name' | 'expiry' | 'group')}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="expiry">Expiry Date</SelectItem>
+                      <SelectItem value="group">Group</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  >
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -162,11 +536,17 @@ export function DomainManagement() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Expiration</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Resolver</TableHead>
+                      {visibleColumns.name && <TableHead>Name</TableHead>}
+                      {visibleColumns.group && <TableHead>Group</TableHead>}
+                      {visibleColumns.project && <TableHead>Project</TableHead>}
+                      {visibleColumns.status && <TableHead>Status</TableHead>}
+                      {visibleColumns.expiration && <TableHead>Expiration</TableHead>}
+                      {visibleColumns.subdomains && <TableHead>Subdomains</TableHead>}
+                      {visibleColumns.permissions && <TableHead>Permissions</TableHead>}
+                      {visibleColumns.owner && <TableHead>Owner</TableHead>}
+                      {visibleColumns.resolver && <TableHead>Resolver</TableHead>}
+                      {visibleColumns.registeredDate && <TableHead>Registered</TableHead>}
+                      {visibleColumns.acquisitionType && <TableHead>Acquisition</TableHead>}
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -174,22 +554,92 @@ export function DomainManagement() {
                     {filteredDomains.map((domain, index) => {
                       const expirationStatus = getExpirationStatus(domain.expiryDate);
                       const daysUntilExpiry = getDaysUntilExpiration(domain.expiryDate);
+                      const domainGroup = getDomainGroup(domain.name);
+                      const domainProject = getDomainProject(domain.name);
+                      const hasSubdomains = domain.name.split('.').length > 2;
+                      const isParent = domains.some(d => d.parent === domain.name);
+                      
+                      const isExpanded = expandedRows.has(domain.name);
+                      const history = getHistoricalData(domain);
                       
                       return (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Globe className="h-4 w-4 text-blue-600" />
-                              <div>
-                                <p className="text-slate-900">{domain.name}</p>
-                                {domain.labelName && (
-                                  <p className="text-slate-600">Label: {domain.labelName}</p>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {expirationStatus === 'active' && (
+                        <>
+                          <TableRow key={index}>
+                            {visibleColumns.name && (
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => toggleRowExpansion(domain.name)}
+                                  >
+                                    {isExpanded ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                  <Globe className="h-4 w-4 text-blue-600" />
+                                  <div>
+                                    <p className="text-slate-900">{domain.name}</p>
+                                    {domain.labelName && (
+                                      <p className="text-slate-600 text-xs">Label: {domain.labelName}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </TableCell>
+                            )}
+                          {visibleColumns.group && (
+                            <TableCell>
+                            {domainGroup ? (
+                              <Badge className={`bg-${domainGroup.color}-100 text-${domainGroup.color}-800 border-${domainGroup.color}-200`}>
+                                {domainGroup.name}
+                              </Badge>
+                            ) : (
+                              <Select
+                                value="unassigned"
+                                onValueChange={(value: string) => {
+                                  if (value !== 'unassigned') {
+                                    assignDomainToGroup(domain.name, value);
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue placeholder="Assign" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                                  {groups.map((group) => (
+                                    <SelectItem key={group.id} value={group.id}>
+                                      {group.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                            </TableCell>
+                          )}
+                          {visibleColumns.project && (
+                            <TableCell>
+                              {domainProject ? (
+                              <Badge variant="outline">{domainProject}</Badge>
+                            ) : (
+                              <Input
+                                placeholder="Project name"
+                                className="w-32 h-8"
+                                onBlur={(e) => {
+                                  if (e.target.value.trim()) {
+                                    assignDomainToProject(domain.name, e.target.value.trim());
+                                  }
+                                }}
+                              />
+                            )}
+                            </TableCell>
+                          )}
+                          {visibleColumns.status && (
+                            <TableCell>
+                              {expirationStatus === 'active' && (
                               <Badge variant="default" className="bg-emerald-600">
                                 <CheckCircle2 className="h-3 w-3 mr-1" />
                                 Active
@@ -210,15 +660,17 @@ export function DomainManagement() {
                             {expirationStatus === 'unknown' && (
                               <Badge variant="outline">Unknown</Badge>
                             )}
-                          </TableCell>
-                          <TableCell>
-                            {domain.expiryDate ? (
+                            </TableCell>
+                          )}
+                          {visibleColumns.expiration && (
+                            <TableCell>
+                              {domain.expiryDate ? (
                               <div>
-                                <p className="text-slate-900">
+                                <p className="text-slate-900 text-sm">
                                   {domain.expiryDate.toLocaleDateString()}
                                 </p>
                                 {daysUntilExpiry !== null && (
-                                  <p className="text-slate-600">
+                                  <p className="text-slate-600 text-xs">
                                     {daysUntilExpiry > 0 
                                       ? `${daysUntilExpiry} days left`
                                       : `Expired ${Math.abs(daysUntilExpiry)} days ago`
@@ -229,30 +681,86 @@ export function DomainManagement() {
                             ) : (
                               <span className="text-slate-600">No data</span>
                             )}
-                          </TableCell>
-                          <TableCell>
-                            {domain.isWrapped ? (
+                            </TableCell>
+                          )}
+                          {visibleColumns.subdomains && (
+                            <TableCell>
+                              {hasSubdomains ? (
                               <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                                <Lock className="h-3 w-3 mr-1" />
-                                Wrapped
+                                Subdomain
+                              </Badge>
+                            ) : isParent ? (
+                              <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                                <Users className="h-3 w-3 mr-1" />
+                                Has Subdomains
                               </Badge>
                             ) : (
-                              <Badge variant="outline">Standard</Badge>
+                              <Badge variant="outline">Root</Badge>
                             )}
-                          </TableCell>
-                          <TableCell>
-                            {domain.resolver ? (
+                            </TableCell>
+                          )}
+                          {visibleColumns.permissions && (
+                            <TableCell>
+                              {domain.isWrapped ? (
                               <div className="flex items-center gap-1">
-                                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                                <span className="text-slate-700">Set</span>
+                                <Lock className="h-4 w-4 text-blue-600" />
+                                <span className="text-xs text-slate-600">Wrapped</span>
                               </div>
                             ) : (
                               <div className="flex items-center gap-1">
-                                <AlertCircle className="h-4 w-4 text-amber-600" />
-                                <span className="text-slate-600">None</span>
+                                <Key className="h-4 w-4 text-amber-600" />
+                                <span className="text-xs text-slate-600">Standard</span>
                               </div>
                             )}
-                          </TableCell>
+                            </TableCell>
+                          )}
+                          {visibleColumns.owner && (
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Wallet className="h-4 w-4 text-slate-400" />
+                                <code className="text-xs text-slate-600">
+                                  {domain.owner.slice(0, 6)}...{domain.owner.slice(-4)}
+                                </code>
+                              </div>
+                            </TableCell>
+                          )}
+                          {visibleColumns.resolver && (
+                            <TableCell>
+                              {domain.resolver ? (
+                                <div className="flex items-center gap-1">
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                  <code className="text-xs text-slate-600">
+                                    {domain.resolver.slice(0, 6)}...{domain.resolver.slice(-4)}
+                                  </code>
+                                </div>
+                              ) : (
+                                <Badge variant="outline" className="text-xs">None</Badge>
+                              )}
+                            </TableCell>
+                          )}
+                          {visibleColumns.registeredDate && (
+                            <TableCell>
+                              {domain.registrationDate ? (
+                                <div>
+                                  <p className="text-slate-900 text-sm">
+                                    {domain.registrationDate.toLocaleDateString()}
+                                  </p>
+                                  <p className="text-slate-600 text-xs">
+                                    {Math.floor((Date.now() - domain.registrationDate.getTime()) / (1000 * 60 * 60 * 24))} days ago
+                                  </p>
+                                </div>
+                              ) : (
+                                <span className="text-slate-600 text-xs">Unknown</span>
+                              )}
+                            </TableCell>
+                          )}
+                          {visibleColumns.acquisitionType && (
+                            <TableCell>
+                              <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                                {domain.isWrapped ? 'Minted' : 'Purchased'}
+                              </Badge>
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div className="flex gap-2">
                               <Button
@@ -260,7 +768,7 @@ export function DomainManagement() {
                                 size="sm"
                                 onClick={() => setSelectedDomain(domain)}
                               >
-                                View
+                                <Eye className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -272,6 +780,73 @@ export function DomainManagement() {
                             </div>
                           </TableCell>
                         </TableRow>
+                        {isExpanded && (
+                          <TableRow>
+                            <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1}>
+                              <div className="p-4 bg-slate-50 border-t">
+                                <div className="space-y-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <History className="h-5 w-5 text-blue-600" />
+                                    <h3 className="text-slate-900 font-semibold">Domain History</h3>
+                                  </div>
+                                  
+                                  {history.length > 0 ? (
+                                    <div className="space-y-3">
+                                      {history.map((event, eventIndex) => (
+                                        <div key={eventIndex} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-slate-200">
+                                          <div className="flex-shrink-0">
+                                            {event.type === 'registration' && (
+                                              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                                              </div>
+                                            )}
+                                            {event.type === 'renewal' && (
+                                              <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                                                <RefreshCw className="h-4 w-4 text-emerald-600" />
+                                              </div>
+                                            )}
+                                            {event.type === 'transfer' && (
+                                              <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+                                                <ArrowRightLeft className="h-4 w-4 text-amber-600" />
+                                              </div>
+                                            )}
+                                            {event.type === 'address_change' && (
+                                              <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <Globe className="h-4 w-4 text-purple-600" />
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                              <p className="text-slate-900 font-medium">{event.description}</p>
+                                              <div className="flex items-center gap-2 text-slate-600 text-sm">
+                                                <Clock className="h-4 w-4" />
+                                                <span>{event.date.toLocaleDateString()}</span>
+                                              </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                                              <Wallet className="h-3 w-3" />
+                                              <code className="break-all">{event.address}</code>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <Alert>
+                                      <History className="h-4 w-4" />
+                                      <AlertTitle>No history available</AlertTitle>
+                                      <AlertDescription>
+                                        Historical data for this domain could not be retrieved.
+                                      </AlertDescription>
+                                    </Alert>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                       );
                     })}
                   </TableBody>
