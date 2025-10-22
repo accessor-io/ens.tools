@@ -1,5 +1,5 @@
 {
-      "name": "ENS Contract Naming Best Practices",
+      "name": "ens.tools",
       "version": "0.1.0",
       "private": true,
       "dependencies": {
@@ -34,6 +34,7 @@
             "class-variance-authority": "^0.7.1",
             "clsx": "*",
             "cmdk": "^1.1.1",
+            "crypto-js": "^4.2.0",
             "embla-carousel-react": "^8.6.0",
             "input-otp": "^1.4.2",
             "lucide-react": "^0.487.0",
@@ -50,6 +51,7 @@
             "viem": "*"
       },
       "devDependencies": {
+            "@types/crypto-js": "^4.2.2",
             "@types/node": "^20.10.0",
             "@types/react": "^19.2.2",
             "@types/react-dom": "^19.2.2",

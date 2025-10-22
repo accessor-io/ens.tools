@@ -30,7 +30,6 @@ import {
   FileCode,
   BarChart3,
   PlusCircle,
-  Code2,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
@@ -43,6 +42,14 @@ export function AppSidebar({
   currentView,
   onViewChange,
 }: AppSidebarProps) {
+  const workflowItems = [
+    {
+      id: "preflight" as ViewType,
+      label: "Preflight Checker",
+      icon: FileCode,
+    },
+  ];
+
   const managementItems = [
     {
       id: "dashboard" as ViewType,
@@ -83,19 +90,9 @@ export function AppSidebar({
 
   const registryItems = [
     {
-      id: "unified-registration" as ViewType,
+      id: "contract-registration" as ViewType,
       label: "Register Contract",
       icon: PlusCircle,
-    },
-    {
-      id: "contract-registration" as ViewType,
-      label: "Basic Registration",
-      icon: FileCode,
-    },
-    {
-      id: "ensip19-registration" as ViewType,
-      label: "ENSIP-19 Only",
-      icon: Sparkles,
     },
     {
       id: "dao-registry" as ViewType,
@@ -106,11 +103,6 @@ export function AppSidebar({
       id: "contracts" as ViewType,
       label: "Contract Registry",
       icon: FileCode,
-    },
-    {
-      id: "ens-contracts" as ViewType,
-      label: "ENS Official Contracts",
-      icon: Code2,
     },
     {
       id: "integrations" as ViewType,
@@ -129,11 +121,6 @@ export function AppSidebar({
       id: "metadata-tools" as ViewType,
       label: "Metadata Tools",
       icon: Database,
-    },
-    {
-      id: "schema-preview" as ViewType,
-      label: "Schema Preview",
-      icon: FileCode,
     },
   ];
 
@@ -173,6 +160,25 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Workflows</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {workflowItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => onViewChange(item.id)}
+                    isActive={currentView === item.id}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel>Management</SidebarGroupLabel>
           <SidebarGroupContent>

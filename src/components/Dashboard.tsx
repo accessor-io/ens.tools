@@ -17,8 +17,8 @@ import {
   RefreshCw,
   ExternalLink,
 } from 'lucide-react';
-import { useWeb3 } from '../lib/web3-provider';
-import { fetchENSNames, getExpirationStatus, getDaysUntilExpiration, ENSDomain } from '../lib/ens-utils';
+import { useWeb3 } from '../lib/services/web3-provider';
+import { fetchENSNames, getExpirationStatus, getDaysUntilExpiration, ENSDomain } from '../lib/ens';
 import { toast } from 'sonner';
 
 export function Dashboard() {
@@ -129,7 +129,7 @@ export function Dashboard() {
       <div className="space-y-6">
         <Alert className="border-blue-200 bg-blue-50">
           <Wallet className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-900">Welcome to ENS Enterprise Management</AlertTitle>
+          <AlertTitle className="text-blue-900">Welcome to ens.tools</AlertTitle>
           <AlertDescription className="text-blue-800">
             Connect your wallet to view and manage your ENS domains. Click the "Connect Wallet" button in the top right corner to get started.
           </AlertDescription>
@@ -159,7 +159,7 @@ export function Dashboard() {
         <Card className="border-2">
           <CardHeader>
             <CardTitle>Getting Started</CardTitle>
-            <CardDescription>What you can do with ENS Enterprise Management</CardDescription>
+            <CardDescription>What you can do with ens.tools</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-start gap-3 p-3 border rounded-lg">

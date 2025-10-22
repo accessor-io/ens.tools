@@ -1,8 +1,8 @@
-# Comprehensive ENS Enterprise Management Features
+# Comprehensive ens.tools Features
 
 ## 🎯 Complete Implementation Guide
 
-This document details all the production-ready features now available in the ENS Enterprise Management System, following standards from github.com/accessor-io/naming-convention-toolkit and official ENS specifications.
+This document details all the production-ready features now available in ens.tools, following standards from github.com/accessor-io/naming-convention-toolkit and official ENS specifications.
 
 ---
 

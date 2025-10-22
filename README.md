@@ -1,7 +1,7 @@
 
-  # ENS Contract Naming Best Practices
+  # ens.tools
 
-  This is a code bundle for ENS Contract Naming Best Practices. The original project is available at https://www.figma.com/design/AaNSxswYsWWk70qHde0pCg/ENS-Contract-Naming-Best-Practices.
+  ENS domain management and configuration tools. The original project is available at https://www.figma.com/design/AaNSxswYsWWk70qHde0pCg/ENS-Contract-Naming-Best-Practices.
 
   ## Running the code
 

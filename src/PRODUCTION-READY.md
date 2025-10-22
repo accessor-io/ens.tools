@@ -1,6 +1,6 @@
 # Production-Ready ENS Integration
 
-This ENS Enterprise Management System now includes production-ready wallet connection and ENS domain loading functionality using official libraries and best practices from github.com/ensdomains.
+ens.tools now includes production-ready wallet connection and ENS domain loading functionality using official libraries and best practices from github.com/ensdomains.
 
 ## ✅ Implemented Features
 

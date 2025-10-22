@@ -1,4 +1,4 @@
-# ENS Enterprise Management System - Comprehensive Feature Guide
+# ens.tools - Comprehensive Feature Guide
 
 ## Overview
 A complete, industry-standard ENS management platform built following best practices from DAO Registry (accessor-io/dao-registry) and ENS Metadata Tools specifications. This enterprise-grade system provides full lifecycle management for ENS domains, contracts, DAOs, and integrations across multiple chains.

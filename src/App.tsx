@@ -1,72 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Dashboard } from './components/Dashboard';
-import { DomainManagement } from './components/DomainManagement';
-import { MetadataEditor } from './components/MetadataEditor';
-import { SecurityMonitor } from './components/SecurityMonitor';
-import { GovernancePanel } from './components/GovernancePanel';
-import { AuditLog } from './components/AuditLog';
-import { Settings } from './components/Settings';
-import { ProtocolReference } from './components/ProtocolReference';
-import { BestPracticesView } from './components/BestPracticesView';
-import { NamingToolkit } from './components/NamingToolkit';
-import { DAORegistry } from './components/DAORegistry';
-import { IntegrationRegistry } from './components/IntegrationRegistry';
-import { MetadataTools } from './components/MetadataTools';
-import { ContractRegistry } from './components/ContractRegistry';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { ContractRegistration } from './components/ContractRegistration';
-import { ENSIP19Registration } from './components/ENSIP19Registration';
-import { UnifiedContractRegistration } from './components/UnifiedContractRegistration';
-import { SchemaPreviewView } from './components/SchemaPreviewView';
-import { ENSContractsRegistry } from './components/ENSContractsRegistry';
+import { Settings } from './components/Settings';
 import { WalletConnect } from './components/WalletConnect';
-import { Web3Provider } from './lib/web3-provider';
 import { Toaster } from './components/ui/sonner';
-import { notificationService } from './lib/notification-service';
+import { Web3Provider } from './lib/services';
+import { PreflightChecker, ContractRegistration } from './components/workflows';
+import { DomainManagement } from './components/domains';
+import { MetadataEditor, MetadataTools } from './components/metadata';
+import { SecurityMonitor, AuditLog } from './components/security';
+import { GovernancePanel } from './components/governance';
+import { ProtocolReference, BestPracticesView, NamingToolkit } from './components/reference';
+import { DAORegistry, IntegrationRegistry, ContractRegistry } from './components/registry';
 
-export type ViewType = 'dashboard' | 'domains' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'ensip19-registration' | 'unified-registration' | 'analytics' | 'schema-preview' | 'ens-contracts';
+export type ViewType = 'preflight' | 'dashboard' | 'domains' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
-  const [alertConfig, setAlertConfig] = useState(() => {
-    try {
-      return notificationService.getConfig();
-    } catch (error) {
-      console.error('Error initializing notification config:', error);
-      return {
-        enabled: true,
-        emailEnabled: false,
-        webhookEnabled: false,
-        alertDuration: 15000,
-        maxVisibleAlerts: 5,
-        alertPosition: 'top-right' as const,
-        notifyOnExpiration: true,
-        notifyOnSecurityEvents: true,
-        notifyOnMetadataChanges: false,
-        notifyOnFailedTransactions: true,
-      };
-    }
-  });
-
-  useEffect(() => {
-    try {
-      const interval = setInterval(() => {
-        try {
-          setAlertConfig(notificationService.getConfig());
-        } catch (error) {
-          console.error('Error getting notification config:', error);
-        }
-      }, 1000);
-      return () => clearInterval(interval);
-    } catch (error) {
-      console.error('Error setting up notification interval:', error);
-    }
-  }, []);
+  const [currentView, setCurrentView] = useState<ViewType>('preflight');
 
   const renderView = () => {
     switch (currentView) {
+      case 'preflight':
+        return <PreflightChecker />;
       case 'dashboard':
         return <Dashboard />;
       case 'domains':
@@ -97,16 +54,8 @@ export default function App() {
         return <ContractRegistry />;
       case 'contract-registration':
         return <ContractRegistration />;
-      case 'ensip19-registration':
-        return <ENSIP19Registration />;
-      case 'unified-registration':
-        return <UnifiedContractRegistration />;
       case 'analytics':
         return <AnalyticsDashboard />;
-      case 'schema-preview':
-        return <SchemaPreviewView />;
-      case 'ens-contracts':
-        return <ENSContractsRegistry />;
       default:
         return <Dashboard />;
     }
@@ -133,11 +82,7 @@ export default function App() {
             </div>
           </main>
         </div>
-        <Toaster 
-          duration={alertConfig.alertDuration}
-          position={alertConfig.alertPosition}
-          visibleToasts={alertConfig.maxVisibleAlerts}
-        />
+        <Toaster />
       </SidebarProvider>
     </Web3Provider>
   );

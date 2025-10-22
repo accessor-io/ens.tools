@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useWeb3 } from '../lib/web3-provider';
+import { useWeb3 } from '../lib/services/web3-provider';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
@@ -13,9 +13,9 @@ import {
 } from './ui/dropdown-menu';
 import { Wallet, ChevronDown, LogOut, Network, Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatAddress } from '../lib/ens-utils';
-import { reverseResolveAddress } from '../lib/ens-utils';
-import { addressDisplayService } from '../lib/address-display-service';
+import { formatAddress, reverseResolveAddress } from '../lib/ens';
+import { addressDisplayService } from '../lib/services/address-display-service';
+import { eventTracker } from '../lib/services/event-tracker';
 
 export function WalletConnect() {
   const { address, isConnected, chainId, connect, disconnect, switchNetwork, publicClient } = useWeb3();
@@ -111,9 +111,27 @@ export function WalletConnect() {
     }
   };
 
+  const handleConnect = async () => {
+    try {
+      await connect();
+      if (address) {
+        eventTracker.trackWalletConnected(address);
+      }
+    } catch (error) {
+      console.error('Connection error:', error);
+    }
+  };
+
+  const handleDisconnect = () => {
+    if (address) {
+      eventTracker.trackWalletDisconnected(address);
+    }
+    disconnect();
+  };
+
   if (!isConnected) {
     return (
-      <Button onClick={connect} className="gap-2">
+      <Button onClick={handleConnect} className="gap-2">
         <Wallet className="h-4 w-4" />
         Connect Wallet
       </Button>
@@ -184,7 +202,7 @@ export function WalletConnect() {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={disconnect} className="text-red-600">
+        <DropdownMenuItem onClick={handleDisconnect} className="text-red-600">
           <LogOut className="h-4 w-4 mr-2" />
           Disconnect
         </DropdownMenuItem>

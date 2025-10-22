@@ -20,8 +20,8 @@ import {
   Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { notificationService, NotificationConfig } from '../lib/notification-service';
-import { addressDisplayService, AddressDisplayConfig, AddressDisplayFormat } from '../lib/address-display-service';
+import { notificationService, NotificationConfig } from '../lib/services/notification-service';
+import { addressDisplayService, AddressDisplayConfig, AddressDisplayFormat } from '../lib/services/address-display-service';
 
 export function Settings() {
   const [alertConfig, setAlertConfig] = useState<NotificationConfig>(notificationService.getConfig());
