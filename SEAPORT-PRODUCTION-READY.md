@@ -2,7 +2,7 @@
 
 ## What Was Implemented
 
-A production-ready Seaport integration for the ENS Enterprise Management System that enables NFT marketplace operations using OpenSea's Seaport protocol.
+A production-ready Seaport integration for ens.tools that enables NFT marketplace operations using OpenSea's Seaport protocol.
 
 ## New Files Created
 

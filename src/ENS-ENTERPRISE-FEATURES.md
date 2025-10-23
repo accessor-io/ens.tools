@@ -403,7 +403,7 @@ Based on industry best practices:
 - Community Discord: For support and discussions
 
 ### Contributing
-This is an enterprise management system built following open standards. Contributions welcome for:
+ens.tools is built following open standards. Contributions welcome for:
 - Additional integration support
 - Enhanced analytics
 - Security improvements

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the production-ready Seaport implementation for the ENS Enterprise Management System. The implementation provides enterprise-grade NFT marketplace functionality using OpenSea's Seaport protocol.
+This document describes the production-ready Seaport implementation for ens.tools. The implementation provides enterprise-grade NFT marketplace functionality using OpenSea's Seaport protocol.
 
 ## Features Implemented
 

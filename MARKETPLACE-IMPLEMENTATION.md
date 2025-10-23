@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ENS Enterprise Management System now includes a marketplace component that integrates with OpenSea's Seaport protocol for buying and selling NFTs and ENS domains.
+ens.tools now includes a marketplace component that integrates with OpenSea's Seaport protocol for buying and selling NFTs and ENS domains.
 
 ## What Was Implemented
 
