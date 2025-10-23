@@ -1,7 +1,7 @@
 import { WalletClient, PublicClient, Address, Hex } from 'viem';
 import { normalize } from 'viem/ens';
 import { simulateContract, writeContract } from 'viem/actions';
-import { namehash } from './ens-helpers';
+import { namehash, labelhash } from './ens-helpers';
 import { ENS_REGISTRY_ABI, NAME_WRAPPER_ABI, PUBLIC_RESOLVER_ABI } from './ens-contracts';
 
 // ENS Registry Contract Address (Mainnet)
@@ -283,6 +283,42 @@ export async function wrapName(
       params.fuses,
       params.expiry,
       ENS_PUBLIC_RESOLVER as `0x${string}`,
+    ],
+  });
+
+  return hash;
+}
+
+/**
+ * Unwrap a wrapped name
+ */
+export async function unwrapName(
+  walletClient: WalletClient,
+  publicClient: PublicClient,
+  params: { name: string; newController: string }
+): Promise<string> {
+  if (!walletClient.account) {
+    throw new Error('Wallet not connected');
+  }
+
+  const normalizedName = normalize(params.name);
+  const node = namehash(normalizedName);
+  
+  // Get parent node and labelhash
+  const parts = params.name.split('.');
+  const label = parts[0];
+  const parentName = parts.slice(1).join('.');
+  const parentNode = namehash(parentName);
+  const labelHash = labelhash(label);
+
+  const hash = await walletClient.writeContract({
+    address: NAME_WRAPPER_ADDRESS as `0x${string}`,
+    abi: NAME_WRAPPER_ABI,
+    functionName: 'unwrap',
+    args: [
+      parentNode,
+      labelHash,
+      params.newController as `0x${string}`,
     ],
   });
 

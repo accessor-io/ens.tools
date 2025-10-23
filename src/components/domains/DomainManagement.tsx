@@ -73,6 +73,7 @@ import {
   DomainHistoryEvent,
   generateBasicHistory,
 } from '../../lib/ens/ens-utils';
+import { wrapName, unwrapName } from '../../lib/ens';
 import { DomainProfile } from './DomainProfile';
 import { eventTracker } from '../../lib/services/event-tracker';
 
@@ -90,7 +91,7 @@ interface DomainAssignment {
 }
 
 export function DomainManagement() {
-  const { address, isConnected } = useWeb3();
+  const { address, isConnected, walletClient, publicClient } = useWeb3();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDomain, setSelectedDomain] = useState<ENSDomain | null>(null);
   const [domains, setDomains] = useState<ENSDomain[]>([]);
@@ -170,6 +171,60 @@ export function DomainManagement() {
       toast.error('Failed to load domains');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleWrap = async (domain: ENSDomain) => {
+    if (!walletClient || !publicClient || !address) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    try {
+      toast.loading('Wrapping domain...');
+      const hash = await wrapName(walletClient, {
+        name: domain.name,
+        owner: address,
+        fuses: 0,
+        expiry: BigInt(Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60),
+      });
+      
+      toast.success('Domain wrapped successfully', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      await loadDomains();
+    } catch (error: any) {
+      console.error('Error wrapping domain:', error);
+      toast.error('Failed to wrap domain', {
+        description: error.message || 'Please try again',
+      });
+    }
+  };
+
+  const handleUnwrap = async (domain: ENSDomain) => {
+    if (!walletClient || !publicClient || !address) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    try {
+      toast.loading('Unwrapping domain...');
+      const hash = await unwrapName(walletClient, publicClient, {
+        name: domain.name,
+        newController: address,
+      });
+      
+      toast.success('Domain unwrapped successfully', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      await loadDomains();
+    } catch (error: any) {
+      console.error('Error unwrapping domain:', error);
+      toast.error('Failed to unwrap domain', {
+        description: error.message || 'Please try again',
+      });
     }
   };
 
@@ -1219,8 +1274,13 @@ export function DomainManagement() {
                                         variant="outline"
                                         size="sm"
                                         className="flex-1 sm:flex-none"
-                                        onClick={() => {
-                                          toast.info('Wrap/Unwrap functionality coming soon');
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (domain.isWrapped) {
+                                            handleUnwrap(domain);
+                                          } else {
+                                            handleWrap(domain);
+                                          }
                                         }}
                                       >
                                         <LinkIcon className="h-3 w-3 mr-1" />
