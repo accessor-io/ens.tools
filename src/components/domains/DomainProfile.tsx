@@ -46,10 +46,8 @@ import { ENSDomain, formatAddress, getAllTextRecords, reverseResolveAddress } fr
 import { addressDisplayService } from '../../lib/services';
 import { eventTracker } from '../../lib/services';
 import { 
-  setText,
-  setAddr,
-  setContenthash,
-  setResolver,
+  setTextRecord,
+  setAddressRecord,
   createSubdomain, 
   setFuses,
   wrapName,
@@ -216,7 +214,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
       const savedKeys: string[] = [];
       for (const [key, value] of Object.entries(metadata)) {
         if (value) {
-          await setText(walletClient, publicClient, {
+          await setTextRecord(walletClient, publicClient, {
             name: domain.name,
             key,
             value,

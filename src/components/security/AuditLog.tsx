@@ -80,22 +80,6 @@ export function AuditLog() {
     ).join(' ');
   };
 
-  const filteredEntries = auditEntries.filter(entry => {
-    const matchesSearch = searchQuery === '' || 
-      entry.domain.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.actor.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = filterType === 'all' || entry.status === filterType;
-    
-    return matchesSearch && matchesFilter;
-  });
-
-  const handleExport = () => {
-    // In a real app, this would generate and download a CSV/JSON file
-    alert('Exporting audit log...');
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}

@@ -3,7 +3,7 @@
  * Implements 5-level domain hierarchy with cns.eth root
  */
 
-import { ENSIPXCategory, ENSIPX_SUBCATEGORIES } from './ensip19-utils';
+import { ENSIPXCategory, ENSIPX_SUBCATEGORIES } from './ensipx-utils';
 
 /**
  * Domain hierarchy levels

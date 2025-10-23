@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Separator } from './ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Badge } from '../ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Separator } from '../ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   FileCode,
   CheckCircle2,
@@ -23,8 +23,8 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../lib/web3-provider';
-import { setTextRecord, createSubdomain, combineFuses } from '../lib/ens-write-operations';
+import { useWeb3 } from '../../lib/services/web3-provider';
+import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens/ens-write-operations';
 import {
   ENSIPXMetadata,
   ENSIPX_CATEGORIES,
@@ -37,13 +37,15 @@ import {
   generateMetadataHash,
   normalizeVersion,
   ENSIPX_SUBCATEGORIES,
-} from '../lib/ensip19-utils';
-import { validateENSIPXFull, QAValidator } from '../lib/ensip19-validator';
+} from '../../lib/metadata/ensipx-utils';
+import { validateENSIPXFull, QAValidator } from '../../lib/metadata/ensipx-validator';
 import {
   generateHierarchicalDomain,
   getRecommendedSubcategories,
-} from '../lib/ensip19-hierarchical';
-import { STANDARD_KEYS } from '../lib/metadata-schemas';
+} from '../../lib/metadata/ensipx-hierarchical';
+import { STANDARD_KEYS } from '../../lib/metadata/metadata-schemas';
+import { storeCompleteMetadataPackage, formatBaseMetadataReference } from '../../lib/services/base-metadata-service';
+import { namehash } from '../../lib/ens/ens-helpers';
 
 type WorkflowStep = 'contract' | 'naming' | 'classification' | 'security' | 'lifecycle' | 'review';
 
@@ -280,7 +282,53 @@ export function UnifiedContractRegistration() {
           description: ensName,
         });
 
-        // Store ENSIP-X metadata
+        // Calculate name hash for Base metadata storage
+        const nameHash = namehash(ensName);
+
+        // Store metadata on Base chain for cross-chain resolution
+        toast.info('Storing metadata on Base chain...', {
+          description: 'Deploying metadata to Base for cross-chain access',
+        });
+
+        try {
+          const crossChainPointers = metadata.addresses?.map(addr => ({
+            chainId: addr.chainId,
+            contractAddress: addr.address,
+            metadataHash: metadata.metadataHash!,
+          })) || [];
+
+          await storeCompleteMetadataPackage(walletClient, {
+            nameHash,
+            canonicalId: metadata.id!,
+            metadata,
+            crossChainPointers,
+          });
+
+          toast.success('Metadata stored on Base', {
+            description: 'Metadata is now accessible from any EVM network',
+          });
+        } catch (error) {
+          console.error('Error storing metadata on Base:', error);
+          toast.warning('Failed to store on Base, continuing with ENS-only storage', {
+            description: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+
+        // Store reference pointer in ENS that points to Base metadata
+        const baseMetadataReference = formatBaseMetadataReference({
+          nameHash,
+          canonicalId: metadata.id!,
+          metadataHash: metadata.metadataHash!,
+        });
+
+        await setTextRecord(walletClient, publicClient, {
+          name: ensName,
+          recordType: 'text',
+          key: 'ensip19.base',
+          value: baseMetadataReference,
+        });
+
+        // Store ENSIP-X canonical ID
         await setTextRecord(walletClient, publicClient, {
           name: ensName,
           recordType: 'text',
@@ -288,18 +336,12 @@ export function UnifiedContractRegistration() {
           value: metadata.id!,
         });
 
+        // Store metadata hash for verification
         await setTextRecord(walletClient, publicClient, {
           name: ensName,
           recordType: 'text',
           key: 'ensip19.hash',
           value: metadata.metadataHash!,
-        });
-
-        await setTextRecord(walletClient, publicClient, {
-          name: ensName,
-          recordType: 'text',
-          key: 'ensip19.metadata',
-          value: metadataJson,
         });
       } else {
         // Basic registration

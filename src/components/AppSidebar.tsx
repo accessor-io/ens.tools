@@ -30,6 +30,9 @@ import {
   FileCode,
   BarChart3,
   PlusCircle,
+  FileCheck,
+  ShoppingCart,
+  Search,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
@@ -57,6 +60,11 @@ export function AppSidebar({
       id: "domains" as ViewType,
       label: "Domain Management",
       icon: Globe,
+    },
+    {
+      id: "name-browser" as ViewType,
+      label: "Name Browser",
+      icon: Search,
     },
     {
       id: "metadata" as ViewType,
@@ -101,6 +109,11 @@ export function AppSidebar({
       label: "Integrations",
       icon: Plug,
     },
+    {
+      id: "marketplace" as ViewType,
+      label: "Marketplace",
+      icon: ShoppingCart,
+    },
   ];
 
   const toolsItems = [
@@ -113,6 +126,11 @@ export function AppSidebar({
       id: "metadata-tools" as ViewType,
       label: "Metadata Tools",
       icon: Database,
+    },
+    {
+      id: "preflight-checker" as ViewType,
+      label: "Preflight Checker",
+      icon: FileCheck,
     },
   ];
 

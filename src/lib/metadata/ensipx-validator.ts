@@ -5,8 +5,8 @@
 
 import Ajv, { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
-import ensip19Schema from './ensip19-schema.json';
-import { ENSIPXMetadata, validateENSIPXMetadata } from './ensip19-utils';
+import ensip19Schema from './ensipx-schema.json';
+import { ENSIPXMetadata, validateENSIPXMetadata } from './ensipx-utils';
 
 /**
  * Validation result

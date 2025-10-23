@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Separator } from './ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Badge } from '../ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Separator } from '../ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   FileCode,
   CheckCircle2,
@@ -21,15 +21,18 @@ import {
   Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../lib/web3-provider';
-import { setTextRecord, createSubdomain, combineFuses } from '../lib/ens-write-operations';
+import { useWeb3 } from '../../lib/services/web3-provider';
+import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens/ens-write-operations';
 import {
   ALL_SCHEMAS,
   getRecommendedSchema,
   validateMetadata,
   MetadataSchema,
   STANDARD_KEYS,
-} from '../lib/metadata-schemas';
+} from '../../lib/metadata/metadata-schemas';
+import { storeCompleteMetadataPackage, formatBaseMetadataReference } from '../../lib/services/base-metadata-service';
+import { namehash } from '../../lib/ens/ens-helpers';
+import { generateMetadataHash } from '../../lib/metadata/ensipx-utils';
 
 interface ContractInfo {
   address: string;
@@ -113,6 +116,7 @@ export function ContractRegistration() {
     setIsSubmitting(true);
     try {
       const fullName = `${subdomainLabel}.${parentDomain}`;
+      const nameHash = namehash(fullName);
 
       // Step 1: Create subdomain
       toast.info('Creating subdomain...', {
@@ -127,7 +131,63 @@ export function ContractRegistration() {
         fuses,
       });
 
-      // Step 2: Set contract address record
+      // Step 2: Store metadata on Base chain for cross-chain resolution
+      if (selectedSchema && Object.keys(metadata).length > 0) {
+        toast.info('Storing metadata on Base chain...', {
+          description: 'Deploying metadata to Base for cross-chain access',
+        });
+
+        try {
+          const contractMetadata = {
+            contractAddress,
+            contractType,
+            isProxy,
+            implementationAddress: isProxy ? implementationAddress : undefined,
+            ...metadata,
+          };
+
+          const metadataHash = await generateMetadataHash(contractMetadata);
+
+          // Get current chain ID or default to Ethereum Mainnet
+          const currentChainId = publicClient?.chain?.id || 1;
+          
+          await storeCompleteMetadataPackage(walletClient, {
+            nameHash,
+            canonicalId: `${contractAddress}-${currentChainId}`,
+            metadata: contractMetadata,
+            crossChainPointers: [{
+              chainId: currentChainId,
+              contractAddress,
+              metadataHash,
+            }],
+          });
+
+          toast.success('Metadata stored on Base', {
+            description: 'Metadata is now accessible from any EVM network',
+          });
+
+          // Store reference pointer in ENS
+          const baseMetadataReference = formatBaseMetadataReference({
+            nameHash,
+            canonicalId: `${contractAddress}-${currentChainId}`,
+            metadataHash,
+          });
+
+          await setTextRecord(walletClient, publicClient, {
+            name: fullName,
+            recordType: 'text',
+            key: 'metadata.base',
+            value: baseMetadataReference,
+          });
+        } catch (error) {
+          console.error('Error storing metadata on Base:', error);
+          toast.warning('Failed to store on Base, continuing with ENS-only storage', {
+            description: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      // Step 3: Set contract address record
       toast.info('Setting contract address...');
       await setTextRecord(walletClient, publicClient, {
         name: fullName,
@@ -136,7 +196,7 @@ export function ContractRegistration() {
         value: contractAddress,
       });
 
-      // Step 3: Set metadata
+      // Step 4: Set metadata
       if (Object.keys(metadata).length > 0) {
         toast.info('Setting metadata records...');
         for (const [key, value] of Object.entries(metadata)) {
@@ -151,7 +211,7 @@ export function ContractRegistration() {
         }
       }
 
-      // Step 4: Set contract-specific metadata
+      // Step 5: Set contract-specific metadata
       if (isProxy && implementationAddress) {
         await setTextRecord(walletClient, publicClient, {
           name: fullName,

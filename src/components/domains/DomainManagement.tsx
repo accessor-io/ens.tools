@@ -56,17 +56,23 @@ import {
   History,
   ArrowRightLeft,
   Clock,
+  Settings as SettingsIcon,
+  FileEdit,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../lib/web3-provider';
+import { useWeb3 } from '../../lib/services/web3-provider';
+import { historyCacheService } from '../../lib/services';
 import { 
   fetchENSNames, 
   getExpirationStatus, 
   getDaysUntilExpiration, 
   ENSDomain,
-} from '../lib/ens-utils';
+  fetchDomainHistory,
+  DomainHistoryEvent,
+  generateBasicHistory,
+} from '../../lib/ens/ens-utils';
 import { DomainProfile } from './DomainProfile';
-import { eventTracker } from '../lib/event-tracker';
+import { eventTracker } from '../../lib/services/event-tracker';
 
 interface DomainGroup {
   id: string;
@@ -128,7 +134,9 @@ export function DomainManagement() {
   
   const [isColumnsDialogOpen, setIsColumnsDialogOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [domainHistoryCache, setDomainHistoryCache] = useState<Map<string, any[]>>(new Map());
+  const [domainHistoryCache, setDomainHistoryCache] = useState<Map<string, DomainHistoryEvent[]>>(new Map());
+  const [loadingHistory, setLoadingHistory] = useState<Set<string>>(new Set());
+  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isConnected && address) {
@@ -146,6 +154,9 @@ export function DomainManagement() {
       const fetchedDomains = await fetchENSNames(address);
       setDomains(fetchedDomains);
       setDomainHistoryCache(new Map());
+      
+      // Don't clear history cache - keep it persistent
+      // The cache has 7-day expiry, so old data will be refreshed automatically
       
       if (fetchedDomains.length > 0) {
         toast.success('Domains loaded successfully');
@@ -254,130 +265,117 @@ export function DomainManagement() {
     window.open(`https://app.ens.domains/${name}`, '_blank');
   };
 
-  const toggleRowExpansion = (domainName: string) => {
+  const toggleEventExpansion = (eventId: string) => {
+    setExpandedEvents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(eventId)) {
+        newSet.delete(eventId);
+      } else {
+        newSet.add(eventId);
+      }
+      return newSet;
+    });
+  };
+
+  const refreshDomainHistory = (domainName: string) => {
+    // Clear cached history for this domain to force refresh
+    historyCacheService.clearHistory(domainName);
+    setDomainHistoryCache(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(domainName);
+      return newMap;
+    });
+    
+    // Now fetch fresh data
+    const domain = domains.find(d => d.name === domainName);
+    if (domain) {
+      fetchDomainHistory(domainName).then(history => {
+        // If no history from Graph API, generate basic history
+        if (history.length === 0) {
+          history = generateBasicHistory(domain);
+        }
+        
+        // Cache the history
+        if (history.length > 0) {
+          historyCacheService.cacheHistory(domainName, history);
+        }
+        
+        setDomainHistoryCache(prev => new Map(prev).set(domainName, history));
+      }).catch(error => {
+        console.error('Error refreshing history:', error);
+        const basicHistory = generateBasicHistory(domain);
+        historyCacheService.cacheHistory(domainName, basicHistory);
+        setDomainHistoryCache(prev => new Map(prev).set(domainName, basicHistory));
+      });
+    }
+  };
+
+  const toggleRowExpansion = async (domainName: string) => {
     setExpandedRows(prev => {
       const newSet = new Set(prev);
       if (newSet.has(domainName)) {
         newSet.delete(domainName);
       } else {
         newSet.add(domainName);
-        const domain = domains.find(d => d.name === domainName);
-        if (domain && !domainHistoryCache.has(domainName)) {
-          const history = [];
-          
-          if (domain.registrationDate) {
-            history.push({
-              type: 'registration',
-              date: domain.registrationDate,
-              description: 'Domain registered',
-              address: domain.owner,
-            });
+        if (!domainHistoryCache.has(domainName) && !loadingHistory.has(domainName)) {
+          // Check cache first
+          const cachedHistory = historyCacheService.getCachedHistory(domainName);
+          if (cachedHistory && cachedHistory.length > 0) {
+            console.log(`Using cached history for ${domainName}: ${cachedHistory.length} events`);
+            setDomainHistoryCache(prev => new Map(prev).set(domainName, cachedHistory));
+            return newSet;
           }
-          
-          if (domain.expiryDate) {
-            const renewals = Math.floor(Math.random() * 3) + 1;
-            for (let i = 1; i <= renewals; i++) {
-              const renewalDate = new Date(domain.expiryDate);
-              renewalDate.setFullYear(renewalDate.getFullYear() - i);
-              history.push({
-                type: 'renewal',
-                date: renewalDate,
-                description: `Renewed for ${365 * i} days`,
-                address: domain.owner,
-              });
+
+          // If not in cache, fetch from API
+          setLoadingHistory(prev => new Set(prev).add(domainName));
+          fetchDomainHistory(domainName).then(history => {
+            console.log(`Graph API returned ${history.length} events for ${domainName}`);
+            
+            // If no history from Graph API, try to generate basic history from domain data
+            if (history.length === 0) {
+              const domain = domains.find(d => d.name === domainName);
+              if (domain) {
+                history = generateBasicHistory(domain);
+                console.log(`Generated ${history.length} fallback events for ${domainName}`);
+              }
             }
-          }
-          
-          const transfers = Math.floor(Math.random() * 2);
-          for (let i = 0; i < transfers; i++) {
-            const transferDate = new Date(domain.registrationDate || new Date());
-            transferDate.setDate(transferDate.getDate() + Math.floor(Math.random() * 180));
-            history.push({
-              type: 'transfer',
-              date: transferDate,
-              description: 'Ownership transferred',
-              address: `0x${Math.random().toString(16).substr(2, 40)}`,
+            
+            // Always cache the history - it persists for 7 days
+            if (history.length > 0) {
+              historyCacheService.cacheHistory(domainName, history);
+              console.log(`Cached ${history.length} events for ${domainName}`);
+            }
+            
+            console.log(`Final history for ${domainName}:`, history.length, 'events');
+            
+            setDomainHistoryCache(prev => new Map(prev).set(domainName, history));
+            setLoadingHistory(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(domainName);
+              return newSet;
             });
-          }
-          
-          const addressChanges = Math.floor(Math.random() * 2);
-          for (let i = 0; i < addressChanges; i++) {
-            const changeDate = new Date(domain.registrationDate || new Date());
-            changeDate.setDate(changeDate.getDate() + Math.floor(Math.random() * 200));
-            history.push({
-              type: 'address_change',
-              date: changeDate,
-              description: 'Resolved address updated',
-              address: domain.resolvedAddress || `0x${Math.random().toString(16).substr(2, 40)}`,
+          }).catch(error => {
+            console.error('Error loading history:', error);
+            // Fallback to basic history on error
+            const domain = domains.find(d => d.name === domainName);
+            if (domain) {
+              const basicHistory = generateBasicHistory(domain);
+              console.log(`Error fallback generated ${basicHistory.length} events for ${domainName}`);
+              historyCacheService.cacheHistory(domainName, basicHistory);
+              setDomainHistoryCache(prev => new Map(prev).set(domainName, basicHistory));
+            }
+            setLoadingHistory(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(domainName);
+              return newSet;
             });
-          }
-          
-          const sortedHistory = history.sort((a, b) => b.date.getTime() - a.date.getTime());
-          setDomainHistoryCache(prev => new Map(prev).set(domainName, sortedHistory));
+          });
         }
       }
       return newSet;
     });
   };
 
-  const getHistoricalData = (domain: ENSDomain) => {
-    if (domainHistoryCache.has(domain.name)) {
-      return domainHistoryCache.get(domain.name)!;
-    }
-    
-    const history = [];
-    
-    if (domain.registrationDate) {
-      history.push({
-        type: 'registration',
-        date: domain.registrationDate,
-        description: 'Domain registered',
-        address: domain.owner,
-      });
-    }
-    
-    if (domain.expiryDate) {
-      const renewals = Math.floor(Math.random() * 3) + 1;
-      for (let i = 1; i <= renewals; i++) {
-        const renewalDate = new Date(domain.expiryDate);
-        renewalDate.setFullYear(renewalDate.getFullYear() - i);
-        history.push({
-          type: 'renewal',
-          date: renewalDate,
-          description: `Renewed for ${365 * i} days`,
-          address: domain.owner,
-        });
-      }
-    }
-    
-    const transfers = Math.floor(Math.random() * 2);
-    for (let i = 0; i < transfers; i++) {
-      const transferDate = new Date(domain.registrationDate || new Date());
-      transferDate.setDate(transferDate.getDate() + Math.floor(Math.random() * 180));
-      history.push({
-        type: 'transfer',
-        date: transferDate,
-        description: 'Ownership transferred',
-        address: `0x${Math.random().toString(16).substr(2, 40)}`,
-      });
-    }
-    
-    const addressChanges = Math.floor(Math.random() * 2);
-    for (let i = 0; i < addressChanges; i++) {
-      const changeDate = new Date(domain.registrationDate || new Date());
-      changeDate.setDate(changeDate.getDate() + Math.floor(Math.random() * 200));
-      history.push({
-        type: 'address_change',
-        date: changeDate,
-        description: 'Resolved address updated',
-        address: domain.resolvedAddress || `0x${Math.random().toString(16).substr(2, 40)}`,
-      });
-    }
-    
-    const sortedHistory = history.sort((a, b) => b.date.getTime() - a.date.getTime());
-    setDomainHistoryCache(prev => new Map(prev).set(domain.name, sortedHistory));
-    return sortedHistory;
-  };
 
   if (!isConnected) {
     return (
@@ -856,18 +854,66 @@ export function DomainManagement() {
                             <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1}>
                               <div className="p-4 bg-slate-50 border-t">
                                 <div className="space-y-4">
-                                  <div className="flex items-center gap-2 mb-3">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
                                     <History className="h-5 w-5 text-blue-600" />
                                     <h3 className="text-slate-900 font-semibold">Domain History</h3>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => refreshDomainHistory(domain.name)}
+                                      className="h-8"
+                                    >
+                                      <RefreshCw className="h-4 w-4 mr-1" />
+                                      Refresh
+                                    </Button>
                                   </div>
                                   
                                   {(() => {
+                                    const isLoading = loadingHistory.has(domain.name);
                                     const history = domainHistoryCache.get(domain.name) || [];
+                                    
+                                    console.log(`Rendering history for ${domain.name}:`, history.length, 'events');
+                                    
+                                    if (isLoading) {
+                                      return (
+                                        <div className="flex items-center justify-center py-8">
+                                          <div className="flex items-center gap-2 text-slate-600">
+                                            <RefreshCw className="h-4 w-4 animate-spin" />
+                                            <span>Loading history...</span>
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+                                    
                                     if (history.length > 0) {
                                       return (
                                         <div className="space-y-3">
-                                          {history.map((event, eventIndex) => (
-                                            <div key={eventIndex} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-slate-200">
+                                          {history.map((event, eventIndex) => {
+                                            const eventId = `${domain.name}-${eventIndex}`;
+                                            const isEventExpanded = expandedEvents.has(eventId);
+                                            
+                                            if (isEventExpanded) {
+                                              console.log('EXPANDED EVENT DATA:', {
+                                                type: event.type,
+                                                description: event.description,
+                                                txHash: event.txHash,
+                                                gasUsed: event.gasUsed,
+                                                gasCost: event.gasCost,
+                                                blockNumber: event.blockNumber,
+                                                status: event.status,
+                                                from: event.from,
+                                                to: event.to,
+                                              });
+                                            }
+                                            
+                                            return (
+                                            <div key={eventIndex} className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                                              <div 
+                                                className="flex items-start gap-3 p-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                                                onClick={() => toggleEventExpansion(eventId)}
+                                              >
                                               <div className="flex-shrink-0">
                                                 {event.type === 'registration' && (
                                                   <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -889,6 +935,51 @@ export function DomainManagement() {
                                                     <Globe className="h-4 w-4 text-purple-600" />
                                                   </div>
                                                 )}
+                                                {event.type === 'text_change' && (
+                                                  <div className="h-8 w-8 rounded-full bg-cyan-100 flex items-center justify-center">
+                                                    <FileEdit className="h-4 w-4 text-cyan-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'resolver_change' && (
+                                                  <div className="h-8 w-8 rounded-full bg-violet-100 flex items-center justify-center">
+                                                    <SettingsIcon className="h-4 w-4 text-violet-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'wrapper_change' && (
+                                                  <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                    <Lock className="h-4 w-4 text-indigo-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'approval' && (
+                                                  <div className="h-8 w-8 rounded-full bg-rose-100 flex items-center justify-center">
+                                                    <Users className="h-4 w-4 text-rose-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'controller_change' && (
+                                                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
+                                                    <Key className="h-4 w-4 text-orange-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'metadata_change' && (
+                                                  <div className="h-8 w-8 rounded-full bg-teal-100 flex items-center justify-center">
+                                                    <FileText className="h-4 w-4 text-teal-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'mint' && (
+                                                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                    <Plus className="h-4 w-4 text-green-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'expired' && (
+                                                  <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
+                                                    <AlertCircle className="h-4 w-4 text-red-600" />
+                                                  </div>
+                                                )}
+                                                {event.type === 'sale' && (
+                                                  <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                    <Wallet className="h-4 w-4 text-yellow-600" />
+                                                  </div>
+                                                )}
                                               </div>
                                               <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-1">
@@ -896,15 +987,184 @@ export function DomainManagement() {
                                                   <div className="flex items-center gap-2 text-slate-600 text-sm">
                                                     <Clock className="h-4 w-4" />
                                                     <span>{event.date.toLocaleDateString()}</span>
+                                                    {isEventExpanded ? (
+                                                      <ChevronDown className="h-4 w-4 ml-2" />
+                                                    ) : (
+                                                      <ChevronRight className="h-4 w-4 ml-2" />
+                                                    )}
                                                   </div>
                                                 </div>
+                                                <div className="space-y-1">
                                                 <div className="flex items-center gap-2 text-xs text-slate-600">
                                                   <Wallet className="h-3 w-3" />
                                                   <code className="break-all">{event.address}</code>
                                                 </div>
+                                                  {event.txHash && (
+                                                    <div className="flex items-center gap-2 text-xs">
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 text-xs p-1"
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          window.open(`https://etherscan.io/tx/${event.txHash}`, '_blank');
+                                                        }}
+                                                      >
+                                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                                        View TX: {event.txHash.slice(0, 8)}...{event.txHash.slice(-6)}
+                                                      </Button>
+                                                    </div>
+                                                  )}
+                                                  {event.cost && (
+                                                    <div className="text-xs text-slate-600">
+                                                      Cost: {(parseInt(event.cost) / 1e18).toFixed(4)} ETH
+                                                    </div>
+                                                  )}
+                                                  {event.price && (
+                                                    <div className="text-xs text-slate-600">
+                                                      Price: <code className="text-slate-700">{event.price}</code>
+                                                    </div>
+                                                  )}
+                                                  {event.expiryDate && (
+                                                    <div className="text-xs text-slate-600">
+                                                      Expires: {event.expiryDate.toLocaleDateString()}
+                                                    </div>
+                                                  )}
+                                                  {event.newValue && (
+                                                    <div className="text-xs text-slate-600">
+                                                      Value: <code className="text-slate-700">{event.newValue}</code>
+                                                    </div>
+                                                  )}
+                                                </div>
                                               </div>
                                             </div>
-                                          ))}
+                                              
+                                              {/* Expandable details section */}
+                                              {isEventExpanded && (
+                                                <div className="border-t bg-slate-50 p-4">
+                                                  {/* Debug: Show all event data */}
+                                                  <div className="mb-4 p-3 bg-slate-100 rounded text-xs">
+                                                    <div className="font-semibold mb-2">Debug - All Event Data:</div>
+                                                    <pre className="overflow-auto max-h-40">
+                                                      {JSON.stringify(event, null, 2)}
+                                                    </pre>
+                                                  </div>
+                                                  
+                                                  <div className="grid gap-3 md:grid-cols-2">
+                                                    <div>
+                                                      <div className="text-xs font-semibold text-slate-700 mb-1">Event Type</div>
+                                                      <div className="text-sm text-slate-900">{event.type}</div>
+                                                    </div>
+                                                    <div>
+                                                      <div className="text-xs font-semibold text-slate-700 mb-1">Date & Time</div>
+                                                      <div className="text-sm text-slate-900">{event.date.toLocaleString()}</div>
+                                                    </div>
+                                                    <div>
+                                                      <div className="text-xs font-semibold text-slate-700 mb-1">Address</div>
+                                                      <div className="text-sm text-slate-900 break-all">{event.address}</div>
+                                                    </div>
+                                                    {event.txHash && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Transaction Hash</div>
+                                                        <div className="text-sm text-slate-900 break-all">{event.txHash}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.cost && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Cost</div>
+                                                        <div className="text-sm text-slate-900">{(parseInt(event.cost) / 1e18).toFixed(4)} ETH</div>
+                                                      </div>
+                                                    )}
+                                                    {event.price && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Price</div>
+                                                        <div className="text-sm text-slate-900">{event.price}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.expiryDate && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Expiry Date</div>
+                                                        <div className="text-sm text-slate-900">{event.expiryDate.toLocaleDateString()}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.previousValue && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Previous Value</div>
+                                                        <div className="text-sm text-slate-900 break-all">{event.previousValue}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.newValue && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">New Value</div>
+                                                        <div className="text-sm text-slate-900 break-all">{event.newValue}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.blockNumber && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Block Number</div>
+                                                        <div className="text-sm text-slate-900">{parseInt(event.blockNumber).toLocaleString()}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.status && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Status</div>
+                                                        <div className={`text-sm ${event.status === 'Success' ? 'text-green-600' : 'text-red-600'}`}>
+                                                          {event.status}
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                    {event.gasUsed && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Gas Used</div>
+                                                        <div className="text-sm text-slate-900">{parseInt(event.gasUsed).toLocaleString()}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.gasCost && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Gas Cost</div>
+                                                        <div className="text-sm text-slate-900">{event.gasCost} ETH</div>
+                                                      </div>
+                                                    )}
+                                                    {event.from && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">From</div>
+                                                        <div className="text-sm text-slate-900 break-all">{event.from}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.to && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">To</div>
+                                                        <div className="text-sm text-slate-900 break-all">{event.to}</div>
+                                                      </div>
+                                                    )}
+                                                    {event.value && event.value !== '0' && (
+                                                      <div>
+                                                        <div className="text-xs font-semibold text-slate-700 mb-1">Value</div>
+                                                        <div className="text-sm text-slate-900">{(parseInt(event.value) / 1e18).toFixed(6)} ETH</div>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                  
+                                                  {event.txHash && (
+                                                    <div className="mt-4 pt-4 border-t">
+                                                      <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          window.open(`https://etherscan.io/tx/${event.txHash}`, '_blank');
+                                                        }}
+                                                      >
+                                                        <ExternalLink className="h-4 w-4 mr-2" />
+                                                        View on Etherscan
+                                                      </Button>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                            );
+                                          })}
                                         </div>
                                       );
                                     }

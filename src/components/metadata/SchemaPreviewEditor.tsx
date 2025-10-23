@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Badge } from './ui/badge';
-import { Alert, AlertDescription } from './ui/alert';
-import { Separator } from './ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Badge } from '../ui/badge';
+import { Alert, AlertDescription } from '../ui/alert';
+import { Separator } from '../ui/separator';
 import { 
   FileCode, 
   Shield, 
@@ -22,8 +22,8 @@ import {
   Info
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { validateENSIPXFull, QAValidator } from '../lib/ensip19-validator';
-import type { ENSIPXMetadata } from '../lib/ensip19-utils';
+import { validateENSIPXFull, QAValidator } from '../../lib/metadata/ensipx-validator';
+import type { ENSIPXMetadata } from '../../lib/metadata/ensipx-utils';
 
 interface SchemaPreviewEditorProps {
   domain?: string;

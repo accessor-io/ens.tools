@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Badge } from '../ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select';
+} from '../ui/select';
 import {
   Table,
   TableBody,
@@ -21,8 +21,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from './ui/table';
-import { Checkbox } from './ui/checkbox';
+} from '../ui/table';
+import { Checkbox } from '../ui/checkbox';
 import {
   FileText,
   CheckCircle2,
@@ -311,18 +311,18 @@ export function MetadataTools() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Select Domain</Label>
-              <Select value={selectedDomain} onValueChange={setSelectedDomain}>
+                <Select value={selectedDomain} onValueChange={setSelectedDomain}>
                 <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
                   <SelectItem value="company.eth">company.eth</SelectItem>
                   <SelectItem value="app.company.eth">app.company.eth</SelectItem>
                   <SelectItem value="dao.company.eth">dao.company.eth</SelectItem>
                   <SelectItem value="vault.company.eth">vault.company.eth</SelectItem>
                   <SelectItem value="token.company.eth">token.company.eth</SelectItem>
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
               <Label>Quick Actions</Label>

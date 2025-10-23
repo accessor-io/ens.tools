@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from './components/ui/sidebar';
 import { AppSidebar } from './components/AppSidebar';
 import { Dashboard } from './components/Dashboard';
-import { DomainManagement } from './components/domains';
+import { DomainManagement, NameBrowser } from './components/domains';
 import { MetadataEditor, MetadataTools } from './components/metadata';
 import { SecurityMonitor, AuditLog } from './components/security';
 import { GovernancePanel } from './components/governance';
@@ -10,12 +10,13 @@ import { Settings } from './components/Settings';
 import { ProtocolReference, BestPracticesView, NamingToolkit } from './components/reference';
 import { DAORegistry, IntegrationRegistry, ContractRegistry } from './components/registry';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { ContractRegistration } from './components/workflows';
+import { ContractRegistration, PreflightChecker } from './components/workflows';
+import { ENSMarketplace } from './components/marketplace';
 import { WalletConnect } from './components/WalletConnect';
 import { Web3Provider } from './lib/services';
 import { Toaster } from './components/ui/sonner';
 
-export type ViewType = 'dashboard' | 'domains' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics';
+export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -26,6 +27,8 @@ export default function App() {
         return <Dashboard />;
       case 'domains':
         return <DomainManagement />;
+      case 'name-browser':
+        return <NameBrowser />;
       case 'metadata':
         return <MetadataEditor />;
       case 'security':
@@ -54,6 +57,10 @@ export default function App() {
         return <ContractRegistration />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'preflight-checker':
+        return <PreflightChecker />;
+      case 'marketplace':
+        return <ENSMarketplace />;
       default:
         return <Dashboard />;
     }

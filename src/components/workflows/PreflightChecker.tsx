@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Badge } from './ui/badge';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Badge } from '../ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -18,10 +18,10 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../lib/web3-provider';
-import { permissionService, PermissionCheckResult } from '../lib/permission-service';
-import { delegationPlanner, DelegationPlan } from '../lib/delegation-planner';
-import { executeDelegationPlan } from '../lib/ens-write-operations';
+import { useWeb3 } from '../../lib/services/web3-provider';
+import { permissionService, PermissionCheckResult } from '../../lib/delegation/permission-service';
+import { delegationPlanner, DelegationPlan } from '../../lib/delegation/delegation-planner';
+import { executeDelegationPlan } from '../../lib/ens/ens-write-operations';
 import { Address } from 'viem';
 
 type Step = 'contract' | 'manager' | 'review' | 'execute' | 'complete';

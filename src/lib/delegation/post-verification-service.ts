@@ -1,8 +1,8 @@
 import { PublicClient, Address, Hex } from 'viem';
 import { normalize } from 'viem/ens';
-import { namehash } from './ens-helpers';
-import { ENS_REGISTRY_ABI, NAME_WRAPPER_ABI, PUBLIC_RESOLVER_ABI } from './ens-contracts';
-import { ENS_REGISTRY_ADDRESS, NAME_WRAPPER_ADDRESS, ENS_PUBLIC_RESOLVER } from './ens-write-operations';
+import { namehash } from '../ens/ens-helpers';
+import { ENS_REGISTRY_ABI, NAME_WRAPPER_ABI, PUBLIC_RESOLVER_ABI } from '../ens/ens-contracts';
+import { ENS_REGISTRY_ADDRESS, NAME_WRAPPER_ADDRESS, ENS_PUBLIC_RESOLVER } from '../ens/ens-write-operations';
 
 export interface VerificationResult {
   success: boolean;
