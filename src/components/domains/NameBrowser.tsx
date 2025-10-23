@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { toast } from 'sonner';
 
 type SortField = 'name' | 'expiryDate' | 'registrationDate' | 'length';
 type SortDirection = 'asc' | 'desc';
@@ -68,11 +69,15 @@ export function NameBrowser() {
       const page = reset ? 0 : currentPage;
       const skip = page * pageSize;
       
+      console.log(`Loading domains for tab: ${activeTab}, page: ${page}, skip: ${skip}`);
+      
       const fetchedDomains = await nameBrowserService.fetchNamesByStatus(
         activeTab,
         pageSize,
         skip
       );
+
+      console.log(`Fetched ${fetchedDomains.length} domains`);
 
       if (reset) {
         setDomains(fetchedDomains);
@@ -84,6 +89,7 @@ export function NameBrowser() {
       setHasMore(fetchedDomains.length === pageSize);
     } catch (error) {
       console.error('Error loading domains:', error);
+      toast.error('Failed to load domains. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -110,7 +116,8 @@ export function NameBrowser() {
         fetchPremiumPrice(domain.name);
       });
     }
-  }, [activeTab, domains, publicClient, fetchPremiumPrice]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, domains, publicClient]);
 
   const handleLoadMore = useCallback(async () => {
     if (!loading && hasMore) {
