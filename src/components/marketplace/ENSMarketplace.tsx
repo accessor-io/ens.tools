@@ -40,6 +40,13 @@ import {
   DollarSign,
   Home,
   Globe,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  Key,
+  Lock,
+  Calendar,
+  Wallet,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
@@ -64,10 +71,23 @@ export function ENSMarketplace() {
     price: '',
   });
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [expandedListings, setExpandedListings] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadMarketplaceData();
   }, [activeTab]);
+
+  const toggleListingExpansion = (listingId: string) => {
+    setExpandedListings(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(listingId)) {
+        newSet.delete(listingId);
+      } else {
+        newSet.add(listingId);
+      }
+      return newSet;
+    });
+  };
 
   const loadMarketplaceData = async () => {
     setLoading(true);
@@ -346,7 +366,7 @@ export function ENSMarketplace() {
               />
             </div>
             <Button onClick={handleSearch} disabled={loading}>
-              <Search className="h-4 w-4 mr-2" />
+              <Search className="h-5 w-5 mr-2" />
               Search
             </Button>
           </div>
@@ -399,10 +419,22 @@ export function ENSMarketplace() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredListings.map((listing) => (
-                      <TableRow key={listing.id}>
+                    {filteredListings.map((listing) => {
+                      const isExpanded = expandedListings.has(listing.id);
+                      return (
+                        <>
+                        <TableRow 
+                          key={listing.id}
+                          className="cursor-pointer hover:bg-slate-50"
+                          onClick={() => toggleListingExpansion(listing.id)}
+                        >
                         <TableCell>
                           <div className="flex items-center gap-2">
+                              {isExpanded ? (
+                                <ChevronDown className="h-5 w-5 text-slate-400" />
+                              ) : (
+                                <ChevronRight className="h-5 w-5 text-slate-400" />
+                              )}
                             <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                               ENS
                             </Badge>
@@ -444,7 +476,7 @@ export function ENSMarketplace() {
                             {listing.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
@@ -468,7 +500,7 @@ export function ENSMarketplace() {
                                 size="sm"
                                 variant="outline"
                                 onClick={() => {
-                                  setMakeOfferParams({ name: listing.name, price: '', tokenId: listing.tokenId });
+                                  setMakeOfferParams({ name: listing.name, price: '' });
                                   setIsMakeOfferOpen(true);
                                 }}
                               >
@@ -479,7 +511,125 @@ export function ENSMarketplace() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      {isExpanded && (
+                        <TableRow>
+                          <TableCell colSpan={6}>
+                            <div className="p-4 bg-slate-50 border-t">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                  <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+                                    <Wallet className="h-5 w-5" />
+                                    Seller Information
+                                  </h4>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-slate-600">Address:</span>
+                                      <code className="font-mono text-xs bg-white px-2 py-1 rounded border">
+                                        {listing.seller}
+                                      </code>
+                                    </div>
+                                    {listing.resolvedAddress && (
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-slate-600">Resolves to:</span>
+                                        <code className="font-mono text-xs bg-white px-2 py-1 rounded border">
+                                          {listing.resolvedAddress}
+                                        </code>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                  <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+                                    <Lock className="h-5 w-5" />
+                                    Domain Information
+                                  </h4>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className={listing.isWrapped ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-amber-100 text-amber-800 border-amber-300"}>
+                                        {listing.isWrapped ? (
+                                          <>
+                                            <Lock className="h-4 w-4 mr-1" />
+                                            Wrapped
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Key className="h-4 w-4 mr-1" />
+                                            Direct
+                                          </>
+                                        )}
+                                      </Badge>
+                                    </div>
+                                    {listing.resolver && (
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-slate-600">Resolver:</span>
+                                        <code className="font-mono text-xs bg-white px-2 py-1 rounded border">
+                                          {listing.resolver.slice(0, 12)}...{listing.resolver.slice(-8)}
+                                        </code>
+                                      </div>
+                                    )}
+                                    {listing.expiryDate && (
+                                      <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-slate-500" />
+                                        <span className="text-slate-600">Expires:</span>
+                                        <span>{listing.expiryDate.toLocaleDateString()}</span>
+                                      </div>
+                                    )}
+                                    {listing.registrationDate && (
+                                      <div className="flex items-center gap-2">
+                                        <Calendar className="h-4 w-4 text-slate-500" />
+                                        <span className="text-slate-600">Registered:</span>
+                                        <span>{listing.registrationDate.toLocaleDateString()}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {listing.price !== '0' && (
+                                <div className="mt-4 pt-4 border-t">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <h4 className="font-semibold text-slate-900 mb-1">Listed Price</h4>
+                                      <div className="text-2xl font-bold text-green-600">
+                                        {listing.price} {listing.currency}
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          window.open(`https://etherscan.io/address/${listing.seller}`, '_blank');
+                                        }}
+                                      >
+                                        <ExternalLink className="h-5 w-5 mr-1" />
+                                        View on Etherscan
+                                      </Button>
+                                      {isConnected && (
+                                        <Button
+                                          size="sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleBuyDomain(listing);
+                                          }}
+                                        >
+                                          <ShoppingCart className="h-5 w-5 mr-1" />
+                                          Purchase Now
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      </>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}

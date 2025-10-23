@@ -76,8 +76,8 @@ export default function App() {
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <div>
-                  <h1 className="text-slate-900">ENS Enterprise Management System</h1>
-                  <p className="text-slate-600">Centralized control for your ENS infrastructure</p>
+                  <h1 className="text-slate-900">ens.tools</h1>
+                  <p className="text-slate-600">ENS management and marketplace</p>
                 </div>
               </div>
               <WalletConnect />
