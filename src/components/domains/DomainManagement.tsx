@@ -58,6 +58,8 @@ import {
   Clock,
   Settings as SettingsIcon,
   FileEdit,
+  Zap,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services/web3-provider';
@@ -1178,6 +1180,54 @@ export function DomainManagement() {
                                       </Alert>
                                     );
                                   })()}
+                                  
+                                  {/* Quick Action Buttons */}
+                                  <div className="border-t border-slate-200 pt-4 mt-4">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() => viewOnENSApp(domain.name)}
+                                      >
+                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                        View
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() => {
+                                          window.open(`https://app.ens.domains/${domain.name}/extend`, '_blank');
+                                        }}
+                                      >
+                                        <Zap className="h-3 w-3 mr-1" />
+                                        Renew
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() => {
+                                          window.open(`https://app.ens.domains/${domain.name}/resolve`, '_blank');
+                                        }}
+                                      >
+                                        <SettingsIcon className="h-3 w-3 mr-1" />
+                                        Resolver
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() => {
+                                          toast.info('Wrap/Unwrap functionality coming soon');
+                                        }}
+                                      >
+                                        <LinkIcon className="h-3 w-3 mr-1" />
+                                        {domain.isWrapped ? 'Unwrap' : 'Wrap'}
+                                      </Button>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </TableCell>

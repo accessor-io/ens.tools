@@ -12,7 +12,7 @@ import { ENSDomain, fetchDomainHistory, DomainHistoryEvent, generateBasicHistory
 import { useWeb3 } from '../../lib/services/web3-provider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Textarea } from '../ui/textarea';
-import { Loader2, Search, Clock, AlertCircle, XCircle, Sparkles, ArrowUpDown, Filter, X, ArrowUp, ArrowDown, ArrowDownWideNarrow, Zap, Eye, Bell, FileText, Copy, Check, ChevronDown, ChevronRight, History, RefreshCw, Wallet, Globe, ArrowRightLeft, Plus, Lock, Users, Key, FileEdit, Settings as SettingsIcon, Coins } from 'lucide-react';
+import { Loader2, Search, Clock, AlertCircle, XCircle, Sparkles, ArrowUpDown, Filter, X, ArrowUp, ArrowDown, ArrowDownWideNarrow, Zap, Eye, Bell, FileText, Copy, Check, ChevronDown, ChevronRight, History, RefreshCw, Wallet, Globe, ArrowRightLeft, Plus, Lock, Users, Key, FileEdit, Settings as SettingsIcon, Coins, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
@@ -1124,6 +1124,56 @@ export function NameBrowser() {
                                             </div>
                                           );
                                         })()}
+                                        
+                                        {/* Quick Action Buttons */}
+                                        <div className="border-t border-slate-200 pt-4 mt-4">
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="flex-1 sm:flex-none"
+                                              onClick={() => {
+                                                window.open(`https://app.ens.domains/${domain.name}`, '_blank');
+                                              }}
+                                            >
+                                              <ExternalLink className="h-3 w-3 mr-1" />
+                                              View
+                                            </Button>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="flex-1 sm:flex-none"
+                                              onClick={() => {
+                                                window.open(`https://app.ens.domains/${domain.name}/extend`, '_blank');
+                                              }}
+                                            >
+                                              <Zap className="h-3 w-3 mr-1" />
+                                              Renew
+                                            </Button>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="flex-1 sm:flex-none"
+                                              onClick={() => {
+                                                window.open(`https://app.ens.domains/${domain.name}/resolve`, '_blank');
+                                              }}
+                                            >
+                                              <SettingsIcon className="h-3 w-3 mr-1" />
+                                              Resolver
+                                            </Button>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className="flex-1 sm:flex-none"
+                                              onClick={() => {
+                                                alert('Wrap/Unwrap functionality coming soon');
+                                              }}
+                                            >
+                                              <LinkIcon className="h-3 w-3 mr-1" />
+                                              {domain.isWrapped ? 'Unwrap' : 'Wrap'}
+                                            </Button>
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
                                   </TableCell>
