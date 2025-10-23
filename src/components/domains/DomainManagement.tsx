@@ -97,6 +97,7 @@ export function DomainManagement() {
   const [domains, setDomains] = useState<ENSDomain[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
+  const [processingDomain, setProcessingDomain] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchQuery && searchQuery !== lastSearchQuery && searchQuery.length >= 2) {
@@ -180,8 +181,9 @@ export function DomainManagement() {
       return;
     }
 
+    setProcessingDomain(domain.name);
     try {
-      toast.loading('Wrapping domain...');
+      const toastId = toast.loading('Wrapping domain...');
       const hash = await wrapName(walletClient, {
         name: domain.name,
         owner: address,
@@ -189,6 +191,7 @@ export function DomainManagement() {
         expiry: BigInt(Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60),
       });
       
+      toast.dismiss(toastId);
       toast.success('Domain wrapped successfully', {
         description: `Transaction: ${hash.slice(0, 10)}...`,
       });
@@ -199,6 +202,8 @@ export function DomainManagement() {
       toast.error('Failed to wrap domain', {
         description: error.message || 'Please try again',
       });
+    } finally {
+      setProcessingDomain(null);
     }
   };
 
@@ -208,13 +213,15 @@ export function DomainManagement() {
       return;
     }
 
+    setProcessingDomain(domain.name);
     try {
-      toast.loading('Unwrapping domain...');
+      const toastId = toast.loading('Unwrapping domain...');
       const hash = await unwrapName(walletClient, publicClient, {
         name: domain.name,
         newController: address,
       });
       
+      toast.dismiss(toastId);
       toast.success('Domain unwrapped successfully', {
         description: `Transaction: ${hash.slice(0, 10)}...`,
       });
@@ -225,6 +232,8 @@ export function DomainManagement() {
       toast.error('Failed to unwrap domain', {
         description: error.message || 'Please try again',
       });
+    } finally {
+      setProcessingDomain(null);
     }
   };
 
@@ -1274,6 +1283,7 @@ export function DomainManagement() {
                                         variant="outline"
                                         size="sm"
                                         className="flex-1 sm:flex-none"
+                                        disabled={processingDomain === domain.name}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (domain.isWrapped) {
@@ -1283,8 +1293,17 @@ export function DomainManagement() {
                                           }
                                         }}
                                       >
-                                        <LinkIcon className="h-3 w-3 mr-1" />
-                                        {domain.isWrapped ? 'Unwrap' : 'Wrap'}
+                                        {processingDomain === domain.name ? (
+                                          <>
+                                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                            Processing...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <LinkIcon className="h-3 w-3 mr-1" />
+                                            {domain.isWrapped ? 'Unwrap' : 'Wrap'}
+                                          </>
+                                        )}
                                       </Button>
                                     </div>
                                   </div>
