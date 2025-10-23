@@ -16,6 +16,9 @@ import {
   Activity,
   RefreshCw,
   ExternalLink,
+  Settings,
+  Zap,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { useWeb3 } from '../lib/services/web3-provider';
 import { fetchENSNames, getExpirationStatus, getDaysUntilExpiration, ENSDomain } from '../lib/ens';
@@ -63,14 +66,14 @@ export function Dashboard() {
       value: isConnected ? domains.length.toString() : '-',
       icon: Globe,
       trend: isConnected ? `${domains.length} owned` : 'Connect wallet',
-      color: 'from-blue-500 to-blue-600'
+      color: 'bg-slate-900'
     },
     {
       title: 'Wrapped Names',
       value: isConnected ? domains.filter(d => d.isWrapped).length.toString() : '-',
       icon: Activity,
       trend: isConnected ? `${Math.round((domains.filter(d => d.isWrapped).length / Math.max(domains.length, 1)) * 100)}% wrapped` : 'N/A',
-      color: 'from-purple-500 to-purple-600'
+      color: 'bg-slate-800'
     },
     {
       title: 'Expiring Soon',
@@ -80,14 +83,14 @@ export function Dashboard() {
       }).length.toString() : '-',
       icon: Clock,
       trend: isConnected ? '< 90 days' : 'N/A',
-      color: 'from-amber-500 to-amber-600'
+      color: 'bg-slate-700'
     },
     {
       title: 'Active Resolvers',
       value: isConnected ? domains.filter(d => d.resolver).length.toString() : '-',
       icon: Shield,
       trend: isConnected ? 'Configured' : 'N/A',
-      color: 'from-emerald-500 to-emerald-600'
+      color: 'bg-slate-600'
     }
   ];
 
@@ -127,10 +130,10 @@ export function Dashboard() {
   if (!isConnected) {
     return (
       <div className="space-y-6">
-        <Alert className="border-blue-200 bg-blue-50">
-          <Wallet className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-900">Welcome to ens.tools</AlertTitle>
-          <AlertDescription className="text-blue-800">
+        <Alert className="border-slate-200 bg-slate-50">
+          <Wallet className="h-4 w-4 text-slate-700" />
+          <AlertTitle className="text-slate-900">Welcome to ens.tools</AlertTitle>
+          <AlertDescription className="text-slate-700">
             Connect your wallet to view and manage your ENS domains. Click the "Connect Wallet" button in the top right corner to get started.
           </AlertDescription>
         </Alert>
@@ -141,7 +144,7 @@ export function Dashboard() {
             <Card key={index} className="border-2 opacity-50">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle>{stat.title}</CardTitle>
-                <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+                <div className={`h-10 w-10 rounded-lg ${stat.color} flex items-center justify-center`}>
                   <stat.icon className="h-5 w-5 text-white" />
                 </div>
               </CardHeader>
@@ -163,21 +166,21 @@ export function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-start gap-3 p-3 border rounded-lg">
-              <Globe className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <Globe className="h-5 w-5 text-slate-900 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-slate-900">Manage Your Domains</p>
                 <p className="text-slate-600">View, configure, and manage all your ENS names in one place</p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3 border rounded-lg">
-              <Shield className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <Shield className="h-5 w-5 text-slate-900 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-slate-900">Security Monitoring</p>
                 <p className="text-slate-600">Track expiration dates, resolver configurations, and security settings</p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3 border rounded-lg">
-              <Activity className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <Activity className="h-5 w-5 text-slate-900 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-slate-900">Advanced Tools</p>
                 <p className="text-slate-600">Access naming conventions, metadata tools, and analytics</p>
@@ -197,7 +200,7 @@ export function Dashboard() {
           <Card key={index} className="border-2 hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>{stat.title}</CardTitle>
-              <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+              <div className={`h-10 w-10 rounded-lg ${stat.color} flex items-center justify-center`}>
                 <stat.icon className="h-5 w-5 text-white" />
               </div>
             </CardHeader>
@@ -245,12 +248,13 @@ export function Dashboard() {
                   const daysUntilExpiry = getDaysUntilExpiration(domain.expiryDate);
                   
                   return (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border bg-white hover:bg-slate-50 transition-colors">
+                    <div key={index} className="rounded-lg border bg-white hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center justify-between p-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <p className="text-slate-900">{domain.name}</p>
                           {domain.isWrapped && (
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                            <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-300">
                               Wrapped
                             </Badge>
                           )}
@@ -263,14 +267,61 @@ export function Dashboard() {
                       </div>
                       <div className="flex items-center gap-2">
                         {expirationStatus === 'active' && (
-                          <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                          <CheckCircle2 className="h-5 w-5 text-slate-700" />
                         )}
                         {expirationStatus === 'expiring-soon' && (
-                          <AlertTriangle className="h-5 w-5 text-amber-600" />
+                          <AlertTriangle className="h-5 w-5 text-slate-500" />
                         )}
                         {expirationStatus === 'expired' && (
-                          <AlertTriangle className="h-5 w-5 text-red-600" />
+                          <AlertTriangle className="h-5 w-5 text-slate-900" />
                         )}
+                        </div>
+                      </div>
+                      <div className="border-t border-slate-200 p-3 flex items-center gap-2 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
+                          onClick={() => {
+                            window.open(`https://app.ens.domains/${domain.name}`, '_blank');
+                          }}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
+                          onClick={() => {
+                            window.open(`https://app.ens.domains/${domain.name}/extend`, '_blank');
+                          }}
+                        >
+                          <Zap className="h-3 w-3 mr-1" />
+                          Renew
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
+                          onClick={() => {
+                            window.open(`https://app.ens.domains/${domain.name}/resolve`, '_blank');
+                          }}
+                        >
+                          <Settings className="h-3 w-3 mr-1" />
+                          Resolver
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
+                          onClick={() => {
+                            toast.info('Wrap/Unwrap functionality coming soon');
+                          }}
+                        >
+                          <LinkIcon className="h-3 w-3 mr-1" />
+                          {domain.isWrapped ? 'Unwrap' : 'Wrap'}
+                        </Button>
                       </div>
                     </div>
                   );
@@ -299,9 +350,9 @@ export function Dashboard() {
               <div className="space-y-3">
                 {securityAlerts.map((alert, index) => (
                   <div key={index} className="flex items-start gap-3 p-3 rounded-lg border bg-white">
-                    {alert.type === 'warning' && <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />}
-                    {alert.type === 'error' && <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />}
-                    {alert.type === 'info' && <Activity className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />}
+                    {alert.type === 'warning' && <AlertTriangle className="h-5 w-5 text-slate-500 flex-shrink-0 mt-0.5" />}
+                    {alert.type === 'error' && <AlertTriangle className="h-5 w-5 text-slate-900 flex-shrink-0 mt-0.5" />}
+                    {alert.type === 'info' && <Activity className="h-5 w-5 text-slate-700 flex-shrink-0 mt-0.5" />}
                     <div className="flex-1">
                       <p className="text-slate-900">{alert.message}</p>
                       <p className="text-slate-600 flex items-center gap-1 mt-1">
@@ -313,10 +364,10 @@ export function Dashboard() {
                 ))}
               </div>
             ) : (
-              <Alert className="border-emerald-200 bg-emerald-50">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                <AlertTitle className="text-emerald-900">All Clear!</AlertTitle>
-                <AlertDescription className="text-emerald-800">
+              <Alert className="border-slate-200 bg-slate-50">
+                <CheckCircle2 className="h-4 w-4 text-slate-700" />
+                <AlertTitle className="text-slate-900">All Clear!</AlertTitle>
+                <AlertDescription className="text-slate-700">
                   No alerts or warnings for your ENS names.
                 </AlertDescription>
               </Alert>
