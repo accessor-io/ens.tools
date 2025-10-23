@@ -693,7 +693,7 @@ export function DomainManagement() {
                         <>
                           <TableRow 
                             key={domain.name}
-                            className="cursor-pointer"
+                            className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50 hover:bg-blue-100' : 'hover:bg-slate-50'}`}
                             onClick={() => toggleRowExpansion(domain.name)}
                           >
                             {visibleColumns.name && (
@@ -909,7 +909,7 @@ export function DomainManagement() {
                         {isExpanded && (
                           <TableRow>
                             <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1}>
-                              <div className="p-4 bg-slate-50 border-t">
+                              <div className="p-4 bg-slate-50 border-t border-l-4 border-l-blue-500">
                                 <div className="space-y-4">
                                   <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
