@@ -1172,8 +1172,9 @@ export function NameBrowser() {
                                               variant="outline"
                                               size="sm"
                                               className="flex-1 sm:flex-none"
-                                              onClick={() => {
-                                                alert('Wrap/Unwrap functionality coming soon');
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                window.open(`https://app.ens.domains/${domain.name}`, '_blank');
                                               }}
                                             >
                                               <LinkIcon className="h-3 w-3 mr-1" />
