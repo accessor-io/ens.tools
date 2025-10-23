@@ -60,6 +60,7 @@ import {
   FileEdit,
   Zap,
   Link as LinkIcon,
+  Copy,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services/web3-provider';
@@ -920,6 +921,92 @@ export function DomainManagement() {
                             <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1}>
                               <div className="p-4 bg-slate-50 border-t border-l-4 border-l-blue-500">
                                 <div className="space-y-4">
+                                  {/* Domain Summary */}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div className="bg-white rounded-lg border border-slate-200 p-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <Globe className="h-4 w-4 text-blue-600" />
+                                        <span className="text-xs font-semibold text-slate-700">Resolved Address</span>
+                                      </div>
+                                      {domain.resolvedAddress ? (
+                                        <div className="flex items-center gap-2">
+                                          <code className="text-xs font-mono text-slate-900 break-all">{domain.resolvedAddress}</code>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(domain.resolvedAddress!);
+                                              toast.success('Address copied');
+                                            }}
+                                          >
+                                            <Copy className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <span className="text-xs text-slate-500">Not set</span>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="bg-white rounded-lg border border-slate-200 p-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <SettingsIcon className="h-4 w-4 text-purple-600" />
+                                        <span className="text-xs font-semibold text-slate-700">Resolver</span>
+                                      </div>
+                                      {domain.resolver ? (
+                                        <div className="flex items-center gap-2">
+                                          <code className="text-xs font-mono text-slate-900 break-all">{domain.resolver}</code>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(domain.resolver!);
+                                              toast.success('Resolver copied');
+                                            }}
+                                          >
+                                            <Copy className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <span className="text-xs text-slate-500">Not set</span>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="bg-white rounded-lg border border-slate-200 p-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <Lock className="h-4 w-4 text-indigo-600" />
+                                        <span className="text-xs font-semibold text-slate-700">Status</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {domain.isWrapped ? (
+                                          <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">Wrapped</Badge>
+                                        ) : (
+                                          <Badge variant="outline">Standard</Badge>
+                                        )}
+                                        {domain.expiryDate && (
+                                          <Badge variant={getExpirationStatus(domain.expiryDate) === 'expired' ? 'destructive' : 'secondary'}>
+                                            {getDaysUntilExpiration(domain.expiryDate)} days left
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="bg-white rounded-lg border border-slate-200 p-3">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <Calendar className="h-4 w-4 text-green-600" />
+                                        <span className="text-xs font-semibold text-slate-700">Registration Age</span>
+                                      </div>
+                                      {domain.registrationDate ? (
+                                        <span className="text-xs text-slate-900">
+                                          {Math.floor((Date.now() - domain.registrationDate.getTime()) / (1000 * 60 * 60 * 24))} days ago
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs text-slate-500">Unknown</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
                                   <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
                                     <History className="h-5 w-5 text-blue-600" />
