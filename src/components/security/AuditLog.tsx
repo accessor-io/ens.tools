@@ -12,6 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
+import { ScrollArea } from '../ui/scroll-area';
 import { 
   Search, 
   Filter, 
@@ -20,14 +28,27 @@ import {
   AlertTriangle,
   XCircle,
   Clock,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  Code,
+  Layers,
+  Copy,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { auditLogService, AuditEntry } from '../../lib/security';
+import { toast } from 'sonner';
 
 export function AuditLog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
+  const [showCallData, setShowCallData] = useState(false);
+  const [showDecodedState, setShowDecodedState] = useState(false);
+  const [includeCallData, setIncludeCallData] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auditLogService.subscribe((entries) => {
@@ -78,6 +99,33 @@ export function AuditLog() {
     return action.split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
+  };
+
+  const toggleRowExpansion = (entryId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(entryId)) {
+      newExpanded.delete(entryId);
+    } else {
+      newExpanded.add(entryId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+  };
+
+  const formatCallData = (callData: string | undefined) => {
+    if (!callData) return 'N/A';
+    if (callData.length > 100) {
+      return `${callData.slice(0, 50)}...${callData.slice(-50)}`;
+    }
+    return callData;
+  };
+
+  const formatStateChange = (stateChange: any) => {
+    return JSON.stringify(stateChange, null, 2);
   };
 
   return (
@@ -146,7 +194,7 @@ export function AuditLog() {
       {/* Filters */}
       <Card className="border-2">
         <CardContent className="pt-6">
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
@@ -168,6 +216,14 @@ export function AuditLog() {
                 <SelectItem value="failed">Failed Only</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              variant={includeCallData ? "default" : "outline"}
+              onClick={() => setIncludeCallData(!includeCallData)}
+              className="flex items-center gap-2"
+            >
+              {includeCallData ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {includeCallData ? 'Hide' : 'Show'} Call Data
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -192,68 +248,190 @@ export function AuditLog() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-slate-700">
-                        <Clock className="h-3 w-3" />
-                        {formatTimestamp(entry.timestamp)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-slate-900">{entry.domain || 'N/A'}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-slate-700">{formatAction(entry.action)}</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <p className="text-slate-600 font-mono">
-                          {entry.actor ? `${entry.actor.slice(0, 6)}...${entry.actor.slice(-4)}` : 'N/A'}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {entry.status === 'success' && (
-                        <Badge variant="default" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Success
-                        </Badge>
+                {filteredEntries.map((entry) => {
+                  const isExpanded = expandedRows.has(entry.id);
+                  const hasTransaction = !!entry.transaction;
+                  const hasCallData = !!entry.transaction?.callData;
+                  const hasStateChanges = !!entry.stateChanges && entry.stateChanges.length > 0;
+                  
+                  return (
+                    <>
+                      <TableRow key={entry.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-slate-700">
+                            <Clock className="h-3 w-3" />
+                            {formatTimestamp(entry.timestamp)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-slate-900">{entry.domain || 'N/A'}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-slate-700">{formatAction(entry.action)}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="text-slate-600 font-mono">
+                              {entry.actor ? `${entry.actor.slice(0, 6)}...${entry.actor.slice(-4)}` : 'N/A'}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {entry.status === 'success' && (
+                            <Badge variant="default" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Success
+                            </Badge>
+                          )}
+                          {entry.status === 'warning' && (
+                            <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Warning
+                            </Badge>
+                          )}
+                          {entry.status === 'failed' && (
+                            <Badge variant="destructive">
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Failed
+                            </Badge>
+                          )}
+                          {entry.status === 'info' && (
+                            <Badge variant="outline">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {entry.transaction?.txStatus === 'pending' ? 'Pending' : 'Info'}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-slate-600 text-sm">{entry.details}</span>
+                            {entry.txHash && (
+                              <Button variant="ghost" size="sm" onClick={() => {
+                                window.open(`https://etherscan.io/tx/${entry.txHash}`, '_blank');
+                              }}>
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Tx
+                              </Button>
+                            )}
+                            {hasTransaction && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleRowExpansion(entry.id)}
+                              >
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && hasTransaction && (
+                        <TableRow key={`${entry.id}-expanded`}>
+                          <TableCell colSpan={6} className="bg-slate-50">
+                            <div className="p-4 space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                {entry.transaction?.contractAddress && (
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Contract</p>
+                                    <div className="flex items-center gap-2">
+                                      <code className="text-sm">{entry.transaction.contractAddress}</code>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(entry.transaction!.contractAddress!, 'Address')}
+                                      >
+                                        <Copy className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                                {entry.transaction?.functionName && (
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Function</p>
+                                    <code className="text-sm">{entry.transaction.functionName}</code>
+                                  </div>
+                                )}
+                                {entry.transaction?.gasUsed && (
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Gas Used</p>
+                                    <code className="text-sm">{entry.transaction.gasUsed.toString()}</code>
+                                  </div>
+                                )}
+                                {entry.transaction?.blockNumber && (
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Block</p>
+                                    <code className="text-sm">{entry.transaction.blockNumber.toString()}</code>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {hasCallData && (includeCallData || isExpanded) && (
+                                <div>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs text-slate-500">Call Data</p>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedEntry(entry);
+                                        setShowCallData(true);
+                                      }}
+                                    >
+                                      <Code className="h-3 w-3 mr-1" />
+                                      View Full
+                                    </Button>
+                                  </div>
+                                  <div className="bg-slate-900 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto">
+                                    <code>{formatCallData(entry.transaction!.callData)}</code>
+                                  </div>
+                                </div>
+                              )}
+
+                              {entry.transaction?.functionArgs && entry.transaction.functionArgs.length > 0 && (
+                                <div>
+                                  <p className="text-xs text-slate-500 mb-2">Function Arguments</p>
+                                  <div className="bg-slate-100 p-3 rounded font-mono text-xs overflow-x-auto">
+                                    <pre>{JSON.stringify(entry.transaction.functionArgs, null, 2)}</pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {hasStateChanges && (
+                                <div>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs text-slate-500">State Changes ({entry.stateChanges!.length})</p>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setSelectedEntry(entry);
+                                        setShowDecodedState(true);
+                                      }}
+                                    >
+                                      <Layers className="h-3 w-3 mr-1" />
+                                      Decode & View
+                                    </Button>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {entry.stateChanges!.slice(0, 2).map((change, idx) => (
+                                      <div key={idx} className="bg-blue-50 border border-blue-200 p-2 rounded text-xs">
+                                        <p className="font-semibold text-blue-900">{change.event}</p>
+                                        <p className="text-blue-700 font-mono">{change.contract}</p>
+                                      </div>
+                                    ))}
+                                    {entry.stateChanges!.length > 2 && (
+                                      <p className="text-xs text-slate-500">+ {entry.stateChanges!.length - 2} more changes</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       )}
-                      {entry.status === 'warning' && (
-                        <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          Warning
-                        </Badge>
-                      )}
-                      {entry.status === 'failed' && (
-                        <Badge variant="destructive">
-                          <XCircle className="h-3 w-3 mr-1" />
-                          Failed
-                        </Badge>
-                      )}
-                      {entry.status === 'info' && (
-                        <Badge variant="outline">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Info
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {entry.txHash && (
-                          <Button variant="ghost" size="sm" onClick={() => {
-                            window.open(`https://etherscan.io/tx/${entry.txHash}`, '_blank');
-                          }}>
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Tx
-                          </Button>
-                        )}
-                        <span className="text-slate-600 text-sm">{entry.details}</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                    </>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -265,6 +443,127 @@ export function AuditLog() {
           )}
         </CardContent>
       </Card>
+
+      {/* Call Data Dialog */}
+      <Dialog open={showCallData} onOpenChange={setShowCallData}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Transaction Call Data</DialogTitle>
+            <DialogDescription>
+              Complete call data for transaction {selectedEntry?.txHash?.slice(0, 20)}...
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4">
+              {selectedEntry?.transaction?.callData && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-semibold">Call Data (Hex)</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(selectedEntry.transaction!.callData!, 'Call data')}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy
+                    </Button>
+                  </div>
+                  <div className="bg-slate-900 text-green-400 p-4 rounded font-mono text-xs break-all">
+                    <code>{selectedEntry.transaction.callData}</code>
+                  </div>
+                </div>
+              )}
+              {selectedEntry?.transaction?.functionName && (
+                <div>
+                  <p className="text-sm font-semibold mb-2">Function</p>
+                  <code className="bg-slate-100 p-2 rounded block">{selectedEntry.transaction.functionName}</code>
+                </div>
+              )}
+              {selectedEntry?.transaction?.functionArgs && selectedEntry.transaction.functionArgs.length > 0 && (
+                <div>
+                  <p className="text-sm font-semibold mb-2">Arguments</p>
+                  <div className="bg-slate-100 p-4 rounded font-mono text-xs overflow-x-auto">
+                    <pre>{JSON.stringify(selectedEntry.transaction.functionArgs, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Decoded State Changes Dialog */}
+      <Dialog open={showDecodedState} onOpenChange={setShowDecodedState}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Decoded State Changes</DialogTitle>
+            <DialogDescription>
+              Decoded events and state changes from transaction logs
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4">
+              {selectedEntry?.stateChanges && selectedEntry.stateChanges.length > 0 ? (
+                selectedEntry.stateChanges.map((change, idx) => (
+                  <div key={idx} className="border rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-lg">{change.event}</p>
+                        <p className="text-sm text-slate-500 font-mono">{change.contract}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(formatStateChange(change), 'State change')}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
+                    {change.from && (
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">From</p>
+                        <code className="text-xs bg-red-50 p-2 rounded block">
+                          {typeof change.from === 'object' ? JSON.stringify(change.from, null, 2) : String(change.from)}
+                        </code>
+                      </div>
+                    )}
+                    {change.to && (
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">To</p>
+                        <code className="text-xs bg-green-50 p-2 rounded block">
+                          {typeof change.to === 'object' ? JSON.stringify(change.to, null, 2) : String(change.to)}
+                        </code>
+                      </div>
+                    )}
+                    {change.decoded && (
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Decoded Data</p>
+                        <div className="bg-slate-50 p-3 rounded font-mono text-xs overflow-x-auto">
+                          <pre>{formatStateChange(change.decoded)}</pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : selectedEntry?.decodedLogs && selectedEntry.decodedLogs.length > 0 ? (
+                selectedEntry.decodedLogs.map((log, idx) => (
+                  <div key={idx} className="border rounded-lg p-4">
+                    <p className="font-semibold mb-2">{log.eventName || 'Unknown Event'}</p>
+                    <div className="bg-slate-50 p-3 rounded font-mono text-xs overflow-x-auto">
+                      <pre>{formatStateChange(log)}</pre>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-500">
+                  No decoded state changes available for this transaction.
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

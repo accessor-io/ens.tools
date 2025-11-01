@@ -96,18 +96,36 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   risk_level VARCHAR(20) NOT NULL,
   details TEXT,
   metadata JSONB,
-  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  -- Transaction tracking fields
+  tx_hash VARCHAR(66),
+  tx_status VARCHAR(20), -- 'attempted', 'pending', 'confirmed', 'failed', 'reverted'
+  call_data TEXT, -- Full transaction call data (hex)
+  contract_address VARCHAR(42),
+  function_name VARCHAR(255),
+  function_args JSONB,
+  gas_limit BIGINT,
+  gas_price BIGINT,
+  gas_used BIGINT,
+  -- State change tracking
+  state_changes JSONB, -- Decoded state changes from transaction logs
+  decoded_logs JSONB, -- Full decoded transaction logs
+  block_number BIGINT,
+  block_hash VARCHAR(66)
 );
 
 CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
 CREATE INDEX idx_audit_logs_risk_level ON audit_logs(risk_level);
+CREATE INDEX idx_audit_logs_tx_hash ON audit_logs(tx_hash);
+CREATE INDEX idx_audit_logs_tx_status ON audit_logs(tx_status);
+CREATE INDEX idx_audit_logs_category ON audit_logs(category);
 
--- User configurations
+-- User configurations (encrypted)
 CREATE TABLE IF NOT EXISTS user_configs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE,
-  config_json JSONB NOT NULL,
+  config_json TEXT NOT NULL, -- Changed to TEXT to store encrypted data
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

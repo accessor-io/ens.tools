@@ -13,10 +13,38 @@ export type AuditActionType =
   | 'filter_applied'
   | 'contract_registered'
   | 'metadata_updated'
-  | 'transaction_signed'
+  | 'transaction_attempted'
+  | 'transaction_pending'
+  | 'transaction_confirmed'
   | 'transaction_failed'
+  | 'transaction_reverted'
+  | 'transaction_signed'
   | 'metadata_validated'
-  | 'settings_changed';
+  | 'settings_saved'
+  | 'settings_changed'
+  | 'name_edited';
+
+export interface TransactionData {
+  txHash?: string;
+  txStatus?: 'attempted' | 'pending' | 'confirmed' | 'failed' | 'reverted';
+  callData?: string; // Hex encoded call data
+  contractAddress?: string;
+  functionName?: string;
+  functionArgs?: any[];
+  gasLimit?: bigint;
+  gasPrice?: bigint;
+  gasUsed?: bigint;
+  blockNumber?: bigint;
+  blockHash?: string;
+}
+
+export interface StateChange {
+  contract: string;
+  event: string;
+  from?: any;
+  to?: any;
+  decoded?: any;
+}
 
 export interface AuditEntry {
   id: string;
@@ -28,6 +56,10 @@ export interface AuditEntry {
   status: 'success' | 'warning' | 'failed' | 'info';
   txHash?: string;
   metadata?: Record<string, any>;
+  // Transaction tracking
+  transaction?: TransactionData;
+  stateChanges?: StateChange[];
+  decodedLogs?: any[];
 }
 
 class AuditLogService {
@@ -97,6 +129,9 @@ class AuditLogService {
       status?: 'success' | 'warning' | 'failed' | 'info';
       txHash?: string;
       metadata?: Record<string, any>;
+      transaction?: TransactionData;
+      stateChanges?: StateChange[];
+      decodedLogs?: any[];
     }
   ) {
     this.addEntry({
@@ -105,9 +140,94 @@ class AuditLogService {
       domain: options?.domain,
       actor: options?.actor,
       status: options?.status || 'info',
-      txHash: options?.txHash,
+      txHash: options?.txHash || options?.transaction?.txHash,
       metadata: options?.metadata,
+      transaction: options?.transaction,
+      stateChanges: options?.stateChanges,
+      decodedLogs: options?.decodedLogs,
     });
+  }
+
+  trackTransactionAttempt(
+    action: AuditActionType,
+    details: string,
+    transaction: TransactionData,
+    options?: {
+      domain?: string;
+      actor?: string;
+      metadata?: Record<string, any>;
+    }
+  ) {
+    this.trackAction(action, details, {
+      ...options,
+      status: 'info',
+      transaction: {
+        ...transaction,
+        txStatus: 'attempted',
+      },
+    });
+  }
+
+  trackTransactionConfirmed(
+    txHash: string,
+    transaction: Partial<TransactionData>,
+    stateChanges?: StateChange[],
+    decodedLogs?: any[]
+  ) {
+    const entry = this.entries.find(e => e.transaction?.txHash === txHash || e.txHash === txHash);
+    if (entry) {
+      entry.status = 'success';
+      entry.transaction = {
+        ...entry.transaction,
+        ...transaction,
+        txHash,
+        txStatus: 'confirmed',
+      };
+      if (stateChanges) entry.stateChanges = stateChanges;
+      if (decodedLogs) entry.decodedLogs = decodedLogs;
+      this.saveToStorage();
+      this.notifyListeners();
+    } else {
+      this.trackAction('transaction_confirmed', `Transaction confirmed: ${txHash}`, {
+        status: 'success',
+        txHash,
+        transaction: {
+          ...transaction,
+          txHash,
+          txStatus: 'confirmed',
+        },
+        stateChanges,
+        decodedLogs,
+      });
+    }
+  }
+
+  trackTransactionFailed(
+    txHash: string | undefined,
+    error: Error | string,
+    transaction?: Partial<TransactionData>
+  ) {
+    const entry = txHash ? this.entries.find(e => e.transaction?.txHash === txHash || e.txHash === txHash) : null;
+    if (entry) {
+      entry.status = 'failed';
+      if (entry.transaction) {
+        entry.transaction.txStatus = 'failed';
+        Object.assign(entry.transaction, transaction);
+      }
+      entry.details = `Transaction failed: ${error instanceof Error ? error.message : error}`;
+      this.saveToStorage();
+      this.notifyListeners();
+    } else {
+      this.trackAction('transaction_failed', `Transaction failed: ${error instanceof Error ? error.message : error}`, {
+        status: 'failed',
+        txHash,
+        transaction: transaction ? {
+          ...transaction,
+          txHash,
+          txStatus: 'failed',
+        } : undefined,
+      });
+    }
   }
 
   getEntries(): AuditEntry[] {
@@ -129,7 +249,10 @@ class AuditLogService {
       return JSON.stringify(this.entries, null, 2);
     }
 
-    const headers = ['Timestamp', 'Action', 'Domain', 'Actor', 'Status', 'Details', 'Tx Hash'];
+    const headers = [
+      'Timestamp', 'Action', 'Domain', 'Actor', 'Status', 'Details', 
+      'Tx Hash', 'Tx Status', 'Contract', 'Function', 'Gas Used', 'Call Data'
+    ];
     const rows = this.entries.map(entry => [
       entry.timestamp.toISOString(),
       entry.action,
@@ -138,6 +261,11 @@ class AuditLogService {
       entry.status,
       entry.details,
       entry.txHash || '',
+      entry.transaction?.txStatus || '',
+      entry.transaction?.contractAddress || '',
+      entry.transaction?.functionName || '',
+      entry.transaction?.gasUsed?.toString() || '',
+      entry.transaction?.callData || '',
     ]);
 
     return [headers, ...rows].map(row => row.join(',')).join('\n');

@@ -1,3 +1,5 @@
+import { EncryptionService } from '../security/encryption-service';
+
 export interface UserConfig {
   displayOptions: {
     theme: 'light' | 'dark' | 'auto';
@@ -59,13 +61,52 @@ const defaultConfig: UserConfig = {
 };
 
 class UserConfigService {
+  private getStorageKey(address: string): string {
+    return `ens_config_${address.toLowerCase()}`;
+  }
+
+  private getEncryptionSecret(): string | undefined {
+    // Try to get a user-specific secret from localStorage
+    // In a more secure implementation, this could be derived from the wallet signature
+    const stored = localStorage.getItem('ens_config_encryption_secret');
+    if (stored) {
+      return stored;
+    }
+    // Generate and store a new secret for this session
+    const secret = crypto.getRandomValues(new Uint8Array(32))
+      .reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '');
+    localStorage.setItem('ens_config_encryption_secret', secret);
+    return secret;
+  }
+
   getUserConfig(address: string): UserConfig {
     try {
-      const data = localStorage.getItem(`ens_config_${address}`);
-      if (!data) {
+      const storageKey = this.getStorageKey(address);
+      const encryptedData = localStorage.getItem(storageKey);
+      
+      if (!encryptedData) {
         return this.setUserConfig(address, defaultConfig);
       }
-      return JSON.parse(data);
+
+      // Try to decrypt - if it fails, might be old unencrypted format
+      try {
+        const secret = this.getEncryptionSecret();
+        return EncryptionService.decryptJSON<UserConfig>(encryptedData, address, secret);
+      } catch (decryptError) {
+        // Fallback: try parsing as plain JSON (for migration from unencrypted data)
+        try {
+          const parsed = JSON.parse(encryptedData);
+          // If successful, re-encrypt with new format
+          if (parsed && typeof parsed === 'object') {
+            return this.setUserConfig(address, parsed as UserConfig);
+          }
+        } catch (parseError) {
+          console.error('Failed to parse config:', parseError);
+        }
+        // If all else fails, return default
+        console.warn('Failed to decrypt user config, using default');
+        return defaultConfig;
+      }
     } catch (error) {
       console.error('Error loading user config:', error);
       return defaultConfig;
@@ -78,10 +119,23 @@ class UserConfigService {
         ...config,
         lastUpdated: Date.now(),
       };
-      localStorage.setItem(`ens_config_${address}`, JSON.stringify(updatedConfig));
+      
+      const secret = this.getEncryptionSecret();
+      const encrypted = EncryptionService.encryptJSON(updatedConfig, address, secret);
+      
+      const storageKey = this.getStorageKey(address);
+      localStorage.setItem(storageKey, encrypted);
+      
       return updatedConfig;
     } catch (error) {
       console.error('Error saving user config:', error);
+      // Fallback to unencrypted storage if encryption fails
+      try {
+        const storageKey = this.getStorageKey(address);
+        localStorage.setItem(storageKey, JSON.stringify(updatedConfig));
+      } catch (fallbackError) {
+        console.error('Fallback save also failed:', fallbackError);
+      }
       return config;
     }
   }
