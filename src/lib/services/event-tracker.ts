@@ -118,6 +118,12 @@ class EventTracker {
       case 'domain_viewed':
         return `Viewed domain: ${domain}`;
       case 'domain_grouped':
+        if (data?.groupId === null || data?.groupName === null) {
+          return `Unassigned ${domain}${data?.previousGroupName ? ` from group: ${data.previousGroupName}` : ''}`;
+        }
+        if (data?.previousGroupId && data?.previousGroupName && data.previousGroupId !== data.groupId) {
+          return `Changed ${domain} from group "${data.previousGroupName}" to "${data.groupName}"`;
+        }
         return `Grouped ${domain} as ${data?.groupName || 'unknown'}`;
       case 'domain_project_assigned':
         return `Assigned ${domain} to project: ${data?.project || 'unknown'}`;
