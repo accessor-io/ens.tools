@@ -45,7 +45,7 @@ export function AppSidebar({
   currentView,
   onViewChange,
 }: AppSidebarProps) {
-  const managementItems = [
+  const overviewItems = [
     {
       id: "dashboard" as ViewType,
       label: "Dashboard",
@@ -56,6 +56,9 @@ export function AppSidebar({
       label: "Analytics",
       icon: BarChart3,
     },
+  ];
+
+  const domainItems = [
     {
       id: "domains" as ViewType,
       label: "Domain Management",
@@ -71,28 +74,31 @@ export function AppSidebar({
       label: "Metadata Editor",
       icon: FileEdit,
     },
+  ];
+
+  const securityItems = [
     {
       id: "security" as ViewType,
       label: "Security Monitor",
       icon: Shield,
     },
     {
-      id: "governance" as ViewType,
-      label: "Governance",
-      icon: Vote,
-    },
-    {
       id: "audit" as ViewType,
       label: "Audit Log",
       icon: ScrollText,
+    },
+    {
+      id: "governance" as ViewType,
+      label: "Governance",
+      icon: Vote,
     },
   ];
 
   const registryItems = [
     {
-      id: "contract-registration" as ViewType,
-      label: "Register Contract",
-      icon: PlusCircle,
+      id: "contracts" as ViewType,
+      label: "Contract Registry",
+      icon: FileCode,
     },
     {
       id: "dao-registry" as ViewType,
@@ -100,19 +106,27 @@ export function AppSidebar({
       icon: Building2,
     },
     {
-      id: "contracts" as ViewType,
-      label: "Contract Registry",
-      icon: FileCode,
-    },
-    {
       id: "integrations" as ViewType,
       label: "Integrations",
       icon: Plug,
+    },
+  ];
+
+  const workflowItems = [
+    {
+      id: "contract-registration" as ViewType,
+      label: "Register Contract",
+      icon: PlusCircle,
     },
     {
       id: "marketplace" as ViewType,
       label: "Marketplace",
       icon: ShoppingCart,
+    },
+    {
+      id: "preflight-checker" as ViewType,
+      label: "Preflight Checker",
+      icon: FileCheck,
     },
   ];
 
@@ -126,11 +140,6 @@ export function AppSidebar({
       id: "metadata-tools" as ViewType,
       label: "Metadata Tools",
       icon: Database,
-    },
-    {
-      id: "preflight-checker" as ViewType,
-      label: "Preflight Checker",
-      icon: FileCheck,
     },
   ];
 
@@ -171,10 +180,10 @@ export function AppSidebar({
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {managementItems.map((item) => (
+              {overviewItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
@@ -190,10 +199,67 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Registry</SidebarGroupLabel>
+          <SidebarGroupLabel>Domains</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {domainItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => onViewChange(item.id)}
+                    isActive={currentView === item.id}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Security & Governance</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {securityItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => onViewChange(item.id)}
+                    isActive={currentView === item.id}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Registries</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {registryItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => onViewChange(item.id)}
+                    isActive={currentView === item.id}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Workflows</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {workflowItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
@@ -228,7 +294,7 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Documentation</SidebarGroupLabel>
+          <SidebarGroupLabel>Reference</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {referenceItems.map((item) => (

@@ -22,19 +22,30 @@ import {
 import { toast } from 'sonner';
 import { notificationService, NotificationConfig } from '../lib/services/notification-service';
 import { addressDisplayService, AddressDisplayConfig, AddressDisplayFormat } from '../lib/services/address-display-service';
+import { userConfigService, UserConfig } from '../lib/services/user-config-service';
+import { useWeb3 } from '../lib/services/web3-provider';
 
 export function Settings() {
+  const { address } = useWeb3();
   const [alertConfig, setAlertConfig] = useState<NotificationConfig>(notificationService.getConfig());
   const [addressConfig, setAddressConfig] = useState<AddressDisplayConfig>(addressDisplayService.getConfig());
+  const [userConfig, setUserConfig] = useState<UserConfig | null>(null);
 
   useEffect(() => {
     setAlertConfig(notificationService.getConfig());
     setAddressConfig(addressDisplayService.getConfig());
-  }, []);
+    if (address) {
+      const config = userConfigService.getUserConfig(address);
+      setUserConfig(config);
+    }
+  }, [address]);
 
   const handleSaveSettings = () => {
     notificationService.saveConfig(alertConfig);
     addressDisplayService.saveConfig(addressConfig);
+    if (address && userConfig) {
+      userConfigService.setUserConfig(address, userConfig);
+    }
     toast.success('Settings saved successfully');
   };
 
@@ -45,6 +56,47 @@ export function Settings() {
   const updateAddressConfig = (updates: Partial<AddressDisplayConfig>) => {
     setAddressConfig({ ...addressConfig, ...updates });
   };
+
+  const updateUserConfig = (updates: Partial<UserConfig>) => {
+    if (userConfig) {
+      setUserConfig({ ...userConfig, ...updates });
+    }
+  };
+
+  const updateDisplayOptions = (updates: Partial<UserConfig['displayOptions']>) => {
+    if (userConfig) {
+      setUserConfig({
+        ...userConfig,
+        displayOptions: { ...userConfig.displayOptions, ...updates },
+      });
+    }
+  };
+
+  if (!address) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-slate-900">Settings</h2>
+            <p className="text-slate-600">Configure system preferences and security options</p>
+          </div>
+        </div>
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            Please connect a wallet to access user-specific settings. Some settings are available without a wallet connection.
+          </AlertDescription>
+        </Alert>
+        <Tabs defaultValue="display" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="display">Display</TabsTrigger>
+          </TabsList>
+          {/* Show only non-wallet-dependent tabs */}
+        </Tabs>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -64,6 +116,7 @@ export function Settings() {
           <TabsTrigger value="wallets">Wallets & Access</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="display">Display</TabsTrigger>
+          <TabsTrigger value="preferences">Preferences</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="automation">Automation</TabsTrigger>
         </TabsList>
@@ -410,6 +463,159 @@ export function Settings() {
               </Alert>
             </CardContent>
           </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Theme & Appearance</CardTitle>
+              <CardDescription>Customize the application theme and display preferences</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="theme">Theme</Label>
+                <Select
+                  value={userConfig?.displayOptions.theme || 'light'}
+                  onValueChange={(value: 'light' | 'dark' | 'auto') => updateDisplayOptions({ theme: value })}
+                >
+                  <SelectTrigger id="theme">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="auto">Auto (System)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-slate-600">Choose between light, dark, or system theme</p>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Compact Mode</p>
+                  <p className="text-slate-600">Reduce spacing and padding for a denser layout</p>
+                </div>
+                <Switch
+                  checked={userConfig?.displayOptions.compactMode || false}
+                  onCheckedChange={(checked) => updateDisplayOptions({ compactMode: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Show Advanced Options</p>
+                  <p className="text-slate-600">Display advanced configuration options throughout the app</p>
+                </div>
+                <Switch
+                  checked={userConfig?.displayOptions.showAdvanced || false}
+                  onCheckedChange={(checked) => updateDisplayOptions({ showAdvanced: checked })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="refresh-interval">Data Refresh Interval (ms)</Label>
+                <Input
+                  id="refresh-interval"
+                  type="number"
+                  placeholder="30000"
+                  value={userConfig?.displayOptions.refreshInterval || 30000}
+                  onChange={(e) => updateDisplayOptions({ refreshInterval: Number(e.target.value) })}
+                />
+                <p className="text-slate-600">How often to automatically refresh data (default: 30000ms = 30 seconds)</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Preferences */}
+        <TabsContent value="preferences" className="space-y-6">
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Transaction Preferences</CardTitle>
+              <CardDescription>Default settings for blockchain transactions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="default-gas-limit">Default Gas Limit</Label>
+                <Input
+                  id="default-gas-limit"
+                  type="number"
+                  placeholder="200000"
+                />
+                <p className="text-slate-600">Default gas limit for transactions (leave empty to auto-estimate)</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gas-price-multiplier">Gas Price Multiplier</Label>
+                <Input
+                  id="gas-price-multiplier"
+                  type="number"
+                  step="0.1"
+                  placeholder="1.2"
+                  defaultValue="1.2"
+                />
+                <p className="text-slate-600">Multiply estimated gas price by this factor (1.2 = 20% higher)</p>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Require transaction confirmation</p>
+                  <p className="text-slate-600">Always show confirmation dialog before submitting transactions</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Default Resolver</CardTitle>
+              <CardDescription>Preferred resolver for new records</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="default-resolver">Resolver Address</Label>
+                <Input
+                  id="default-resolver"
+                  placeholder="0x..."
+                />
+                <p className="text-slate-600">Default resolver address to use for new records (leave empty to use ENS default)</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Data & Export</CardTitle>
+              <CardDescription>Manage your data and export settings</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Enable data export</p>
+                  <p className="text-slate-600">Allow exporting domain lists and settings</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline">
+                  Export Settings
+                </Button>
+                <Button variant="outline">
+                  Export Domain List
+                </Button>
+                <Button variant="outline">
+                  Import Settings
+                </Button>
+              </div>
+
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  Export files contain only local configuration data. Private keys are never included.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Security */}
@@ -484,6 +690,37 @@ export function Settings() {
                   <p className="text-slate-600">Log every metadata update to audit trail</p>
                 </div>
                 <Switch defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Audit Log Settings</CardTitle>
+              <CardDescription>Configure audit logging behavior</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Enable audit logging</p>
+                  <p className="text-slate-600">Track all user actions and system events</p>
+                </div>
+                <Switch
+                  checked={userConfig?.auditLogEnabled !== false}
+                  onCheckedChange={(checked) => updateUserConfig({ auditLogEnabled: checked })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="audit-log-max">Maximum Audit Log Entries</Label>
+                <Input
+                  id="audit-log-max"
+                  type="number"
+                  placeholder="1000"
+                  value={userConfig?.auditLogMaxEntries || 1000}
+                  onChange={(e) => updateUserConfig({ auditLogMaxEntries: Number(e.target.value) })}
+                />
+                <p className="text-slate-600">Maximum number of entries to keep in audit log (older entries are removed)</p>
               </div>
             </CardContent>
           </Card>
