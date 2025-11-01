@@ -121,7 +121,7 @@ export function MetadataEditor() {
                     </Button>
                   </div>
                   <p className="text-slate-600">
-                    ⚠️ For upgradeable contracts, ensure this points to the proxy, not implementation
+                    For upgradeable contracts, ensure this points to the proxy, not implementation
                   </p>
                 </div>
 

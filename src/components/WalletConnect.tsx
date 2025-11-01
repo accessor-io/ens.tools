@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useWeb3 } from '../lib/services/web3-provider';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -16,11 +16,26 @@ import { toast } from 'sonner';
 import { formatAddress, reverseResolveAddress } from '../lib/ens';
 import { addressDisplayService } from '../lib/services/address-display-service';
 import { eventTracker } from '../lib/services/event-tracker';
+import { WalletSelectionModal } from './WalletSelectionModal';
 
 export function WalletConnect() {
   const { address, isConnected, chainId, connect, disconnect, switchNetwork, publicClient } = useWeb3();
   const [ensName, setEnsName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const lastTrackedAddress = useRef<string | null>(null);
+
+  // Track wallet connection events (only once per address)
+  useEffect(() => {
+    if (isConnected && address && address !== lastTrackedAddress.current) {
+      eventTracker.trackWalletConnected(address);
+      lastTrackedAddress.current = address;
+    } else if (!isConnected && lastTrackedAddress.current) {
+      // Reset when disconnected
+      lastTrackedAddress.current = null;
+    }
+  }, [isConnected, address]);
 
   // Fetch ENS name for connected address
   useEffect(() => {
@@ -111,15 +126,57 @@ export function WalletConnect() {
     }
   };
 
-  const handleConnect = async () => {
-    try {
-      await connect();
-      if (address) {
-        eventTracker.trackWalletConnected(address);
-      }
-    } catch (error) {
-      console.error('Connection error:', error);
+  const handleWalletSelect = async (provider: any, walletId: string) => {
+    if (!provider || !provider.request) {
+      toast.error('Invalid wallet provider', {
+        description: 'The selected wallet is not available',
+      });
+      return;
     }
+
+    setIsConnecting(true);
+    try {
+      // Use the connect function from context, passing the provider
+      await connect(provider);
+      
+      // Close modal after successful connection
+      setShowWalletModal(false);
+      toast.success('Wallet connected successfully');
+    } catch (error: any) {
+      console.error('Connection error:', error);
+      
+      // Handle specific error codes
+      if (error?.code === 4001 || error?.message?.includes('rejected')) {
+        toast.error('Connection rejected', {
+          description: 'Please approve the connection request in your wallet.',
+          duration: 6000,
+        });
+      } else if (error?.code === -32002 || error?.message?.includes('pending')) {
+        toast.info('Connection request pending', {
+          description: 'Please check your wallet extension and approve the pending request.',
+          duration: 6000,
+        });
+      } else {
+        toast.error('Failed to connect', {
+          description: error?.message || 'Please try again.',
+          duration: 6000,
+        });
+      }
+      // Don't re-throw - we've handled the error
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleConnect = () => {
+    // Check if already connected
+    if (isConnected && address) {
+      toast.info('Wallet is already connected');
+      return;
+    }
+
+    // Show wallet selection modal
+    setShowWalletModal(true);
   };
 
   const handleDisconnect = () => {
@@ -131,10 +188,21 @@ export function WalletConnect() {
 
   if (!isConnected) {
     return (
-      <Button onClick={handleConnect} className="gap-2">
-        <Wallet className="h-4 w-4" />
-        Connect Wallet
-      </Button>
+      <>
+        <Button 
+          onClick={handleConnect} 
+          className="gap-2"
+          disabled={isConnecting}
+        >
+          <Wallet className="h-4 w-4" />
+          Connect Wallet
+        </Button>
+        <WalletSelectionModal
+          open={showWalletModal}
+          onOpenChange={setShowWalletModal}
+          onWalletSelect={handleWalletSelect}
+        />
+      </>
     );
   }
 
