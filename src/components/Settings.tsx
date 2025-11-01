@@ -17,13 +17,15 @@ import {
   AlertTriangle,
   CheckCircle2,
   Settings2,
-  Eye
+  Eye,
+  Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { notificationService, NotificationConfig } from '../lib/services/notification-service';
 import { addressDisplayService, AddressDisplayConfig, AddressDisplayFormat } from '../lib/services/address-display-service';
 import { userConfigService, UserConfig } from '../lib/services/user-config-service';
 import { useWeb3 } from '../lib/services/web3-provider';
+import { auditLogService } from '../lib/security';
 
 export function Settings() {
   const { address } = useWeb3();
@@ -41,11 +43,47 @@ export function Settings() {
   }, [address]);
 
   const handleSaveSettings = () => {
+    const oldAlertConfig = notificationService.getConfig();
+    const oldAddressConfig = addressDisplayService.getConfig();
+    const oldUserConfig = address ? userConfigService.getUserConfig(address) : null;
+
+    // Track what changed
+    const changes: string[] = [];
+    if (JSON.stringify(oldAlertConfig) !== JSON.stringify(alertConfig)) {
+      changes.push('notification settings');
+    }
+    if (JSON.stringify(oldAddressConfig) !== JSON.stringify(addressConfig)) {
+      changes.push('address display settings');
+    }
+    if (oldUserConfig && userConfig && JSON.stringify(oldUserConfig) !== JSON.stringify(userConfig)) {
+      changes.push('user configuration');
+    }
+
     notificationService.saveConfig(alertConfig);
     addressDisplayService.saveConfig(addressConfig);
     if (address && userConfig) {
       userConfigService.setUserConfig(address, userConfig);
     }
+
+    // Log settings save
+    if (address && changes.length > 0) {
+      auditLogService.trackAction('settings_saved', `Settings saved: ${changes.join(', ')}`, {
+        actor: address,
+        status: 'success',
+        metadata: {
+          changes,
+          alertConfig,
+          addressConfig,
+          userConfig: userConfig ? {
+            displayOptions: userConfig.displayOptions,
+            auditLogEnabled: userConfig.auditLogEnabled,
+            auditLogMaxEntries: userConfig.auditLogMaxEntries,
+            notifications: userConfig.notifications,
+          } : undefined,
+        },
+      });
+    }
+
     toast.success('Settings saved successfully');
   };
 
@@ -69,6 +107,115 @@ export function Settings() {
         ...userConfig,
         displayOptions: { ...userConfig.displayOptions, ...updates },
       });
+    }
+  };
+
+  const handleExportData = (format: 'json' | 'csv') => {
+    if (!address) {
+      toast.error('Please connect a wallet to export data');
+      return;
+    }
+
+    try {
+      // Collect all data for the connected address
+      const userConfigData = userConfigService.getUserConfig(address);
+      const auditLogEntries = auditLogService.getEntries().filter(
+        entry => entry.actor?.toLowerCase() === address.toLowerCase()
+      );
+      const notificationConfig = notificationService.getConfig();
+      const addressDisplayConfig = addressDisplayService.getConfig();
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        address: address,
+        userConfiguration: userConfigData,
+        auditLog: {
+          entries: auditLogEntries,
+          totalEntries: auditLogEntries.length,
+        },
+        notificationSettings: notificationConfig,
+        addressDisplaySettings: addressDisplayConfig,
+      };
+
+      if (format === 'json') {
+        const jsonString = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `ens-tools-export-${address.slice(0, 10)}-${Date.now()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success('Data exported successfully as JSON');
+      } else {
+        // CSV format
+        const csvLines: string[] = [];
+        
+        // CSV Header
+        csvLines.push('Section,Field,Value');
+        
+        // User Configuration
+        csvLines.push(`User Configuration,Address,"${address}"`);
+        csvLines.push(`User Configuration,Theme,"${userConfigData.displayOptions.theme}"`);
+        csvLines.push(`User Configuration,Compact Mode,"${userConfigData.displayOptions.compactMode}"`);
+        csvLines.push(`User Configuration,Show Advanced,"${userConfigData.displayOptions.showAdvanced}"`);
+        csvLines.push(`User Configuration,Refresh Interval,"${userConfigData.displayOptions.refreshInterval}"`);
+        csvLines.push(`User Configuration,Audit Log Enabled,"${userConfigData.auditLogEnabled}"`);
+        csvLines.push(`User Configuration,Audit Log Max Entries,"${userConfigData.auditLogMaxEntries}"`);
+        
+        // Domain Groups
+        userConfigData.domainGroups.forEach((group, index) => {
+          csvLines.push(`Domain Groups,Group ${index + 1},"${group.name} (${group.color})"`);
+        });
+        
+        // Domain Assignments
+        userConfigData.domainAssignments.forEach((assignment) => {
+          csvLines.push(`Domain Assignments,"${assignment.domainName}","Group: ${assignment.groupId || 'None'}, Project: ${assignment.project || 'None'}"`);
+        });
+        
+        // Notification Settings
+        csvLines.push(`Notifications,Enabled,"${notificationConfig.enabled}"`);
+        csvLines.push(`Notifications,Email Enabled,"${notificationConfig.emailEnabled}"`);
+        csvLines.push(`Notifications,Webhook Enabled,"${notificationConfig.webhookEnabled}"`);
+        csvLines.push(`Notifications,On Expiration,"${notificationConfig.notifyOnExpiration}"`);
+        csvLines.push(`Notifications,On Security Events,"${notificationConfig.notifyOnSecurityEvents}"`);
+        csvLines.push(`Notifications,On Metadata Changes,"${notificationConfig.notifyOnMetadataChanges}"`);
+        csvLines.push(`Notifications,On Failed Transactions,"${notificationConfig.notifyOnFailedTransactions}"`);
+        
+        // Address Display Settings
+        csvLines.push(`Address Display,Format,"${addressDisplayConfig.format}"`);
+        csvLines.push(`Address Display,Resolve ENS,"${addressDisplayConfig.resolveENS}"`);
+        
+        // Audit Log Entries
+        csvLines.push(`Audit Log,Total Entries,"${auditLogEntries.length}"`);
+        auditLogEntries.forEach((entry) => {
+          csvLines.push(`Audit Log Entry,"${entry.timestamp.toISOString()}","${entry.action} - ${entry.details.replace(/"/g, '""')}"`);
+        });
+
+        const csvString = csvLines.join('\n');
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `ens-tools-export-${address.slice(0, 10)}-${Date.now()}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success('Data exported successfully as CSV');
+      }
+      
+      // Log the export action
+      auditLogService.trackAction('settings_saved', 'Exported all data', {
+        actor: address,
+        status: 'success',
+        metadata: { format, entriesCount: auditLogEntries.length },
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export data. Please try again.');
     }
   };
 
@@ -585,33 +732,34 @@ export function Settings() {
           <Card className="border-2">
             <CardHeader>
               <CardTitle>Data & Export</CardTitle>
-              <CardDescription>Manage your data and export settings</CardDescription>
+              <CardDescription>Export all your data in JSON or CSV format</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <p className="text-slate-900">Enable data export</p>
-                  <p className="text-slate-600">Allow exporting domain lists and settings</p>
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleExportData('json')}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export All Data (JSON)
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleExportData('csv')}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export All Data (CSV)
+                  </Button>
                 </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline">
-                  Export Settings
-                </Button>
-                <Button variant="outline">
-                  Export Domain List
-                </Button>
-                <Button variant="outline">
-                  Import Settings
-                </Button>
               </div>
 
               <Alert className="border-amber-200 bg-amber-50">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-amber-800">
-                  Export files contain only local configuration data. Private keys are never included.
+                  Export files contain all your configuration data, domain assignments, groups, and audit logs. Private keys are never included.
                 </AlertDescription>
               </Alert>
             </CardContent>
