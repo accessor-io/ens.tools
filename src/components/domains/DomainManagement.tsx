@@ -31,6 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '../ui/dropdown-menu';
 import { Label } from '../ui/label';
 import { 
   Search, 
@@ -251,6 +258,7 @@ export function DomainManagement() {
     };
     
     setGroups([...groups, newGroup]);
+    eventTracker.trackGroupCreated(newGroup.id, newGroup.name, address || undefined);
     setNewGroupName('');
     setIsGroupDialogOpen(false);
     toast.success('Group created successfully');
@@ -258,6 +266,7 @@ export function DomainManagement() {
 
   const assignDomainToGroup = (domainName: string, groupId: string | null) => {
     const existingIndex = assignments.findIndex(a => a.domainName === domainName);
+    const previousGroupId = existingIndex >= 0 ? assignments[existingIndex].groupId : null;
     
     if (existingIndex >= 0) {
       const updated = [...assignments];
@@ -265,6 +274,42 @@ export function DomainManagement() {
       setAssignments(updated);
     } else {
       setAssignments([...assignments, { domainName, groupId, project: null }]);
+    }
+    
+    // Log group changes
+    if (groupId) {
+      const group = groups.find(g => g.id === groupId);
+      if (group) {
+        if (previousGroupId && previousGroupId !== groupId) {
+          // Changing from one group to another
+          const previousGroup = groups.find(g => g.id === previousGroupId);
+          eventTracker.track({
+            type: 'domain_grouped',
+            address: address || undefined,
+            domain: domainName,
+            data: { 
+              groupId, 
+              groupName: group.name, 
+              previousGroupId, 
+              previousGroupName: previousGroup?.name 
+            },
+          });
+        } else {
+          // Assigning to a new group (no previous group)
+          eventTracker.trackDomainGroup(domainName, groupId, group.name, address || undefined);
+        }
+      }
+    } else if (previousGroupId) {
+      // Unassigning from a group
+      const previousGroup = groups.find(g => g.id === previousGroupId);
+      if (previousGroup) {
+        eventTracker.track({
+          type: 'domain_grouped',
+          address: address || undefined,
+          domain: domainName,
+          data: { groupId: null, groupName: null, previousGroupId, previousGroupName: previousGroup.name },
+        });
+      }
     }
     
     toast.success(groupId ? 'Domain assigned to group' : 'Domain unassigned');
@@ -733,26 +778,33 @@ export function DomainManagement() {
                                 {domainGroup.name}
                               </Badge>
                             ) : (
-                              <Select
-                                value="unassigned"
-                                onValueChange={(value: string) => {
-                                  if (value !== 'unassigned') {
-                                    assignDomainToGroup(domain.name, value);
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="w-32">
-                                  <SelectValue placeholder="Assign" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                  >
+                                    <FolderOpen className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
                                   {groups.map((group) => (
-                                    <SelectItem key={group.id} value={group.id}>
+                                    <DropdownMenuItem
+                                      key={group.id}
+                                      onClick={() => assignDomainToGroup(domain.name, group.id)}
+                                    >
                                       {group.name}
-                                    </SelectItem>
+                                    </DropdownMenuItem>
                                   ))}
-                                </SelectContent>
-                              </Select>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => assignDomainToGroup(domain.name, null)}
+                                  >
+                                    Unassign
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             )}
                             </TableCell>
                           )}
