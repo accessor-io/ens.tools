@@ -9,7 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarFooter,
 } from "./ui/sidebar";
 import {
   LayoutDashboard,
@@ -20,7 +19,6 @@ import {
   ScrollText,
   Settings as SettingsIcon,
   Network,
-  User,
   BookOpen,
   Lightbulb,
   Sparkles,
@@ -34,7 +32,6 @@ import {
   ShoppingCart,
   Search,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "./ui/avatar";
 
 interface AppSidebarProps {
   currentView: ViewType;
@@ -114,6 +111,11 @@ export function AppSidebar({
 
   const workflowItems = [
     {
+      id: "guided-workflow" as ViewType,
+      label: "Manage Domains",
+      icon: FileEdit,
+    },
+    {
       id: "contract-registration" as ViewType,
       label: "Register Contract",
       icon: PlusCircle,
@@ -166,31 +168,34 @@ export function AppSidebar({
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b px-6 py-4">
+      <SidebarHeader className="border-b border-sidebar-border/60 px-6 py-5 bg-gradient-to-r from-pink-50/50 to-rose-50/30">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-pink-600 via-rose-600 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-pink-500/20 ring-2 ring-pink-500/10 transition-transform hover:scale-105">
             <Network className="h-6 w-6 text-white" />
           </div>
           <div>
-            <p className="text-slate-900">ens.tools</p>
-            <p className="text-slate-600">Management Hub</p>
+            <p className="text-slate-900 font-semibold text-base tracking-tight">ens.tools</p>
+            <p className="text-slate-500 text-xs font-medium">Management Hub</p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+      <SidebarContent className="px-3 py-4 gap-1">
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Overview
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {overviewItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -198,18 +203,21 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Domains</SidebarGroupLabel>
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Domains
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {domainItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -217,18 +225,21 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Security & Governance</SidebarGroupLabel>
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Security & Governance
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {securityItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -236,18 +247,21 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Registries</SidebarGroupLabel>
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Registries
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {registryItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -255,18 +269,21 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Workflows</SidebarGroupLabel>
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Workflows
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {workflowItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -274,18 +291,21 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Tools</SidebarGroupLabel>
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Tools
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {toolsItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -293,18 +313,21 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Reference</SidebarGroupLabel>
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Reference
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {referenceItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -312,18 +335,21 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>System</SidebarGroupLabel>
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            System
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {systemItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -331,20 +357,6 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter className="border-t p-4">
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-              <User className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <p className="text-slate-900">Admin User</p>
-            <p className="text-slate-600">0x742d...35a3</p>
-          </div>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   );
 }
