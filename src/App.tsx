@@ -15,8 +15,9 @@ import { ENSMarketplace } from './components/marketplace';
 import { WalletConnect } from './components/WalletConnect';
 import { Web3Provider } from './lib/services';
 import { Toaster } from './components/ui/sonner';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
-export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace';
+export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'guided-workflow';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -61,34 +62,40 @@ export default function App() {
         return <PreflightChecker />;
       case 'marketplace':
         return <ENSMarketplace />;
+      case 'guided-workflow':
+        return <DomainManagement />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <Web3Provider>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <AppSidebar currentView={currentView} onViewChange={setCurrentView} />
-          <main className="flex-1 bg-slate-50">
-            <div className="sticky top-0 z-40 bg-white border-b px-6 py-4 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger />
-                <div>
-                  <h1 className="text-slate-900">ens.tools</h1>
-                  <p className="text-slate-600">ENS management and marketplace</p>
+    <ErrorBoundary>
+      <Web3Provider>
+        <SidebarProvider>
+          <div className="flex min-h-screen w-full">
+            <AppSidebar currentView={currentView} onViewChange={setCurrentView} />
+            <main className="flex-1 bg-slate-50">
+              <div className="sticky top-0 z-40 bg-white border-b px-6 py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <SidebarTrigger />
+                  <div>
+                    <h1 className="text-slate-900">ens.tools</h1>
+                    <p className="text-slate-600">ENS management and marketplace</p>
+                  </div>
                 </div>
+                <WalletConnect />
               </div>
-              <WalletConnect />
-            </div>
-            <div className="p-6">
-              {renderView()}
-            </div>
-          </main>
-        </div>
-        <Toaster />
-      </SidebarProvider>
-    </Web3Provider>
+              <div className="p-6">
+                <ErrorBoundary>
+                  {renderView()}
+                </ErrorBoundary>
+              </div>
+            </main>
+          </div>
+          <Toaster />
+        </SidebarProvider>
+      </Web3Provider>
+    </ErrorBoundary>
   );
 }

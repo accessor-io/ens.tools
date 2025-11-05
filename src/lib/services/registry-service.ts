@@ -190,9 +190,27 @@ class RegistryService {
     }
   }
 
+  /**
+   * Clear all registry data (contracts, DAOs, and integrations).
+   * 
+   * NOTE: This method requires backend API implementation.
+   * Currently not implemented as it would require:
+   * - DELETE /api/contracts (bulk delete)
+   * - DELETE /api/daos (bulk delete)
+   * - DELETE /api/integrations (bulk delete)
+   * 
+   * For now, use individual delete methods:
+   * - deleteContract(id)
+   * - deleteDAO(id)
+   * - deleteIntegration(id)
+   * 
+   * @throws {Error} Always throws an error indicating this method is not implemented
+   */
   async clearAll(): Promise<void> {
-    // Clear operations - would need to be implemented in API
-    console.warn('clearAll not implemented for API');
+    throw new Error(
+      'clearAll() is not implemented. This operation requires backend API support for bulk deletion. ' +
+      'Use individual delete methods (deleteContract, deleteDAO, deleteIntegration) instead.'
+    );
   }
 }
 

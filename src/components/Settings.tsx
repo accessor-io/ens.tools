@@ -32,14 +32,19 @@ export function Settings() {
   const [alertConfig, setAlertConfig] = useState<NotificationConfig>(notificationService.getConfig());
   const [addressConfig, setAddressConfig] = useState<AddressDisplayConfig>(addressDisplayService.getConfig());
   const [userConfig, setUserConfig] = useState<UserConfig | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
+    setIsLoadingProfile(true);
     setAlertConfig(notificationService.getConfig());
     setAddressConfig(addressDisplayService.getConfig());
     if (address) {
       const config = userConfigService.getUserConfig(address);
       setUserConfig(config);
+    } else {
+      setUserConfig(null);
     }
+    setIsLoadingProfile(false);
   }, [address]);
 
   const handleSaveSettings = () => {

@@ -176,8 +176,11 @@ export function DomainManagement() {
         toast.info('No ENS names found for this address');
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load domains';
       console.error('Error loading domains:', error);
-      toast.error('Failed to load domains');
+      toast.error('Failed to load domains', {
+        description: errorMessage.length < 100 ? errorMessage : undefined,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -207,8 +210,9 @@ export function DomainManagement() {
       await loadDomains();
     } catch (error: any) {
       console.error('Error wrapping domain:', error);
+      const errorMessage = error?.message || 'Please try again';
       toast.error('Failed to wrap domain', {
-        description: error.message || 'Please try again',
+        description: errorMessage.length < 100 ? errorMessage : 'Please check your wallet and try again',
       });
     } finally {
       setProcessingDomain(null);
@@ -237,8 +241,9 @@ export function DomainManagement() {
       await loadDomains();
     } catch (error: any) {
       console.error('Error unwrapping domain:', error);
+      const errorMessage = error?.message || 'Please try again';
       toast.error('Failed to unwrap domain', {
-        description: error.message || 'Please try again',
+        description: errorMessage.length < 100 ? errorMessage : 'Please check your wallet and try again',
       });
     } finally {
       setProcessingDomain(null);
@@ -433,7 +438,6 @@ export function DomainManagement() {
           // Check cache first
           const cachedHistory = historyCacheService.getCachedHistory(domainName);
           if (cachedHistory && cachedHistory.length > 0) {
-            console.log(`Using cached history for ${domainName}: ${cachedHistory.length} events`);
             setDomainHistoryCache(prev => new Map(prev).set(domainName, cachedHistory));
             return newSet;
           }
@@ -441,24 +445,18 @@ export function DomainManagement() {
           // If not in cache, fetch from API
           setLoadingHistory(prev => new Set(prev).add(domainName));
           fetchDomainHistory(domainName).then(history => {
-            console.log(`Graph API returned ${history.length} events for ${domainName}`);
-            
             // If no history from Graph API, try to generate basic history from domain data
             if (history.length === 0) {
               const domain = domains.find(d => d.name === domainName);
               if (domain) {
                 history = generateBasicHistory(domain);
-                console.log(`Generated ${history.length} fallback events for ${domainName}`);
               }
             }
             
             // Always cache the history - it persists for 7 days
             if (history.length > 0) {
               historyCacheService.cacheHistory(domainName, history);
-              console.log(`Cached ${history.length} events for ${domainName}`);
             }
-            
-            console.log(`Final history for ${domainName}:`, history.length, 'events');
             
             setDomainHistoryCache(prev => new Map(prev).set(domainName, history));
             setLoadingHistory(prev => {
@@ -467,12 +465,11 @@ export function DomainManagement() {
               return newSet;
             });
           }).catch(error => {
-            console.error('Error loading history:', error);
+            console.error('Error loading history for', domainName, ':', error);
             // Fallback to basic history on error
             const domain = domains.find(d => d.name === domainName);
             if (domain) {
               const basicHistory = generateBasicHistory(domain);
-              console.log(`Error fallback generated ${basicHistory.length} events for ${domainName}`);
               historyCacheService.cacheHistory(domainName, basicHistory);
               setDomainHistoryCache(prev => new Map(prev).set(domainName, basicHistory));
             }
@@ -1079,8 +1076,6 @@ export function DomainManagement() {
                                     const isLoading = loadingHistory.has(domain.name);
                                     const history = domainHistoryCache.get(domain.name) || [];
                                     
-                                    console.log(`Rendering history for ${domain.name}:`, history.length, 'events');
-                                    
                                     if (isLoading) {
                                       return (
                                         <div className="flex items-center justify-center py-8">
@@ -1098,20 +1093,6 @@ export function DomainManagement() {
                                           {history.map((event, eventIndex) => {
                                             const eventId = `${domain.name}-${eventIndex}`;
                                             const isEventExpanded = expandedEvents.has(eventId);
-                                            
-                                            if (isEventExpanded) {
-                                              console.log('EXPANDED EVENT DATA:', {
-                                                type: event.type,
-                                                description: event.description,
-                                                txHash: event.txHash,
-                                                gasUsed: event.gasUsed,
-                                                gasCost: event.gasCost,
-                                                blockNumber: event.blockNumber,
-                                                status: event.status,
-                                                from: event.from,
-                                                to: event.to,
-                                              });
-                                            }
                                             
                                             return (
                                             <div key={eventIndex} className="bg-white rounded-lg border border-slate-200 overflow-hidden">
@@ -1247,14 +1228,6 @@ export function DomainManagement() {
                                               {/* Expandable details section */}
                                               {isEventExpanded && (
                                                 <div className="border-t bg-slate-50 p-4">
-                                                  {/* Debug: Show all event data */}
-                                                  <div className="mb-4 p-3 bg-slate-100 rounded text-xs">
-                                                    <div className="font-semibold mb-2">Debug - All Event Data:</div>
-                                                    <pre className="overflow-auto max-h-40">
-                                                      {JSON.stringify(event, null, 2)}
-                                                    </pre>
-                                                  </div>
-                                                  
                                                   <div className="grid gap-3 md:grid-cols-2">
                                                     <div>
                                                       <div className="text-xs font-semibold text-slate-700 mb-1">Event Type</div>
