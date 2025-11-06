@@ -911,6 +911,37 @@ export function Settings() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="border-2">
+            <CardHeader>
+              <CardTitle>Audit Log Settings</CardTitle>
+              <CardDescription>Configure audit logging behavior</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Enable audit logging</p>
+                  <p className="text-slate-600">Track all user actions and system events</p>
+                </div>
+                <Switch
+                  checked={userConfig?.auditLogEnabled !== false}
+                  onCheckedChange={(checked) => updateUserConfig({ auditLogEnabled: checked })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="audit-log-max">Maximum Audit Log Entries</Label>
+                <Input
+                  id="audit-log-max"
+                  type="number"
+                  placeholder="1000"
+                  value={userConfig?.auditLogMaxEntries || 1000}
+                  onChange={(e) => updateUserConfig({ auditLogMaxEntries: Number(e.target.value) })}
+                />
+                <p className="text-slate-600">Maximum number of entries to keep in audit log (older entries are removed)</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
           {/* Automation */}
