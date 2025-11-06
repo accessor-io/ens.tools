@@ -130,14 +130,14 @@ export function Dashboard() {
       value: isConnected ? domains.length.toString() : '-',
       icon: Globe,
       trend: isConnected ? `${domains.length} owned` : 'Connect wallet',
-      color: 'bg-slate-900'
+      color: 'bg-gradient-to-br from-purple-500 to-fuchsia-600'
     },
     {
       title: 'Wrapped Names',
       value: isConnected ? domains.filter(d => d.isWrapped).length.toString() : '-',
       icon: Activity,
       trend: isConnected ? `${Math.round((domains.filter(d => d.isWrapped).length / Math.max(domains.length, 1)) * 100)}% wrapped` : 'N/A',
-      color: 'bg-slate-800'
+      color: 'bg-gradient-to-br from-blue-500 to-cyan-600'
     },
     {
       title: 'Expiring Soon',
@@ -147,14 +147,14 @@ export function Dashboard() {
       }).length.toString() : '-',
       icon: Clock,
       trend: isConnected ? '< 90 days' : 'N/A',
-      color: 'bg-slate-700'
+      color: 'bg-gradient-to-br from-amber-500 to-orange-600'
     },
     {
       title: 'Active Resolvers',
       value: isConnected ? domains.filter(d => d.resolver).length.toString() : '-',
       icon: Shield,
       trend: isConnected ? 'Configured' : 'N/A',
-      color: 'bg-slate-600'
+      color: 'bg-gradient-to-br from-emerald-500 to-teal-600'
     }
   ];
 
