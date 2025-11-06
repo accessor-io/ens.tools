@@ -11,13 +11,14 @@ import { DAORegistry, IntegrationRegistry, ContractRegistry } from './components
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { ContractRegistration, PreflightChecker } from './components/workflows';
 import { ENSMarketplace } from './components/marketplace';
+import { DNSSECConfig } from './components/dnssec';
 import { WalletConnect } from './components/WalletConnect';
 import { Web3Provider } from './lib/services';
 import { Toaster } from './components/ui/sonner';
 import { JazzCupBackground } from './components/JazzCupBackground';
 import { Network } from 'lucide-react';
 
-export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace';
+export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -62,6 +63,8 @@ export default function App() {
         return <PreflightChecker />;
       case 'marketplace':
         return <ENSMarketplace />;
+      case 'dnssec':
+        return <DNSSECConfig />;
       default:
         return <Dashboard />;
     }

@@ -25,6 +25,7 @@ import {
   FileCheck,
   ShoppingCart,
   Search,
+  Lock,
 } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -83,6 +84,11 @@ export function BottomToolbar({
       id: "governance" as ViewType,
       label: "Governance",
       icon: Vote,
+    },
+    {
+      id: "dnssec" as ViewType,
+      label: "DNSSEC Config",
+      icon: Lock,
     },
   ];
 
