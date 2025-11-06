@@ -45,6 +45,7 @@ import { useWeb3 } from '../../lib/services';
 import { ENSDomain, formatAddress, getAllTextRecords, reverseResolveAddress } from '../../lib/ens';
 import { addressDisplayService } from '../../lib/services';
 import { eventTracker } from '../../lib/services';
+import { auditLogService } from '../../lib/security';
 import { 
   setTextRecord,
   setAddressRecord,
@@ -225,6 +226,19 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
 
       for (const key of savedKeys) {
         eventTracker.trackTextRecordSet(domain.name, key, metadata[key], address || undefined);
+        
+        // Track name edits when display name or key name-related fields are changed
+        if (key === 'name' || key === 'displayName' || key === 'eth.name') {
+          auditLogService.trackAction('name_edited', `Name edited for ${domain.name}: ${key}`, {
+            domain: domain.name,
+            actor: address,
+            status: 'success',
+            metadata: {
+              field: key,
+              value: metadata[key],
+            },
+          });
+        }
       }
 
       toast.success('Metadata saved successfully');

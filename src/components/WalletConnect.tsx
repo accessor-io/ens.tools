@@ -129,13 +129,27 @@ export function WalletConnect() {
   const handleWalletSelect = async (provider: any, walletId: string) => {
     if (!provider || !provider.request) {
       toast.error('Invalid wallet provider', {
-        description: 'The selected wallet is not available',
+        description: 'The selected wallet is not available. Please refresh the page and try again.',
+      });
+      return;
+    }
+
+    // Verify provider is ready
+    if (typeof provider.request !== 'function') {
+      toast.error('Wallet not ready', {
+        description: 'The wallet provider is not fully initialized. Please try again in a moment.',
       });
       return;
     }
 
     setIsConnecting(true);
     try {
+      console.log('Connecting to wallet:', walletId, { 
+        hasRequest: !!provider.request,
+        hasOn: !!provider.on,
+        isMetaMask: provider.isMetaMask,
+      });
+      
       // Use the connect function from context, passing the provider
       await connect(provider);
       
@@ -146,7 +160,7 @@ export function WalletConnect() {
       console.error('Connection error:', error);
       
       // Handle specific error codes
-      if (error?.code === 4001 || error?.message?.includes('rejected')) {
+      if (error?.code === 4001 || error?.message?.includes('rejected') || error?.message?.includes('reject')) {
         toast.error('Connection rejected', {
           description: 'Please approve the connection request in your wallet.',
           duration: 6000,
@@ -156,10 +170,15 @@ export function WalletConnect() {
           description: 'Please check your wallet extension and approve the pending request.',
           duration: 6000,
         });
+      } else if (error?.message?.includes('not found') || error?.message?.includes('not available')) {
+        toast.error('Wallet not found', {
+          description: 'Please ensure your wallet extension is installed and enabled.',
+          duration: 6000,
+        });
       } else {
         toast.error('Failed to connect', {
-          description: error?.message || 'Please try again.',
-          duration: 6000,
+          description: error?.message || 'Please try again. If the problem persists, refresh the page.',
+          duration: 8000,
         });
       }
       // Don't re-throw - we've handled the error
@@ -191,7 +210,7 @@ export function WalletConnect() {
       <>
         <Button 
           onClick={handleConnect} 
-          className="gap-2"
+          className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg shadow-violet-500/50"
           disabled={isConnecting}
         >
           <Wallet className="h-4 w-4" />

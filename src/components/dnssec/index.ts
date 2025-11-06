@@ -1,0 +1,2 @@
+export { DNSSECConfig } from './DNSSECConfig';
+

@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { createPublicClient, createWalletClient, custom, http, PublicClient, WalletClient, Chain } from 'viem';
+import { createPublicClient, createWalletClient, custom, http, PublicClient, WalletClient, Chain, Address } from 'viem';
 import { mainnet, sepolia, optimism, base, arbitrum } from 'viem/chains';
 
 interface Web3ContextType {
@@ -144,7 +144,23 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     if (accounts.length === 0) {
       disconnect();
     } else {
-      setAddress(accounts[0]);
+      const account = accounts[0] as Address;
+      setAddress(account);
+      
+      // Update wallet client with new account
+      if (currentProvider && chainId) {
+        try {
+          const chain = getChainConfig(chainId);
+          const wallet = createWalletClient({
+            account: account,
+            chain,
+            transport: custom(currentProvider),
+          });
+          setWalletClient(wallet);
+        } catch (error) {
+          console.error('Error updating wallet client after account change:', error);
+        }
+      }
     }
   };
 
@@ -171,7 +187,8 @@ export function Web3Provider({ children }: Web3ProviderProps) {
       });
       
       if (accounts && accounts.length > 0) {
-        setAddress(accounts[0]);
+        const account = accounts[0] as Address;
+        setAddress(account);
         
         const chainIdHex = await provider.request({ 
           method: 'eth_chainId' 
@@ -181,7 +198,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
 
         const chain = getChainConfig(chainId);
         const wallet = createWalletClient({
-          account: accounts[0],
+          account: account,
           chain,
           transport: custom(provider),
         });
@@ -241,7 +258,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
         
         if (existingAccounts && existingAccounts.length > 0) {
           // Already connected, just update state
-          const account = existingAccounts[0];
+          const account = existingAccounts[0] as Address;
           setAddress(account);
           
           const chainIdHex = await provider.request({ 
@@ -321,23 +338,39 @@ export function Web3Provider({ children }: Web3ProviderProps) {
         throw new Error('No accounts found. Please unlock your wallet and ensure you have at least one account.');
       }
 
-      const account = accounts[0];
+      const account = accounts[0] as Address;
+      
+      if (!account || !account.startsWith('0x') || account.length !== 42) {
+        throw new Error('Invalid account address received from wallet.');
+      }
+      
       setAddress(account);
 
       const chainIdHex = await provider.request({ 
         method: 'eth_chainId' 
       });
+      
+      if (!chainIdHex || typeof chainIdHex !== 'string') {
+        throw new Error('Invalid chain ID received from wallet.');
+      }
+      
       const chainId = parseInt(chainIdHex, 16);
       setChainId(chainId);
 
       const chain = getChainConfig(chainId);
-      const wallet = createWalletClient({
-        account: account,
-        chain,
-        transport: custom(provider),
-      });
-      setWalletClient(wallet);
-      setCurrentProvider(provider);
+      
+      try {
+        const wallet = createWalletClient({
+          account: account,
+          chain,
+          transport: custom(provider),
+        });
+        setWalletClient(wallet);
+        setCurrentProvider(provider);
+      } catch (walletError: any) {
+        console.error('Error creating wallet client:', walletError);
+        throw new Error(`Failed to initialize wallet client: ${walletError?.message || 'Unknown error'}`);
+      }
       
       // Set up listeners for account/chain changes on this provider
       if (provider.on) {

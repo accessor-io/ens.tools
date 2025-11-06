@@ -130,14 +130,14 @@ export function Dashboard() {
       value: isConnected ? domains.length.toString() : '-',
       icon: Globe,
       trend: isConnected ? `${domains.length} owned` : 'Connect wallet',
-      color: 'bg-slate-900'
+      color: 'bg-gradient-to-br from-purple-500 to-fuchsia-600'
     },
     {
       title: 'Wrapped Names',
       value: isConnected ? domains.filter(d => d.isWrapped).length.toString() : '-',
       icon: Activity,
       trend: isConnected ? `${Math.round((domains.filter(d => d.isWrapped).length / Math.max(domains.length, 1)) * 100)}% wrapped` : 'N/A',
-      color: 'bg-slate-800'
+      color: 'bg-gradient-to-br from-blue-500 to-cyan-600'
     },
     {
       title: 'Expiring Soon',
@@ -147,14 +147,14 @@ export function Dashboard() {
       }).length.toString() : '-',
       icon: Clock,
       trend: isConnected ? '< 90 days' : 'N/A',
-      color: 'bg-slate-700'
+      color: 'bg-gradient-to-br from-amber-500 to-orange-600'
     },
     {
       title: 'Active Resolvers',
       value: isConnected ? domains.filter(d => d.resolver).length.toString() : '-',
       icon: Shield,
       trend: isConnected ? 'Configured' : 'N/A',
-      color: 'bg-slate-600'
+      color: 'bg-gradient-to-br from-emerald-500 to-teal-600'
     }
   ];
 
@@ -194,7 +194,7 @@ export function Dashboard() {
   if (!isConnected) {
     return (
       <div className="space-y-6">
-        <Alert className="border-slate-200 bg-slate-50">
+        <Alert className="border-slate-200 bg-white">
           <Wallet className="h-4 w-4 text-slate-700" />
           <AlertTitle className="text-slate-900">Welcome to ens.tools</AlertTitle>
           <AlertDescription className="text-slate-700">
@@ -205,7 +205,7 @@ export function Dashboard() {
         {/* Preview Stats */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
-            <Card key={index} className="border-2 opacity-50">
+            <Card key={index} className="bg-white border border-slate-200/60 opacity-50">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle>{stat.title}</CardTitle>
                 <div className={`h-10 w-10 rounded-lg ${stat.color} flex items-center justify-center`}>
@@ -223,7 +223,7 @@ export function Dashboard() {
           ))}
         </div>
 
-        <Card className="border-2">
+        <Card className="bg-white border border-slate-200/60">
           <CardHeader>
             <CardTitle>Getting Started</CardTitle>
             <CardDescription>What you can do with ens.tools</CardDescription>
@@ -260,33 +260,41 @@ export function Dashboard() {
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <Card key={index} className="border-2 hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle>{stat.title}</CardTitle>
-              <div className={`h-10 w-10 rounded-lg ${stat.color} flex items-center justify-center`}>
-                <stat.icon className="h-5 w-5 text-white" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-slate-900">{stat.value}</div>
-              <p className="text-slate-600">
-                <TrendingUp className="h-3 w-3 inline mr-1" />
+          {stats.map((stat, index) => {
+            const colorClasses = [
+              'bg-gradient-to-br from-violet-500 to-purple-600',
+              'bg-gradient-to-br from-indigo-500 to-blue-600',
+              'bg-gradient-to-br from-purple-500 to-pink-600',
+              'bg-gradient-to-br from-slate-600 to-slate-700',
+            ];
+            return (
+            <Card key={index} className="bg-white border border-slate-200/60 hover:shadow-xl hover:shadow-violet-200/30 transition-all duration-300 hover:-translate-y-1 overflow-hidden relative group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-100/30 to-purple-100/30 rounded-full blur-2xl group-hover:from-violet-100/40 group-hover:to-purple-100/40 transition-all" />
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                <CardTitle className="text-slate-900 font-semibold">{stat.title}</CardTitle>
+                <div className={`h-10 w-10 rounded-lg ${colorClasses[index % colorClasses.length]} flex items-center justify-center depth-1 shadow-lg`}>
+                  <stat.icon className="h-5 w-5 text-white" />
+                </div>
+              </CardHeader>
+            <CardContent className="relative z-10">
+              <div className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{stat.value}</div>
+              <p className="text-slate-600 flex items-center mt-1">
+                <TrendingUp className="h-3 w-3 inline mr-1 !text-violet-600" />
                 {stat.trend}
               </p>
             </CardContent>
           </Card>
-        ))}
+        )})}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Domains */}
-        <Card className="border-2">
+        <Card className="bg-white border border-slate-200/60">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Your ENS Names</CardTitle>
-                <CardDescription>Recently loaded domains</CardDescription>
+                <CardTitle className="text-slate-900 font-semibold">Your ENS Names</CardTitle>
+                <CardDescription className="text-slate-600">Recently loaded domains</CardDescription>
               </div>
               <Button
                 variant="outline"
@@ -419,10 +427,10 @@ export function Dashboard() {
         </Card>
 
         {/* Security Alerts */}
-        <Card className="border-2">
+        <Card className="bg-white border border-slate-200/60">
           <CardHeader>
-            <CardTitle>Alerts & Notifications</CardTitle>
-            <CardDescription>Important updates for your domains</CardDescription>
+            <CardTitle className="text-slate-900 font-semibold">Alerts & Notifications</CardTitle>
+            <CardDescription className="text-slate-600">Important updates for your domains</CardDescription>
           </CardHeader>
           <CardContent>
             {securityAlerts.length > 0 ? (

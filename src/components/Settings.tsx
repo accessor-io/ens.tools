@@ -27,6 +27,40 @@ import { userConfigService, UserConfig } from '../lib/services/user-config-servi
 import { useWeb3 } from '../lib/services/web3-provider';
 import { auditLogService } from '../lib/security';
 
+// Custom Toggle Button Component
+function ToggleButton({ checked, onCheckedChange }: { checked: boolean; onCheckedChange: (checked: boolean) => void }) {
+  return (
+    <div className="flex gap-2 px-6">
+      <button
+        type="button"
+        onClick={() => onCheckedChange(true)}
+        className={`
+          relative inline-flex items-center px-16 py-3 rounded-lg transition-all duration-200 font-medium text-sm shadow-sm border-2 border-black min-w-[200px] justify-center
+          ${checked 
+            ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+            : 'bg-white hover:bg-slate-50 text-slate-600'
+          }
+        `}
+      >
+        I want this
+      </button>
+      <button
+        type="button"
+        onClick={() => onCheckedChange(false)}
+        className={`
+          relative inline-flex items-center px-16 py-3 rounded-lg transition-all duration-200 font-medium text-sm shadow-sm border-2 border-black min-w-[200px] justify-center
+          ${!checked 
+            ? 'bg-red-100 hover:bg-red-200 text-red-700' 
+            : 'bg-white hover:bg-slate-50 text-slate-600'
+          }
+        `}
+      >
+        I don't want this
+      </button>
+    </div>
+  );
+}
+
 export function Settings() {
   const { address } = useWeb3();
   const [alertConfig, setAlertConfig] = useState<NotificationConfig>(notificationService.getConfig());
@@ -258,19 +292,24 @@ export function Settings() {
         </Button>
       </div>
 
-      <Tabs defaultValue="wallets" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="wallets">Wallets & Access</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="display">Display</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="automation">Automation</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="wallets" className="w-full">
+        <div className="flex gap-6 items-start">
+          <div className="flex-shrink-0">
+            <TabsList className="flex flex-col h-[calc(100vh-200px)] w-64 bg-white/95 backdrop-blur-sm border-2 border-slate-200/80 rounded-xl p-2 shadow-sm justify-start">
+              <TabsTrigger value="wallets" className="w-full justify-start">Wallets & Access</TabsTrigger>
+              <TabsTrigger value="notifications" className="w-full justify-start">Notifications</TabsTrigger>
+              <TabsTrigger value="display" className="w-full justify-start">Display</TabsTrigger>
+              <TabsTrigger value="preferences" className="w-full justify-start">Preferences</TabsTrigger>
+              <TabsTrigger value="security" className="w-full justify-start">Security</TabsTrigger>
+              <TabsTrigger value="automation" className="w-full justify-start">Automation</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <div className="flex-1 flex flex-col space-y-6 ml-4 float-right">
 
-        {/* Wallets & Access */}
-        <TabsContent value="wallets" className="space-y-6">
-          <Card className="border-2">
+          {/* Wallets & Access */}
+          <TabsContent value="wallets" className="space-y-6 mt-0">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Connected Wallets</CardTitle>
               <CardDescription>Manage wallet access and permissions</CardDescription>
@@ -321,7 +360,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Multisig Configuration</CardTitle>
               <CardDescription>Configure Gnosis Safe integration for critical operations</CardDescription>
@@ -352,7 +391,7 @@ export function Settings() {
                   <p className="text-slate-900">Require multisig for fuse burning</p>
                   <p className="text-slate-600">All fuse operations must be approved by multisig</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -360,15 +399,15 @@ export function Settings() {
                   <p className="text-slate-900">Require multisig for resolver changes</p>
                   <p className="text-slate-600">Resolver updates must be approved by multisig</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Notifications */}
-        <TabsContent value="notifications" className="space-y-6">
-          <Card className="border-2">
+          {/* Notifications */}
+          <TabsContent value="notifications" className="space-y-6 mt-0">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Notification Channels</CardTitle>
               <CardDescription>Choose how to receive alerts</CardDescription>
@@ -379,7 +418,7 @@ export function Settings() {
                   <p className="text-slate-900">Enable email notifications</p>
                   <p className="text-slate-600">Send alerts via email</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={alertConfig.emailEnabled}
                   onCheckedChange={(checked) => updateAlertConfig({ emailEnabled: checked })}
                 />
@@ -403,7 +442,7 @@ export function Settings() {
                   <p className="text-slate-900">Enable webhook notifications</p>
                   <p className="text-slate-600">Send alerts to webhook (Slack, Discord, etc.)</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={alertConfig.webhookEnabled}
                   onCheckedChange={(checked) => updateAlertConfig({ webhookEnabled: checked })}
                 />
@@ -426,7 +465,7 @@ export function Settings() {
                   <p className="text-slate-900">In-app notifications</p>
                   <p className="text-slate-600">Show alerts in the dashboard</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={alertConfig.enabled}
                   onCheckedChange={(checked) => updateAlertConfig({ enabled: checked })}
                 />
@@ -434,7 +473,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Alert Display Settings</CardTitle>
               <CardDescription>Configure how alerts appear in the application</CardDescription>
@@ -485,7 +524,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Alert Preferences</CardTitle>
               <CardDescription>Configure which events trigger notifications</CardDescription>
@@ -496,7 +535,7 @@ export function Settings() {
                   <p className="text-slate-900">Domain expiration warnings</p>
                   <p className="text-slate-600">Alert 90, 30, and 7 days before expiration</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={alertConfig.notifyOnExpiration}
                   onCheckedChange={(checked) => updateAlertConfig({ notifyOnExpiration: checked })}
                 />
@@ -507,7 +546,7 @@ export function Settings() {
                   <p className="text-slate-900">Security events</p>
                   <p className="text-slate-600">Notify on resolver changes, fuse burns, transfers</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={alertConfig.notifyOnSecurityEvents}
                   onCheckedChange={(checked) => updateAlertConfig({ notifyOnSecurityEvents: checked })}
                 />
@@ -518,7 +557,7 @@ export function Settings() {
                   <p className="text-slate-900">Metadata changes</p>
                   <p className="text-slate-600">Notify when records are updated</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={alertConfig.notifyOnMetadataChanges}
                   onCheckedChange={(checked) => updateAlertConfig({ notifyOnMetadataChanges: checked })}
                 />
@@ -529,7 +568,7 @@ export function Settings() {
                   <p className="text-slate-900">Failed transactions</p>
                   <p className="text-slate-600">Alert when transactions fail or revert</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={alertConfig.notifyOnFailedTransactions}
                   onCheckedChange={(checked) => updateAlertConfig({ notifyOnFailedTransactions: checked })}
                 />
@@ -538,9 +577,9 @@ export function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Display */}
-        <TabsContent value="display" className="space-y-6">
-          <Card className="border-2">
+          {/* Display */}
+          <TabsContent value="display" className="space-y-6 mt-0">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Address Display Settings</CardTitle>
               <CardDescription>Configure how Ethereum addresses are displayed throughout the application</CardDescription>
@@ -592,7 +631,7 @@ export function Settings() {
                   <p className="text-slate-900">Enable ENS Resolution</p>
                   <p className="text-slate-600">Automatically resolve addresses to ENS names</p>
                 </div>
-                <Switch 
+                <ToggleButton 
                   checked={addressConfig.resolveENS}
                   onCheckedChange={(checked) => updateAddressConfig({ resolveENS: checked })}
                 />
@@ -611,7 +650,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Theme & Appearance</CardTitle>
               <CardDescription>Customize the application theme and display preferences</CardDescription>
@@ -640,7 +679,7 @@ export function Settings() {
                   <p className="text-slate-900">Compact Mode</p>
                   <p className="text-slate-600">Reduce spacing and padding for a denser layout</p>
                 </div>
-                <Switch
+                <ToggleButton
                   checked={userConfig?.displayOptions.compactMode || false}
                   onCheckedChange={(checked) => updateDisplayOptions({ compactMode: checked })}
                 />
@@ -651,7 +690,7 @@ export function Settings() {
                   <p className="text-slate-900">Show Advanced Options</p>
                   <p className="text-slate-600">Display advanced configuration options throughout the app</p>
                 </div>
-                <Switch
+                <ToggleButton
                   checked={userConfig?.displayOptions.showAdvanced || false}
                   onCheckedChange={(checked) => updateDisplayOptions({ showAdvanced: checked })}
                 />
@@ -672,9 +711,9 @@ export function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Preferences */}
-        <TabsContent value="preferences" className="space-y-6">
-          <Card className="border-2">
+          {/* Preferences */}
+          <TabsContent value="preferences" className="space-y-6 mt-0">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Transaction Preferences</CardTitle>
               <CardDescription>Default settings for blockchain transactions</CardDescription>
@@ -707,12 +746,12 @@ export function Settings() {
                   <p className="text-slate-900">Require transaction confirmation</p>
                   <p className="text-slate-600">Always show confirmation dialog before submitting transactions</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Default Resolver</CardTitle>
               <CardDescription>Preferred resolver for new records</CardDescription>
@@ -729,7 +768,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Data & Export</CardTitle>
               <CardDescription>Export all your data in JSON or CSV format</CardDescription>
@@ -766,9 +805,9 @@ export function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Security */}
-        <TabsContent value="security" className="space-y-6">
-          <Card className="border-2">
+          {/* Security */}
+          <TabsContent value="security" className="space-y-6 mt-0">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Security Monitoring</CardTitle>
               <CardDescription>Configure real-time security scanning and alerts</CardDescription>
@@ -779,7 +818,7 @@ export function Settings() {
                   <p className="text-slate-900">Continuous monitoring</p>
                   <p className="text-slate-600">Monitor all ENS transactions in real-time</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -787,7 +826,7 @@ export function Settings() {
                   <p className="text-slate-900">Anomaly detection</p>
                   <p className="text-slate-600">Flag unusual patterns and unauthorized changes</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -795,7 +834,7 @@ export function Settings() {
                   <p className="text-slate-900">Require DAO approval for critical changes</p>
                   <p className="text-slate-600">Address changes must go through governance</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
               </div>
 
               <Alert className="border-amber-200 bg-amber-50">
@@ -807,7 +846,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Change Control</CardTitle>
               <CardDescription>TTL and caching configuration</CardDescription>
@@ -829,7 +868,7 @@ export function Settings() {
                   <p className="text-slate-900">Change request approval workflow</p>
                   <p className="text-slate-600">All changes require explicit approval before execution</p>
                 </div>
-                <Switch />
+                <ToggleButton checked={false} onCheckedChange={() => {}} />
               </div>
 
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -837,7 +876,38 @@ export function Settings() {
                   <p className="text-slate-900">Audit all record changes</p>
                   <p className="text-slate-600">Log every metadata update to audit trail</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle>Audit Log Settings</CardTitle>
+              <CardDescription>Configure audit logging behavior</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="text-slate-900">Enable audit logging</p>
+                  <p className="text-slate-600">Track all user actions and system events</p>
+                </div>
+                <ToggleButton
+                  checked={userConfig?.auditLogEnabled !== false}
+                  onCheckedChange={(checked) => updateUserConfig({ auditLogEnabled: checked })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="audit-log-max">Maximum Audit Log Entries</Label>
+                <Input
+                  id="audit-log-max"
+                  type="number"
+                  placeholder="1000"
+                  value={userConfig?.auditLogMaxEntries || 1000}
+                  onChange={(e) => updateUserConfig({ auditLogMaxEntries: Number(e.target.value) })}
+                />
+                <p className="text-slate-600">Maximum number of entries to keep in audit log (older entries are removed)</p>
               </div>
             </CardContent>
           </Card>
@@ -874,9 +944,9 @@ export function Settings() {
           </Card>
         </TabsContent>
 
-        {/* Automation */}
-        <TabsContent value="automation" className="space-y-6">
-          <Card className="border-2">
+          {/* Automation */}
+          <TabsContent value="automation" className="space-y-6 mt-0">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Automated Renewals</CardTitle>
               <CardDescription>Configure gasless renewal automation</CardDescription>
@@ -887,7 +957,7 @@ export function Settings() {
                   <p className="text-slate-900">Enable automatic renewals</p>
                   <p className="text-slate-600">Renew domains automatically before expiration</p>
                 </div>
-                <Switch defaultChecked />
+                <ToggleButton checked={true} onCheckedChange={() => {}} />
               </div>
 
               <div className="space-y-2">
@@ -921,7 +991,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle>Integration Services</CardTitle>
               <CardDescription>Third-party monitoring and automation</CardDescription>
@@ -936,7 +1006,7 @@ export function Settings() {
                       <p className="text-slate-600">Real-time transaction monitoring and alerts</p>
                     </div>
                   </div>
-                  <Switch defaultChecked />
+                  <ToggleButton checked={true} onCheckedChange={() => {}} />
                 </div>
               </div>
 
@@ -949,7 +1019,7 @@ export function Settings() {
                       <p className="text-slate-600">Automated threat detection</p>
                     </div>
                   </div>
-                  <Switch defaultChecked />
+                  <ToggleButton checked={true} onCheckedChange={() => {}} />
                 </div>
               </div>
 
@@ -962,12 +1032,14 @@ export function Settings() {
                       <p className="text-slate-600">Automated renewal execution</p>
                     </div>
                   </div>
-                  <Switch />
+                  <ToggleButton checked={false} onCheckedChange={() => {}} />
                 </div>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+          </div>
+        </div>
       </Tabs>
     </div>
   );
