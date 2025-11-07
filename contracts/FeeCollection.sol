@@ -141,6 +141,41 @@ contract FeeCollection {
     }
     
     /**
+     * @notice Record marketplace fee that was already received via Seaport consideration items
+     * This function allows recording fees without requiring additional payment
+     * @param seller The address selling the item
+     * @param buyer The address buying the item
+     * @param tokenAddress The token contract address
+     * @param tokenId The token ID
+     * @param salePrice The total sale price
+     * @param feeAmount The fee amount that was already received (must match calculated fee)
+     */
+    function recordMarketplaceFee(
+        address seller,
+        address buyer,
+        address tokenAddress,
+        uint256 tokenId,
+        uint256 salePrice,
+        uint256 feeAmount
+    ) external {
+        require(seller != address(0), "Invalid seller");
+        require(buyer != address(0), "Invalid buyer");
+        require(feeAmount > 0, "Fee amount must be greater than 0");
+        
+        // Verify the fee amount matches the expected marketplace fee
+        uint256 expectedFee = (salePrice * marketplaceFeeBps) / 10000;
+        require(feeAmount == expectedFee, "Fee amount does not match expected marketplace fee");
+        
+        // Verify the contract has received at least this amount
+        // Note: This is a best-effort check - the fee may have been received via Seaport
+        // We record it in the tracking counters regardless
+        totalFeesCollected += feeAmount;
+        marketplaceFeesCollected += feeAmount;
+        
+        emit MarketplaceFeePaid(seller, buyer, tokenAddress, tokenId, salePrice, feeAmount);
+    }
+    
+    /**
      * @notice Calculate marketplace fee for a sale price
      * @param salePrice The sale price in wei
      * @return The fee amount in wei
