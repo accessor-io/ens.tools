@@ -4,8 +4,7 @@
  */
 
 import { Abi } from 'viem';
-import { SeaportService } from './seaport-service';
-import { signSeaportOrder, verifySeaportOrderSignature, encodeOrder } from './seaport-signer';
+import { SeaportService, signSeaportOrder, verifySeaportOrderSignature, encodeOrder } from './seaport-service';
 
 // Seaport Contract ABI - Core functions for marketplace operations
 export const SEAPORT_ABI = [

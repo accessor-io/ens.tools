@@ -294,9 +294,11 @@ export class GranularPermissionService {
   private publicClient: PublicClient | null = null;
   private walletClient: WalletClient | null = null;
   private contractAddress: Address;
+  private eventTracker: DelegateEventTracker;
 
   constructor(contractAddress: Address) {
     this.contractAddress = contractAddress;
+    this.eventTracker = new DelegateEventTracker(contractAddress);
   }
 
   setClients(publicClient: PublicClient, walletClient?: WalletClient) {
@@ -304,6 +306,47 @@ export class GranularPermissionService {
     if (walletClient) {
       this.walletClient = walletClient;
     }
+    this.eventTracker.setClient(publicClient);
+  }
+
+  /**
+   * Get all delegates for a node using event tracking
+   */
+  async getAllDelegates(node: Hex): Promise<Address[]> {
+    if (!this.publicClient) {
+      throw new Error('Public client not set');
+    }
+    return await this.eventTracker.getAllDelegates(node);
+  }
+
+  /**
+   * Get all delegate info for a node
+   */
+  async getAllDelegateInfo(node: Hex): Promise<DelegateInfo[]> {
+    if (!this.publicClient) {
+      throw new Error('Public client not set');
+    }
+
+    const delegates = await this.getAllDelegates(node);
+    const delegateInfo: DelegateInfo[] = [];
+
+    for (const delegate of delegates) {
+      try {
+        const info = await this.getDelegateInfo(node, delegate);
+        const permissions = parsePermissions(info.allowedOperations);
+        delegateInfo.push({
+          address: delegate,
+          permissions,
+          expiresAt: info.expiresAt,
+          enabled: info.enabled,
+          locked: info.locked,
+        });
+      } catch (error) {
+        console.error(`Error getting info for delegate ${delegate}:`, error);
+      }
+    }
+
+    return delegateInfo;
   }
 
   /**
