@@ -115,6 +115,7 @@ temp/
 # Documentation build artifacts
 documentation-compiled/
 documentation-compiled*/
+ens-tools-documentation-package/
 *.zip
 *.tar.gz
 
