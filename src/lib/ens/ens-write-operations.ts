@@ -3,6 +3,8 @@ import { normalize } from 'viem/ens';
 import { simulateContract, writeContract } from 'viem/actions';
 import { namehash, labelhash } from './ens-helpers';
 import { ENS_REGISTRY_ABI, NAME_WRAPPER_ABI, PUBLIC_RESOLVER_ABI } from './ens-contracts';
+import { feeCollectionService } from '../services/fee-collection-service';
+import { toast } from 'sonner';
 
 // ENS Registry Contract Address (Mainnet)
 export const ENS_REGISTRY_ADDRESS = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
@@ -64,32 +66,35 @@ export async function setAddressRecord(
   publicClient: PublicClient,
   params: SetRecordParams
 ): Promise<string> {
+  if (!params.value) {
+    throw new Error('Address value is required');
+  }
+
   const normalizedName = normalize(params.name);
-  
-  // This is a simplified version - in production, you'd use the actual ENS resolver ABI
   const resolverAddress = await publicClient.getEnsResolver({ name: normalizedName });
   
   if (!resolverAddress) {
     throw new Error('No resolver set for this name');
   }
 
-  // Mock hash for demo - in production, use namehash
+  const node = namehash(normalizedName);
+  const address = params.value as `0x${string}`;
+
+  // Validate address format
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+    throw new Error('Invalid address format');
+  }
+
+  // Use coinType 60 for Ethereum (EIP-2304)
+  // Convert address to bytes (20 bytes = 40 hex characters for Ethereum address)
+  const addressBytes = address.slice(2).toLowerCase();
+  const addressBytesHex = `0x${addressBytes}` as `0x${string}`;
+
   const hash = await walletClient.writeContract({
     address: resolverAddress as `0x${string}`,
-    abi: [
-      {
-        name: 'setAddr',
-        type: 'function',
-        stateMutability: 'nonpayable',
-        inputs: [
-          { name: 'node', type: 'bytes32' },
-          { name: 'addr', type: 'address' },
-        ],
-        outputs: [],
-      },
-    ],
+    abi: PUBLIC_RESOLVER_ABI,
     functionName: 'setAddr',
-    args: ['0x0000000000000000000000000000000000000000000000000000000000000000', params.value as `0x${string}`],
+    args: [node, BigInt(60), addressBytesHex],
   });
 
   return hash;
@@ -114,6 +119,8 @@ export async function setTextRecord(
     throw new Error('No resolver set for this name');
   }
 
+  const node = namehash(normalizedName);
+
   const hash = await walletClient.writeContract({
     address: resolverAddress as `0x${string}`,
     abi: [
@@ -130,7 +137,7 @@ export async function setTextRecord(
       },
     ],
     functionName: 'setText',
-    args: ['0x0000000000000000000000000000000000000000000000000000000000000000', params.key, params.value],
+    args: [node, params.key, params.value],
   });
 
   return hash;
@@ -141,9 +148,28 @@ export async function setTextRecord(
  */
 export async function createSubdomain(
   walletClient: WalletClient,
+  publicClient: PublicClient,
   params: CreateSubdomainParams
 ): Promise<string> {
   const normalizedParent = normalize(params.parentName);
+  
+  // Pay subdomain creation fee if configured
+  try {
+    feeCollectionService.setClients(publicClient, walletClient);
+    const subdomainCreationFee = await feeCollectionService.getSubdomainCreationFee();
+    if (subdomainCreationFee > 0n && walletClient.account) {
+      toast.info('Paying subdomain creation fee...');
+      await feeCollectionService.paySubdomainCreationFee(
+        walletClient.account.address,
+        params.parentName,
+        params.label
+      );
+      toast.success('Subdomain creation fee paid');
+    }
+  } catch (error) {
+    console.error('Error paying subdomain creation fee:', error);
+    // Continue with subdomain creation even if fee payment fails
+  }
   
   // Using NameWrapper for subdomain creation with fuse support
   const hash = await walletClient.writeContract({

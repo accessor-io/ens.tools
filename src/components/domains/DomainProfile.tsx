@@ -46,6 +46,7 @@ import { ENSDomain, formatAddress, getAllTextRecords, reverseResolveAddress } fr
 import { addressDisplayService } from '../../lib/services';
 import { eventTracker } from '../../lib/services';
 import { auditLogService } from '../../lib/security';
+import { GranularPermissions } from '../delegation/GranularPermissions';
 import { 
   setTextRecord,
   setAddressRecord,
@@ -410,6 +411,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
               <TabsTrigger value="wrapper">Wrapper</TabsTrigger>
               <TabsTrigger value="subdomains">Subdomains</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions</TabsTrigger>
               <TabsTrigger value="transfer">Transfer</TabsTrigger>
             </TabsList>
 
@@ -966,6 +968,11 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Permissions Tab */}
+            <TabsContent value="permissions" className="space-y-6 mt-6">
+              <GranularPermissions domainName={domain.name} />
             </TabsContent>
 
             {/* Transfer Tab */}

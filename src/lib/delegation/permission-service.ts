@@ -3,6 +3,7 @@ import { normalize } from 'viem/ens';
 import { namehash } from '../ens/ens-helpers';
 import { ENS_REGISTRY_ABI, NAME_WRAPPER_ABI, PUBLIC_RESOLVER_ABI } from '../ens/ens-contracts';
 import { ENS_REGISTRY_ADDRESS, NAME_WRAPPER_ADDRESS, ENS_PUBLIC_RESOLVER } from '../ens/ens-write-operations';
+import { granularPermissionService, GRANULAR_PERMISSIONS } from '../services/granular-permission-service';
 
 export interface ContractOwnershipInfo {
   owner: Address | null;
@@ -34,8 +35,11 @@ export interface PermissionCheckResult {
   contractOwnership: ContractOwnershipInfo;
   ensControl: ENSControlInfo | null;
   canManageENS: boolean;
-  recommendation: 'transfer' | 'approval' | 'none';
+  recommendation: 'transfer' | 'approval' | 'granular' | 'none';
   safeForManagement: boolean;
+  hasGranularPermissions?: boolean;
+  granularDelegateAddress?: Address;
+  granularPermissions?: bigint;
 }
 
 const PROXY_STORAGE_SLOTS = {
@@ -299,27 +303,55 @@ export class PermissionService {
     publicClient: PublicClient,
     contractAddress: Address,
     managerAddress: Address,
-    suggestedName?: string
+    suggestedName?: string,
+    granularDelegateAddress?: Address
   ): Promise<PermissionCheckResult> {
     const contractOwnership = await this.checkContractOwnership(publicClient, contractAddress);
     const ensControl = await this.checkENSControl(publicClient, contractAddress, suggestedName);
 
     let canManageENS = false;
-    let recommendation: 'transfer' | 'approval' | 'none' = 'none';
+    let recommendation: 'transfer' | 'approval' | 'granular' | 'none' = 'none';
     let safeForManagement = false;
+    let hasGranularPermissions = false;
+    let granularPermissions: bigint | undefined;
+
+    // Check for granular permissions if delegate address is provided
+    if (granularDelegateAddress && ensControl?.node) {
+      try {
+        granularPermissionService.setClients(publicClient);
+        const permissions = await granularPermissionService.getPermissions(
+          ensControl.node as Hex,
+          granularDelegateAddress
+        );
+        if (permissions > 0n) {
+          hasGranularPermissions = true;
+          granularPermissions = permissions;
+          recommendation = 'granular';
+          canManageENS = true;
+        }
+      } catch (error) {
+        console.error('Error checking granular permissions:', error);
+      }
+    }
 
     if (ensControl) {
       if (ensControl.isWrapped) {
         canManageENS = ensControl.wrappedOwner?.toLowerCase() === managerAddress.toLowerCase();
-        recommendation = canManageENS ? 'transfer' : 'approval';
+        if (!hasGranularPermissions) {
+          recommendation = canManageENS ? 'transfer' : 'approval';
+        }
         safeForManagement = !contractOwnership.isSafe && contractOwnership.isOwnable;
       } else {
         canManageENS = ensControl.owner?.toLowerCase() === managerAddress.toLowerCase();
-        recommendation = canManageENS ? 'transfer' : 'none';
+        if (!hasGranularPermissions) {
+          recommendation = canManageENS ? 'transfer' : 'none';
+        }
         safeForManagement = !contractOwnership.isSafe && contractOwnership.isOwnable;
       }
     } else {
-      recommendation = 'none';
+      if (!hasGranularPermissions) {
+        recommendation = 'none';
+      }
       safeForManagement = contractOwnership.isOwnable || contractOwnership.isAccessControl;
     }
 
@@ -335,7 +367,28 @@ export class PermissionService {
       canManageENS,
       recommendation,
       safeForManagement,
+      hasGranularPermissions,
+      granularDelegateAddress: hasGranularPermissions ? granularDelegateAddress : undefined,
+      granularPermissions,
     };
+  }
+
+  /**
+   * Check if a delegate has a specific granular permission
+   */
+  async checkGranularPermission(
+    publicClient: PublicClient,
+    node: Hex,
+    delegate: Address,
+    requiredPermission: bigint
+  ): Promise<boolean> {
+    try {
+      granularPermissionService.setClients(publicClient);
+      return await granularPermissionService.isAuthorizedDelegate(node, delegate, requiredPermission);
+    } catch (error) {
+      console.error('Error checking granular permission:', error);
+      return false;
+    }
   }
 }
 

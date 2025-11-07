@@ -15,4 +15,5 @@ export * from './ens-marketplace-service';
 export * from './name-browser-service';
 export * from './name-watching-service';
 export * from './premium-price-service';
+export * from './granular-permission-service';
 

@@ -353,7 +353,7 @@ export function UnifiedContractRegistration() {
         });
 
         const fuses = combineFuses(['PARENT_CANNOT_CONTROL', 'CANNOT_UNWRAP']);
-        await createSubdomain(walletClient, {
+        await createSubdomain(walletClient, publicClient, {
           parentName: parentDomain,
           label: subdomainLabel,
           owner: address,
@@ -372,33 +372,25 @@ export function UnifiedContractRegistration() {
         metadataJson = JSON.stringify(basicMetadata, null, 2);
       }
 
+      // Batch all metadata records into a single transaction
+      const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
+      const builder = new TransactionBuilder(publicClient, walletClient);
+      
       // Store contract address
-      await setTextRecord(walletClient, publicClient, {
-        name: ensName,
-        recordType: 'text',
-        key: 'eth.contract.address',
-        value: contractAddress,
-      });
-
+      builder.addTextRecord(ensName, 'eth.contract.address', contractAddress);
+      
       // Store contract type
       if (contractType) {
-        await setTextRecord(walletClient, publicClient, {
-          name: ensName,
-          recordType: 'text',
-          key: STANDARD_KEYS.CONTRACT_TYPE,
-          value: contractType,
-        });
+        builder.addTextRecord(ensName, STANDARD_KEYS.CONTRACT_TYPE, contractType);
       }
-
+      
       // Store implementation address for proxies
       if (isProxy && implementationAddress) {
-        await setTextRecord(walletClient, publicClient, {
-          name: ensName,
-          recordType: 'text',
-          key: STANDARD_KEYS.IMPLEMENTATION,
-          value: implementationAddress,
-        });
+        builder.addTextRecord(ensName, STANDARD_KEYS.IMPLEMENTATION, implementationAddress);
       }
+      
+      // Execute all metadata updates in a single batched transaction
+      await builder.execute();
 
       toast.success('Contract registered successfully!', {
         description: `${ensName} is now ${validationMode === 'ensip19' ? 'ENSIP-X compliant' : 'registered'}`,

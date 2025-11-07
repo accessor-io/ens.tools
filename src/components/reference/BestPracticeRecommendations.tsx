@@ -34,6 +34,10 @@ interface BestPracticeRecommendationsProps {
   chainId?: number;
   ownerAddress?: string;
   resolverAddress?: string;
+  hasGranularPermissions?: boolean;
+  granularDelegateAddress?: string;
+  granularPermissions?: bigint;
+  delegationExpiration?: number;
   compact?: boolean;
   showOnlyIssues?: boolean;
 }
@@ -51,6 +55,10 @@ export function BestPracticeRecommendations({
   chainId,
   ownerAddress,
   resolverAddress,
+  hasGranularPermissions,
+  granularDelegateAddress,
+  granularPermissions,
+  delegationExpiration,
   compact = false,
   showOnlyIssues = false,
 }: BestPracticeRecommendationsProps) {
@@ -71,6 +79,10 @@ export function BestPracticeRecommendations({
       chainId,
       ownerAddress,
       resolverAddress,
+      hasGranularPermissions,
+      granularDelegateAddress,
+      granularPermissions,
+      delegationExpiration,
     });
   }, [
     contractType,
@@ -85,6 +97,10 @@ export function BestPracticeRecommendations({
     chainId,
     ownerAddress,
     resolverAddress,
+    hasGranularPermissions,
+    granularDelegateAddress,
+    granularPermissions,
+    delegationExpiration,
   ]);
 
   const recommendations = getRecommendations(context);
@@ -324,5 +340,6 @@ export function BestPracticeRecommendations({
     </Card>
   );
 }
+
 
 

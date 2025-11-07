@@ -3,7 +3,7 @@
  * Implements Seaport protocol for NFT marketplace operations
  */
 
-import { createWalletClient, createPublicClient, http, formatUnits, parseUnits, Address, Chain } from 'viem';
+import { createWalletClient, createPublicClient, http, formatUnits, parseUnits, parseEther, Address, Chain } from 'viem';
 import { sepolia, mainnet, optimism, base, arbitrum } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 
@@ -349,11 +349,59 @@ export class SeaportService {
     tokenId: string;
     price: string; // in ETH
     recipient?: Address;
+    feeRecipient?: Address; // Marketplace fee recipient
+    feeBps?: number; // Marketplace fee in basis points (e.g., 250 = 2.5%)
     startTime?: number;
     endTime?: number;
   }): Promise<SeaportOrderParameters> {
     const counter = await this.getCounter(params.offerer);
     const now = Math.floor(Date.now() / 1000);
+    
+    // Parse price - handle both string and number
+    const totalPrice = typeof params.price === 'string' 
+      ? parseEther(params.price)
+      : parseEther(params.price.toString());
+    const sellerRecipient = params.recipient || params.offerer;
+    
+    // Build consideration items
+    const consideration: SeaportConsiderationItem[] = [];
+    
+    // If fee recipient is specified, split payment
+    if (params.feeRecipient && params.feeBps && params.feeBps > 0) {
+      const feeBps = BigInt(params.feeBps);
+      const marketplaceFee = (totalPrice * feeBps) / 10000n;
+      const sellerPayment = totalPrice - marketplaceFee;
+      
+      // Seller receives most of the payment
+      consideration.push({
+        itemType: 0, // Native ETH
+        token: '0x0000000000000000000000000000000000000000',
+        identifierOrCriteria: '0',
+        startAmount: sellerPayment.toString(),
+        endAmount: sellerPayment.toString(),
+        recipient: sellerRecipient,
+      });
+      
+      // Fee recipient receives marketplace fee
+      consideration.push({
+        itemType: 0, // Native ETH
+        token: '0x0000000000000000000000000000000000000000',
+        identifierOrCriteria: '0',
+        startAmount: marketplaceFee.toString(),
+        endAmount: marketplaceFee.toString(),
+        recipient: params.feeRecipient,
+      });
+    } else {
+      // No fee, seller receives full payment
+      consideration.push({
+        itemType: 0, // Native ETH
+        token: '0x0000000000000000000000000000000000000000',
+        identifierOrCriteria: '0',
+        startAmount: totalPrice.toString(),
+        endAmount: totalPrice.toString(),
+        recipient: sellerRecipient,
+      });
+    }
     
     const orderParameters: SeaportOrderParameters = {
       offerer: params.offerer,
@@ -367,23 +415,14 @@ export class SeaportService {
           endAmount: '1',
         },
       ],
-      consideration: [
-        {
-          itemType: 0, // Native ETH
-          token: '0x0000000000000000000000000000000000000000',
-          identifierOrCriteria: '0',
-          startAmount: parseUnits(params.price, 18).toString(),
-          endAmount: parseUnits(params.price, 18).toString(),
-          recipient: params.recipient || params.offerer,
-        },
-      ],
+      consideration,
       orderType: 0, // Full Open
       startTime: (params.startTime || now).toString(),
       endTime: (params.endTime || now + 90 * 24 * 60 * 60).toString(), // 90 days default
       zoneHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
       salt: Math.floor(Math.random() * 1000000000).toString(),
       conduitKey: EMPTY_CONDUIT_KEY,
-      totalOriginalConsiderationItems: 1,
+      totalOriginalConsiderationItems: consideration.length,
       counter: counter.toString(),
     };
 
@@ -399,11 +438,21 @@ export class SeaportService {
     tokenId: string;
     price: string; // in ETH
     recipient?: Address;
+    feeRecipient?: Address; // Marketplace fee recipient
+    feeBps?: number; // Marketplace fee in basis points
     startTime?: number;
     endTime?: number;
   }): Promise<SeaportOrderParameters> {
     const counter = await this.getCounter(params.offerer);
     const now = Math.floor(Date.now() / 1000);
+    
+    // Parse price
+    const totalPrice = parseEther(params.price);
+    
+    // For offers, fees are deducted from the offer amount
+    // The consideration (NFT) goes to the offerer, but we can't add fees here
+    // Fees on offers are typically handled by the seller's listing order
+    // So we'll keep the offer as-is, and fees will be collected when the listing is fulfilled
     
     const orderParameters: SeaportOrderParameters = {
       offerer: params.offerer,
@@ -413,8 +462,8 @@ export class SeaportService {
           itemType: 0, // Native ETH
           token: '0x0000000000000000000000000000000000000000',
           identifierOrCriteria: '0',
-          startAmount: parseUnits(params.price, 18).toString(),
-          endAmount: parseUnits(params.price, 18).toString(),
+          startAmount: totalPrice.toString(),
+          endAmount: totalPrice.toString(),
         },
       ],
       consideration: [

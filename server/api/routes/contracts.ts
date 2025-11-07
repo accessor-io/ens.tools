@@ -2,8 +2,29 @@ import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { db } from '../../db';
 import { redisClient } from '../../db/redis';
+import { validate as uuidValidate } from 'uuid';
+import { validate, schemas } from '../middleware/validation';
 
 export const contractsRouter = Router();
+
+// Whitelist of allowed fields for updates
+const ALLOWED_UPDATE_FIELDS = [
+  'name',
+  'ens_name',
+  'chain',
+  'type',
+  'status',
+  'security',
+  'version',
+  'owner',
+  'multisig',
+  'upgradeable',
+  'verified',
+  'deployed',
+  'interactions24h',
+  'tvl',
+  'metadata',
+];
 
 contractsRouter.use(authMiddleware);
 
@@ -34,7 +55,7 @@ contractsRouter.get('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
-contractsRouter.post('/', async (req: AuthRequest, res: Response) => {
+contractsRouter.post('/', validate(schemas.contract), async (req: any, res: Response) => {
   try {
     const {
       address,
@@ -53,7 +74,7 @@ contractsRouter.post('/', async (req: AuthRequest, res: Response) => {
       interactions24h,
       tvl,
       metadata,
-    } = req.body;
+    } = req.validatedData;
 
     const result = await db.query(
       `INSERT INTO contracts (
@@ -93,23 +114,56 @@ contractsRouter.post('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
-contractsRouter.put('/:id', async (req: AuthRequest, res: Response) => {
+contractsRouter.put('/:id', validate(schemas.contractUpdate), async (req: any, res: Response) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    
+    // Validate UUID format
+    if (!uuidValidate(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
 
-    const setClause = Object.keys(updates)
-      .map((key, index) => `${key} = $${index + 2}`)
+    // Check ownership first
+    const existing = await db.query(
+      'SELECT id FROM contracts WHERE id = $1 AND user_id = $2',
+      [id, req.userId]
+    );
+    
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    const updates = req.validatedData;
+    
+    // Filter to only allowed fields
+    const allowedUpdates: Record<string, any> = {};
+    for (const key of Object.keys(updates)) {
+      if (ALLOWED_UPDATE_FIELDS.includes(key)) {
+        allowedUpdates[key] = updates[key];
+      }
+    }
+
+    if (Object.keys(allowedUpdates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    // Build safe update query with whitelisted fields
+    const setClause = Object.keys(allowedUpdates)
+      .map((key, index) => `${key} = $${index + 3}`)
       .join(', ');
+
+    const values = [id, req.userId, ...Object.values(allowedUpdates)];
+    
+    // Handle metadata serialization
+    const metadataIndex = Object.keys(allowedUpdates).indexOf('metadata');
+    if (metadataIndex !== -1 && allowedUpdates.metadata) {
+      values[metadataIndex + 2] = JSON.stringify(allowedUpdates.metadata);
+    }
 
     const result = await db.query(
       `UPDATE contracts SET ${setClause} WHERE id = $1 AND user_id = $2 RETURNING *`,
-      [id, req.userId, ...Object.values(updates)]
+      values
     );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Contract not found' });
-    }
 
     // Invalidate cache
     await redisClient.del(`contracts:${req.userId}`);
@@ -124,6 +178,11 @@ contractsRouter.put('/:id', async (req: AuthRequest, res: Response) => {
 contractsRouter.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    
+    // Validate UUID format
+    if (!uuidValidate(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
 
     const result = await db.query(
       'DELETE FROM contracts WHERE id = $1 AND user_id = $2 RETURNING id',

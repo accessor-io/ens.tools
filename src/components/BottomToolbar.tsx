@@ -26,6 +26,8 @@ import {
   ShoppingCart,
   Search,
   Lock,
+  Coins,
+  Server,
 } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -154,6 +156,19 @@ export function BottomToolbar({
     },
   ];
 
+  const adminItems = [
+    {
+      id: "fee-management" as ViewType,
+      label: "Fee Management",
+      icon: Coins,
+    },
+    {
+      id: "master-database" as ViewType,
+      label: "Master Database",
+      icon: Server,
+    },
+  ];
+
   const systemItems = [
     {
       id: "settings" as ViewType,
@@ -170,6 +185,7 @@ export function BottomToolbar({
     ...workflowItems,
     ...toolsItems,
     ...referenceItems,
+    ...adminItems,
     ...systemItems,
   ];
 

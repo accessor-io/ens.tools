@@ -28,8 +28,8 @@ export class NameBrowserService {
    * Fetch names by expiration status
    */
   async fetchNamesByStatus(
-    status: 'expiring-soon' | 'grace-period' | 'expired' | 'premium',
-    limit: number = 50,
+    status: 'expiring-soon' | 'grace-period' | 'expired' | 'premium' | 'recent',
+    limit: number = 100,
     skip: number = 0
   ): Promise<ENSDomain[]> {
     const now = Math.floor(Date.now() / 1000);
@@ -235,6 +235,56 @@ export class NameBrowserService {
             }
           }
         `;
+        break;
+
+      case 'recent':
+        // Recently registered domains (last 30 days)
+        const thirtyDaysAgo = now - (30 * 24 * 60 * 60);
+        query = `
+          query GetRecentNames($limit: Int!, $skip: Int!, $since: BigInt!) {
+            domains(
+              first: $limit
+              skip: $skip
+              orderBy: createdAt
+              orderDirection: desc
+              where: {
+                createdAt_gte: $since
+              }
+            ) {
+              id
+              name
+              labelName
+              labelhash
+              createdAt
+              expiryDate
+              owner {
+                id
+              }
+              resolvedAddress {
+                id
+              }
+              resolver {
+                id
+                addr {
+                  id
+                }
+                texts
+                contentHash
+              }
+              registration {
+                id
+                expiryDate
+                registrationDate
+              }
+              wrappedDomain {
+                id
+                expiryDate
+                fuses
+              }
+            }
+          }
+        `;
+        variables.since = thirtyDaysAgo.toString();
         break;
 
       default:

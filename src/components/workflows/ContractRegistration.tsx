@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -19,6 +19,7 @@ import {
   Code,
   Shield,
   Info,
+  DollarSign,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services/web3-provider';
@@ -31,8 +32,10 @@ import {
   STANDARD_KEYS,
 } from '../../lib/metadata/metadata-schemas';
 import { storeCompleteMetadataPackage, formatBaseMetadataReference } from '../../lib/services/base-metadata-service';
+import { feeCollectionService } from '../../lib/services/fee-collection-service';
 import { namehash } from '../../lib/ens/ens-helpers';
 import { generateMetadataHash } from '../../lib/metadata/ensipx-utils';
+import { formatEther } from 'viem';
 
 interface ContractInfo {
   address: string;
@@ -52,6 +55,10 @@ export function ContractRegistration() {
   const [contractType, setContractType] = useState('');
   const [isProxy, setIsProxy] = useState(false);
   const [implementationAddress, setImplementationAddress] = useState('');
+  const [isContract, setIsContract] = useState<boolean | null>(null);
+  const [isCheckingContract, setIsCheckingContract] = useState(false);
+  const [registrationFee, setRegistrationFee] = useState<bigint>(0n);
+  const [isLoadingFee, setIsLoadingFee] = useState(false);
 
   // Naming info
   const [parentDomain, setParentDomain] = useState('');
@@ -91,6 +98,61 @@ export function ContractRegistration() {
     setMetadata(prev => ({ ...prev, [key]: value }));
   };
 
+  // Initialize fee collection service
+  useEffect(() => {
+    if (publicClient && walletClient) {
+      feeCollectionService.setClients(publicClient, walletClient);
+      loadRegistrationFee();
+    }
+  }, [publicClient, walletClient]);
+
+  // Load registration fee
+  const loadRegistrationFee = async () => {
+    if (!publicClient) return;
+    setIsLoadingFee(true);
+    try {
+      const fee = await feeCollectionService.getRegistrationFee();
+      setRegistrationFee(fee);
+    } catch (error) {
+      console.error('Error loading registration fee:', error);
+    } finally {
+      setIsLoadingFee(false);
+    }
+  };
+
+  // Check if address is a contract
+  useEffect(() => {
+    const checkIsContract = async () => {
+      if (!contractAddress || !publicClient) {
+        setIsContract(null);
+        return;
+      }
+
+      // Validate address format
+      if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
+        setIsContract(null);
+        return;
+      }
+
+      setIsCheckingContract(true);
+      try {
+        const bytecode = await publicClient.getBytecode({ 
+          address: contractAddress as `0x${string}` 
+        });
+        setIsContract(bytecode && bytecode !== '0x' && bytecode.length > 2);
+      } catch (error) {
+        console.error('Error checking if address is contract:', error);
+        setIsContract(false);
+      } finally {
+        setIsCheckingContract(false);
+      }
+    };
+
+    // Debounce the check
+    const timeoutId = setTimeout(checkIsContract, 500);
+    return () => clearTimeout(timeoutId);
+  }, [contractAddress, publicClient]);
+
   const handleRegister = async () => {
     if (!walletClient || !publicClient || !address) {
       toast.error('Wallet not connected');
@@ -118,13 +180,36 @@ export function ContractRegistration() {
       const fullName = `${subdomainLabel}.${parentDomain}`;
       const nameHash = namehash(fullName);
 
+      // Step 0: Pay registration fee
+      if (registrationFee > 0n && address) {
+        toast.info('Paying registration fee...', {
+          description: `${formatEther(registrationFee)} ETH`,
+        });
+
+        try {
+          await feeCollectionService.payRegistrationFee(
+            address as `0x${string}`,
+            contractAddress as `0x${string}`,
+            fullName
+          );
+          toast.success('Registration fee paid');
+        } catch (error) {
+          console.error('Error paying registration fee:', error);
+          toast.error('Failed to pay registration fee', {
+            description: error instanceof Error ? error.message : 'Unknown error',
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // Step 1: Create subdomain
       toast.info('Creating subdomain...', {
         description: fullName,
       });
 
       const fuses = combineFuses(['PARENT_CANNOT_CONTROL', 'CANNOT_UNWRAP']);
-      await createSubdomain(walletClient, {
+      await createSubdomain(walletClient, publicClient, {
         parentName: parentDomain,
         label: subdomainLabel,
         owner: address,
@@ -187,48 +272,34 @@ export function ContractRegistration() {
         }
       }
 
-      // Step 3: Set contract address record
-      toast.info('Setting contract address...');
-      await setTextRecord(walletClient, publicClient, {
-        name: fullName,
-        recordType: 'text',
-        key: STANDARD_KEYS.CONTRACT_ADDRESS,
-        value: contractAddress,
-      });
-
-      // Step 4: Set metadata
+      // Step 3-5: Batch all metadata records into a single transaction
+      toast.info('Setting metadata records...');
+      const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
+      const builder = new TransactionBuilder(publicClient, walletClient);
+      
+      // Add contract address
+      builder.addTextRecord(fullName, STANDARD_KEYS.CONTRACT_ADDRESS, contractAddress);
+      
+      // Add metadata records
       if (Object.keys(metadata).length > 0) {
-        toast.info('Setting metadata records...');
         for (const [key, value] of Object.entries(metadata)) {
           if (value) {
-            await setTextRecord(walletClient, publicClient, {
-              name: fullName,
-              recordType: 'text',
-              key,
-              value,
-            });
+            builder.addTextRecord(fullName, key, value);
           }
         }
       }
-
-      // Step 5: Set contract-specific metadata
+      
+      // Add contract-specific metadata
       if (isProxy && implementationAddress) {
-        await setTextRecord(walletClient, publicClient, {
-          name: fullName,
-          recordType: 'text',
-          key: STANDARD_KEYS.IMPLEMENTATION,
-          value: implementationAddress,
-        });
+        builder.addTextRecord(fullName, STANDARD_KEYS.IMPLEMENTATION, implementationAddress);
       }
-
+      
       if (contractType) {
-        await setTextRecord(walletClient, publicClient, {
-          name: fullName,
-          recordType: 'text',
-          key: STANDARD_KEYS.CONTRACT_TYPE,
-          value: contractType,
-        });
+        builder.addTextRecord(fullName, STANDARD_KEYS.CONTRACT_TYPE, contractType);
       }
+      
+      // Execute all metadata updates in a single batched transaction
+      await builder.execute();
 
       toast.success('Contract registered successfully!', {
         description: `${fullName} now resolves to ${contractAddress}`,
@@ -257,11 +328,13 @@ export function ContractRegistration() {
     setSelectedTemplate('');
     setMetadata({});
     setSelectedSchema(null);
+    setIsContract(null);
+    setIsCheckingContract(false);
   };
 
-  const canProceedToNaming = contractAddress.length > 0;
+  const canProceedToNaming = contractAddress.length > 0 && isContract === true;
   const canProceedToMetadata = parentDomain && subdomainLabel;
-  const canSubmit = canProceedToMetadata && contractAddress;
+  const canSubmit = canProceedToMetadata && contractAddress && isContract === true;
 
   return (
     <div className="space-y-6">
@@ -277,32 +350,55 @@ export function ContractRegistration() {
       <Card className="border-2">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
-            {['contract', 'naming', 'metadata', 'review'].map((s, idx) => (
-              <div key={s} className="flex items-center">
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                    step === s
-                      ? 'border-blue-600 bg-blue-50 text-blue-600'
-                      : idx < ['contract', 'naming', 'metadata', 'review'].indexOf(step)
-                      ? 'border-emerald-600 bg-emerald-50 text-emerald-600'
-                      : 'border-slate-200 bg-white text-slate-400'
-                  }`}
+            {['contract', 'naming', 'metadata', 'review'].map((s, idx) => {
+              const isNamingStep = s === 'naming';
+              const isDisabled = isNamingStep && !canProceedToNaming;
+              
+              return (
+                <div 
+                  key={s} 
+                  className={`flex items-center ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title={isDisabled ? 'Address must be a contract to proceed' : ''}
                 >
-                  {idx < ['contract', 'naming', 'metadata', 'review'].indexOf(step) ? (
-                    <CheckCircle2 className="h-5 w-5" />
-                  ) : (
-                    <span>{idx + 1}</span>
-                  )}
+                  <div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                      step === s
+                        ? 'border-blue-600 bg-blue-50 text-blue-600'
+                        : idx < ['contract', 'naming', 'metadata', 'review'].indexOf(step)
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-600'
+                        : isDisabled
+                        ? 'border-slate-200 bg-slate-50 text-slate-300'
+                        : 'border-slate-200 bg-white text-slate-400'
+                    }`}
+                  >
+                    {idx < ['contract', 'naming', 'metadata', 'review'].indexOf(step) ? (
+                      <CheckCircle2 className="h-5 w-5" />
+                    ) : (
+                      <span>{idx + 1}</span>
+                    )}
+                  </div>
+                  <span className={`ml-2 capitalize hidden md:inline ${isDisabled ? 'text-slate-400' : 'text-slate-700'}`}>
+                    {s}
+                  </span>
+                  {idx < 3 && <div className="w-12 h-0.5 bg-slate-200 mx-4 hidden md:block" />}
                 </div>
-                <span className="ml-2 text-slate-700 capitalize hidden md:inline">{s}</span>
-                {idx < 3 && <div className="w-12 h-0.5 bg-slate-200 mx-4 hidden md:block" />}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
-      <Tabs value={step} onValueChange={(v) => setStep(v as any)}>
+      <Tabs 
+        value={step} 
+        onValueChange={(v) => {
+          // Prevent navigation to naming step if not a contract
+          if (v === 'naming' && !canProceedToNaming) {
+            toast.error('Address must be a contract to proceed with naming');
+            return;
+          }
+          setStep(v as any);
+        }}
+      >
         {/* Contract Info Step */}
         <TabsContent value="contract">
           <Card className="border-2">
@@ -329,15 +425,49 @@ export function ContractRegistration() {
                   <Label htmlFor="contract-address">
                     Contract Address <span className="text-red-600">*</span>
                   </Label>
-                  <Input
-                    id="contract-address"
-                    placeholder="0x..."
-                    value={contractAddress}
-                    onChange={(e) => setContractAddress(e.target.value)}
-                  />
-                  <p className="text-slate-600">
-                    The deployed contract address (use proxy for upgradeable contracts)
-                  </p>
+                  <div className="space-y-2">
+                    <Input
+                      id="contract-address"
+                      placeholder="0x..."
+                      value={contractAddress}
+                      onChange={(e) => setContractAddress(e.target.value)}
+                    />
+                    {isCheckingContract && (
+                      <p className="text-sm text-slate-500">Checking if address is a contract...</p>
+                    )}
+                    {!isCheckingContract && contractAddress && isContract === false && (
+                      <Alert className="border-red-200 bg-red-50">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                        <AlertTitle className="text-red-900">Not a Contract</AlertTitle>
+                        <AlertDescription className="text-red-800">
+                          This address does not have contract code. Contract naming is only available for smart contracts, not EOA (Externally Owned Accounts).
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    {!isCheckingContract && contractAddress && isContract === true && (
+                      <Alert className="border-emerald-200 bg-emerald-50">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <AlertTitle className="text-emerald-900">Contract Detected</AlertTitle>
+                        <AlertDescription className="text-emerald-800">
+                          This address contains contract code. You can proceed with contract naming.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <p className="text-slate-600">
+                      The deployed contract address (use proxy for upgradeable contracts)
+                    </p>
+                    {registrationFee > 0n && (
+                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-blue-600" />
+                          <p className="text-sm text-blue-900">
+                            Registration fee: <strong>{formatEther(registrationFee)} ETH</strong>
+                            {isLoadingFee && <span className="ml-2 text-blue-600">(loading...)</span>}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -390,9 +520,9 @@ export function ContractRegistration() {
               <div className="flex justify-end gap-2">
                 <Button
                   onClick={() => setStep('naming')}
-                  disabled={!canProceedToNaming}
+                  disabled={!canProceedToNaming || isCheckingContract}
                 >
-                  Next: Naming
+                  {isCheckingContract ? 'Checking...' : 'Next: Naming'}
                 </Button>
               </div>
             </CardContent>
@@ -593,6 +723,19 @@ export function ContractRegistration() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
+                {registrationFee > 0n && (
+                  <>
+                    <Alert className="border-blue-200 bg-blue-50">
+                      <DollarSign className="h-4 w-4 text-blue-600" />
+                      <AlertTitle className="text-blue-900">Registration Fee</AlertTitle>
+                      <AlertDescription className="text-blue-800">
+                        A fee of <strong>{formatEther(registrationFee)} ETH</strong> will be charged for this registration.
+                      </AlertDescription>
+                    </Alert>
+                    <Separator />
+                  </>
+                )}
+
                 <div>
                   <Label className="text-slate-600">Contract Address</Label>
                   <p className="text-slate-900 break-all">{contractAddress}</p>

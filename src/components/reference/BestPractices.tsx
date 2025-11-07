@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { CheckCircle2, AlertTriangle, FileCode, Settings, Lock } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, FileCode, Settings, Lock, Users } from 'lucide-react';
 
 interface BestPracticesProps {
   searchQuery: string;
@@ -197,6 +197,118 @@ export function BestPractices({ searchQuery }: BestPracticesProps) {
               practice: 'TTL (Time-to-Live)',
               example: 'Set to 600 seconds (10 minutes)',
               rationale: 'Set a reasonable TTL. While instant propagation is ideal, a small TTL allows clients to cache the results, reducing lookup frequency. For mission-critical records, ensure the TTL is low enough that any accidental change can be quickly corrected.'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'permissions',
+      icon: Users,
+      title: 'IV. Granular Permissions (ENSIP GNA)',
+      description: 'Fine-grained, time-bound delegation for secure domain management',
+      practices: [
+        {
+          category: 'Permission Delegation',
+          importance: 'critical',
+          items: [
+            {
+              practice: 'Use Granular Permissions Instead of Full Transfer',
+              example: 'Grant SET_TEXT_RECORD only, not full ownership',
+              rationale: 'Granular permissions allow you to delegate specific operations (like updating text records) without transferring full domain ownership. This maintains security while enabling operational flexibility.'
+            },
+            {
+              practice: 'Always Set Expiration Dates',
+              example: 'Set expiration to 90 days or less',
+              rationale: 'Time-bound delegations automatically expire, preventing forgotten permissions from becoming security risks. Even for trusted delegates, set reasonable expiration dates.'
+            },
+            {
+              practice: 'Grant Minimum Required Permissions',
+              example: 'If delegate only needs to update text records, grant only SET_TEXT_RECORD',
+              rationale: 'Follow the principle of least privilege. Only grant the specific permissions needed for the task. This limits the impact if a delegate is compromised.'
+            },
+            {
+              practice: 'Lock Critical Delegates',
+              example: 'Lock delegates managing production domains',
+              rationale: 'Locking prevents accidental removal of critical delegates. Use this for production systems where continuity is essential.'
+            }
+          ]
+        },
+        {
+          category: 'Permission Types',
+          importance: 'high',
+          items: [
+            {
+              practice: 'Subdomain Management',
+              example: 'Grant MANAGE_SUBDOMAINS for automated subdomain creation',
+              rationale: 'Use this for services that need to create subdomains programmatically. Separate from other permissions to limit scope.'
+            },
+            {
+              practice: 'Record Updates',
+              example: 'Grant SET_TEXT_RECORD and SET_ADDR_RECORD for metadata management',
+              rationale: 'Common permissions for content managers or automated systems that update domain metadata without needing full control.'
+            },
+            {
+              practice: 'Resolver Management',
+              example: 'Grant SET_RESOLVER only when migrating resolvers',
+              rationale: 'A rare permission that should only be granted temporarily during resolver migrations. Revoke immediately after migration.'
+            },
+            {
+              practice: 'Owner Operations',
+              example: 'Grant SET_OWNER only for emergency transfers',
+              rationale: 'The most powerful permission. Only grant to highly trusted parties and always with short expiration dates.'
+            }
+          ]
+        },
+        {
+          category: 'Security and Monitoring',
+          importance: 'critical',
+          items: [
+            {
+              practice: 'Monitor Delegate Activity',
+              example: 'Set up alerts for delegate-initiated transactions',
+              rationale: 'Track all operations performed by delegates. Use blockchain monitoring tools to detect unusual activity patterns.'
+            },
+            {
+              practice: 'Use Emergency Pause',
+              example: 'Pause node if suspicious activity detected',
+              rationale: 'The emergency pause function immediately revokes all delegations. Use this as a first response to security incidents.'
+            },
+            {
+              practice: 'Regular Permission Audits',
+              example: 'Review all active delegates monthly',
+              rationale: 'Periodically review all active delegates and their permissions. Remove expired or unnecessary delegations. Verify expiration dates are appropriate.'
+            },
+            {
+              practice: 'Whitelist/Blacklist Management',
+              example: 'Use whitelist for known-good addresses, blacklist for blocked addresses',
+              rationale: 'Whitelist and blacklist provide additional layers of access control. Use whitelist mode for maximum security, blacklist for blocking specific addresses.'
+            }
+          ]
+        },
+        {
+          category: 'Best Practices for Common Scenarios',
+          importance: 'high',
+          items: [
+            {
+              practice: 'Content Management Systems',
+              example: 'Grant SET_TEXT_RECORD only, 30-day expiration',
+              rationale: 'For systems that update metadata, grant only text record permissions with short expiration. Renew as needed.'
+            },
+            {
+              practice: 'Automated Subdomain Creation',
+              example: 'Grant MANAGE_SUBDOMAINS, 90-day expiration, locked',
+              rationale: 'For services that create subdomains automatically, grant subdomain management permission with longer expiration and lock the delegate.'
+            },
+            {
+              practice: 'Multi-Signature Wallets',
+              example: 'Grant permissions to Safe wallet addresses',
+              rationale: 'When delegating to multisig wallets, ensure the wallet itself is properly configured with appropriate thresholds.'
+            },
+            {
+              practice: 'Temporary Access',
+              example: 'Grant specific permissions with 7-day expiration for contractors',
+              rationale: 'For temporary access needs, use short expiration dates. The granular system makes it easy to grant and automatically revoke access.'
             }
           ]
         }

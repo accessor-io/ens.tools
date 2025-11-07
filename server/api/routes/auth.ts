@@ -2,21 +2,20 @@ import { Router, Request, Response } from 'express';
 import { verifySignature } from '../middleware/auth';
 import { db } from '../../db';
 import { redisClient } from '../../db/redis';
-import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { SecurityLogger } from '../middleware/security-logger';
+import { validate, schemas } from '../middleware/validation';
 
 export const authRouter = Router();
 
-authRouter.post('/connect', async (req: Request, res: Response) => {
+authRouter.post('/connect', validate(schemas.authConnect), async (req: any, res: Response) => {
   try {
-    const { address, message, signature } = req.body;
-
-    if (!address || !message || !signature) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
+    const { address, message, signature } = req.validatedData;
 
     // Verify signature
     const isValid = await verifySignature(address, message, signature);
     if (!isValid) {
+      await SecurityLogger.logAuthFailure(req, 'Invalid signature');
       return res.status(401).json({ error: 'Invalid signature' });
     }
 
@@ -42,6 +41,9 @@ authRouter.post('/connect', async (req: Request, res: Response) => {
 
     // Store session in Redis
     await redisClient.setEx(`session:${address}`, 86400, token); // 24 hours
+
+    // Log successful authentication
+    await SecurityLogger.logAuthSuccess(req, userId, address);
 
     res.json({
       token,
@@ -70,17 +72,19 @@ authRouter.post('/disconnect', async (req: Request, res: Response) => {
 });
 
 function createToken(payload: { address: string; userId: string }): string {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const exp = Math.floor(Date.now() / 1000) + 86400; // 24 hours
+  const jwtSecret = process.env.JWT_SECRET;
   
-  const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
-  const encodedPayload = Buffer.from(JSON.stringify({ ...payload, exp })).toString('base64url');
+  if (!jwtSecret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET must be set in production');
+    }
+    console.warn('JWT_SECRET not set, using insecure default for development only');
+  }
   
-  const signature = crypto
-    .createHmac('sha256', process.env.JWT_SECRET || 'dev-secret')
-    .update(`${encodedHeader}.${encodedPayload}`)
-    .digest('base64url');
-  
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
+  return jwt.sign(
+    payload,
+    jwtSecret || 'dev-secret',
+    { expiresIn: '24h' }
+  );
 }
 

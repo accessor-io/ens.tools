@@ -108,4 +108,8 @@ temp/
 # SvelteKit build / generate output
 .svelte-kit
 
+# Documentation files
+*.md
+!README.md
+
 # End of https://www.toptal.com/developers/gitignore/api/node

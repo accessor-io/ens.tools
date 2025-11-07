@@ -84,6 +84,7 @@ import {
 import { wrapName, unwrapName } from '../../lib/ens';
 import { DomainProfile } from './DomainProfile';
 import { eventTracker } from '../../lib/services/event-tracker';
+import { useDomainContext } from '../../lib/contexts/DomainContext';
 
 interface DomainGroup {
   id: string;
@@ -100,9 +101,17 @@ interface DomainAssignment {
 
 export function DomainManagement() {
   const { address, isConnected, walletClient, publicClient } = useWeb3();
+  const { selectedDomain: contextDomain, selectDomain } = useDomainContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDomain, setSelectedDomain] = useState<ENSDomain | null>(null);
   const [domains, setDomains] = useState<ENSDomain[]>([]);
+  
+  // Sync local selectedDomain with context when it changes externally
+  useEffect(() => {
+    if (contextDomain && contextDomain.name !== selectedDomain?.name) {
+      setSelectedDomain(contextDomain);
+    }
+  }, [contextDomain]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [processingDomain, setProcessingDomain] = useState<string | null>(null);
@@ -954,7 +963,10 @@ export function DomainManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setSelectedDomain(domain)}
+                                onClick={() => {
+                                  setSelectedDomain(domain);
+                                  selectDomain(domain);
+                                }}
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -1491,7 +1503,10 @@ export function DomainManagement() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setSelectedDomain(domain)}
+                        onClick={() => {
+                          setSelectedDomain(domain);
+                          selectDomain(domain);
+                        }}
                       >
                         View Details
                       </Button>

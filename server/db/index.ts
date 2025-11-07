@@ -1,9 +1,32 @@
 import { Pool } from 'pg';
 import { redisClient } from './redis';
+import fs from 'fs';
+
+// Configure SSL for production
+const getSslConfig = () => {
+  if (process.env.NODE_ENV !== 'production') {
+    return false;
+  }
+
+  const sslConfig: any = {
+    rejectUnauthorized: true,
+  };
+
+  // If CA certificate path is provided, use it
+  if (process.env.DB_CA_CERT_PATH) {
+    try {
+      sslConfig.ca = fs.readFileSync(process.env.DB_CA_CERT_PATH).toString();
+    } catch (error) {
+      console.warn('Failed to read CA certificate, using default certificate validation');
+    }
+  }
+
+  return sslConfig;
+};
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: getSslConfig(),
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
