@@ -226,7 +226,7 @@ export function BottomToolbar({
                       )}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-slate-900 text-white border-slate-700 text-xs px-2.5 py-1.5 rounded-lg shadow-lg">
+                  <TooltipContent side="top" className="bg-white text-slate-900 border border-slate-200 text-xs px-2.5 py-1.5 rounded-lg shadow-lg">
                     <p className="font-medium">{item.label}</p>
                   </TooltipContent>
                 </Tooltip>

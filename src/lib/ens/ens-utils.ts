@@ -105,10 +105,31 @@ export async function fetchENSNames(address: string): Promise<ENSDomain[]> {
       }),
     });
 
+    // Handle rate limiting and other HTTP errors
+    if (!response.ok) {
+      if (response.status === 429) {
+        // Rate limited - silently return empty array
+        return [];
+      }
+      if (response.status >= 500) {
+        // Server error - silently return empty array
+        return [];
+      }
+    }
+
     const result = await response.json();
     
     if (result.errors) {
-      console.error('GraphQL errors:', result.errors);
+      // Only log non-rate-limit errors
+      const hasRateLimitError = result.errors.some((err: any) => 
+        err.message?.includes('rate limit') || 
+        err.message?.includes('429') ||
+        err.extensions?.code === 'RATE_LIMITED'
+      );
+      
+      if (!hasRateLimitError) {
+        console.error('GraphQL errors:', result.errors);
+      }
       return [];
     }
 
@@ -149,8 +170,22 @@ export async function fetchENSNames(address: string): Promise<ENSDomain[]> {
       texts: {},
       };
     });
-  } catch (error) {
-    console.error('Error fetching ENS names:', error);
+  } catch (error: any) {
+    // Handle network errors, CORS errors, and rate limiting gracefully
+    const isNetworkError = 
+      error?.name === 'TypeError' && 
+      (error?.message?.includes('NetworkError') || 
+       error?.message?.includes('Failed to fetch') ||
+       error?.message?.includes('CORS'));
+    
+    const isRateLimitError = 
+      error?.message?.includes('429') ||
+      error?.message?.includes('rate limit');
+    
+    // Only log unexpected errors
+    if (!isNetworkError && !isRateLimitError) {
+      console.error('Error fetching ENS names:', error);
+    }
     return [];
   }
 }
@@ -182,8 +217,20 @@ export async function reverseResolveAddress(
   try {
     const name = await client.getEnsName({ address: address as `0x${string}` });
     return name;
-  } catch (error) {
-    console.error('Error reverse resolving address:', error);
+  } catch (error: any) {
+    // Reverse resolution may fail for various reasons (no reverse record, RPC issues, etc.)
+    // Only log unexpected errors, not parameter validation errors
+    const isExpectedError = 
+      error?.name === 'InvalidParamsRpcError' ||
+      error?.name === 'CallExecutionError' ||
+      error?.cause?.name === 'InvalidParamsRpcError' ||
+      error?.cause?.name === 'CallExecutionError' ||
+      error?.shortMessage?.includes('Invalid parameters') ||
+      error?.message?.includes('Invalid parameters');
+    
+    if (!isExpectedError) {
+      console.error('Error reverse resolving address:', error);
+    }
     return null;
   }
 }

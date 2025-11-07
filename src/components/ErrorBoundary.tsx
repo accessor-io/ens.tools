@@ -99,7 +99,7 @@ export class ErrorBoundary extends Component<Props, State> {
               {isDevelopment && error && (
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-slate-900">Error Details (Development Only):</p>
-                  <div className="bg-slate-900 text-slate-100 p-4 rounded-lg text-xs overflow-auto max-h-64">
+                  <div className="bg-slate-100 text-slate-900 p-4 rounded-lg text-xs overflow-auto max-h-64 border border-slate-200">
                     <div className="mb-2">
                       <span className="font-semibold text-red-400">Error:</span>
                       <pre className="mt-1 whitespace-pre-wrap">{error.toString()}</pre>

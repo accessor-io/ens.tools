@@ -4,9 +4,10 @@
  */
 
 import { useState, useEffect } from 'react';
-import { usePublicClient, useWalletClient } from 'wagmi';
 import { Address, Hex } from 'viem';
 import { namehash } from '../../lib/ens/ens-helpers';
+import { useWeb3 } from '../../lib/services';
+import { useTransactionManager } from '../../lib/hooks/useTransactionManager';
 import {
   granularPermissionService,
   GRANULAR_PERMISSIONS,
@@ -40,8 +41,8 @@ interface GranularPermissionsProps {
 }
 
 export function GranularPermissions({ domainName, contractAddress }: GranularPermissionsProps) {
-  const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
+  const { publicClient, walletClient } = useWeb3();
+  const txManager = useTransactionManager();
   const [node, setNode] = useState<Hex | null>(null);
   const [delegates, setDelegates] = useState<DelegateInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -148,7 +149,7 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
   };
 
   const handleRemoveDelegate = async (delegate: Address) => {
-    if (!node) return;
+    if (!node || !walletClient || !publicClient) return;
 
     if (!confirm(`Are you sure you want to remove delegate ${delegate}?`)) {
       return;
@@ -156,9 +157,16 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
 
     setLoading(true);
     try {
-      const hash = await granularPermissionService.removeDelegate(node, delegate);
-      toast.success('Delegate removed successfully');
-      await loadDelegates(node);
+      const executeFn = async () => {
+        return await granularPermissionService.removeDelegate(node, delegate);
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Remove delegate ${delegate.slice(0, 10)}... for ${domainName}`,
+        onSuccess: async () => {
+          await loadDelegates(node);
+        },
+      });
     } catch (error: any) {
       toast.error('Failed to remove delegate', {
         description: error.message || 'Unknown error',
@@ -169,18 +177,24 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
   };
 
   const handleToggleLock = async (delegate: Address, locked: boolean) => {
-    if (!node) return;
+    if (!node || !walletClient || !publicClient) return;
 
     setLoading(true);
     try {
-      if (locked) {
-        await granularPermissionService.unlockDelegate(node, delegate);
-        toast.success('Delegate unlocked');
-      } else {
-        await granularPermissionService.lockDelegate(node, delegate);
-        toast.success('Delegate locked');
-      }
-      await loadDelegates(node);
+      const executeFn = async () => {
+        if (locked) {
+          return await granularPermissionService.unlockDelegate(node, delegate);
+        } else {
+          return await granularPermissionService.lockDelegate(node, delegate);
+        }
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `${locked ? 'Unlock' : 'Lock'} delegate ${delegate.slice(0, 10)}... for ${domainName}`,
+        onSuccess: async () => {
+          await loadDelegates(node);
+        },
+      });
     } catch (error: any) {
       toast.error('Failed to toggle lock', {
         description: error.message || 'Unknown error',
@@ -191,18 +205,24 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
   };
 
   const handleToggleEnable = async (delegate: Address, enabled: boolean) => {
-    if (!node) return;
+    if (!node || !walletClient || !publicClient) return;
 
     setLoading(true);
     try {
-      if (enabled) {
-        await granularPermissionService.disableDelegate(node, delegate);
-        toast.success('Delegate disabled');
-      } else {
-        await granularPermissionService.enableDelegate(node, delegate);
-        toast.success('Delegate enabled');
-      }
-      await loadDelegates(node);
+      const executeFn = async () => {
+        if (enabled) {
+          return await granularPermissionService.disableDelegate(node, delegate);
+        } else {
+          return await granularPermissionService.enableDelegate(node, delegate);
+        }
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `${enabled ? 'Disable' : 'Enable'} delegate ${delegate.slice(0, 10)}... for ${domainName}`,
+        onSuccess: async () => {
+          await loadDelegates(node);
+        },
+      });
     } catch (error: any) {
       toast.error('Failed to toggle enable', {
         description: error.message || 'Unknown error',
@@ -213,7 +233,7 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
   };
 
   const handleEmergencyPause = async () => {
-    if (!node) return;
+    if (!node || !walletClient || !publicClient) return;
 
     if (!confirm('Are you sure you want to emergency pause this node? This will revoke all delegations.')) {
       return;
@@ -221,9 +241,16 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
 
     setLoading(true);
     try {
-      const hash = await granularPermissionService.emergencyPause(node, !emergencyPaused);
-      toast.success(`Node ${emergencyPaused ? 'unpaused' : 'paused'}`);
-      await checkEmergencyPause(node);
+      const executeFn = async () => {
+        return await granularPermissionService.emergencyPause(node, !emergencyPaused);
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Emergency ${emergencyPaused ? 'unpause' : 'pause'} for ${domainName}`,
+        onSuccess: async () => {
+          await checkEmergencyPause(node);
+        },
+      });
     } catch (error: any) {
       toast.error('Failed to toggle emergency pause', {
         description: error.message || 'Unknown error',

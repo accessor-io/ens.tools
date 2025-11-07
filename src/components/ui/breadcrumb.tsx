@@ -1,109 +1,63 @@
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot@1.1.2";
-import { ChevronRight, MoreHorizontal } from "lucide-react@0.487.0";
-
+import { ChevronRight, Home } from "lucide-react";
 import { cn } from "./utils";
 
-function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
-  return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;
+export interface BreadcrumbItem {
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
-function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
-  return (
-    <ol
-      data-slot="breadcrumb-list"
-      className={cn(
-        "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5",
-        className,
-      )}
-      {...props}
-    />
-  );
+interface BreadcrumbProps {
+  items: BreadcrumbItem[];
+  className?: string;
 }
 
-function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
+export function Breadcrumb({ items, className }: BreadcrumbProps) {
   return (
-    <li
-      data-slot="breadcrumb-item"
-      className={cn("inline-flex items-center gap-1.5", className)}
-      {...props}
-    />
-  );
-}
-
-function BreadcrumbLink({
-  asChild,
-  className,
-  ...props
-}: React.ComponentProps<"a"> & {
-  asChild?: boolean;
-}) {
-  const Comp = asChild ? Slot : "a";
-
-  return (
-    <Comp
-      data-slot="breadcrumb-link"
-      className={cn("hover:text-foreground transition-colors", className)}
-      {...props}
-    />
-  );
-}
-
-function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="breadcrumb-page"
-      role="link"
-      aria-disabled="true"
-      aria-current="page"
-      className={cn("text-foreground font-normal", className)}
-      {...props}
-    />
-  );
-}
-
-function BreadcrumbSeparator({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<"li">) {
-  return (
-    <li
-      data-slot="breadcrumb-separator"
-      role="presentation"
-      aria-hidden="true"
-      className={cn("[&>svg]:size-3.5", className)}
-      {...props}
+    <nav
+      aria-label="Breadcrumb"
+      className={cn("flex items-center space-x-2 text-sm", className)}
     >
-      {children ?? <ChevronRight />}
-    </li>
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1;
+        const isClickable = item.onClick && !item.disabled && !isLast;
+
+        return (
+          <React.Fragment key={index}>
+            {index > 0 && (
+              <ChevronRight className="h-4 w-4 text-slate-400" />
+            )}
+            <div
+              className={cn(
+                "flex items-center",
+                isClickable && "cursor-pointer hover:text-violet-600",
+                isLast && "text-slate-900 font-medium",
+                !isLast && !isClickable && "text-slate-500",
+                item.disabled && "opacity-50 cursor-not-allowed"
+              )}
+              onClick={isClickable ? item.onClick : undefined}
+              role={isClickable ? "button" : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onKeyDown={
+                isClickable
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        item.onClick?.();
+                      }
+                    }
+                  : undefined
+              }
+            >
+              {index === 0 && (
+                <Home className="h-4 w-4 mr-1" />
+              )}
+              <span>{item.label}</span>
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </nav>
   );
 }
-
-function BreadcrumbEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
-  return (
-    <span
-      data-slot="breadcrumb-ellipsis"
-      role="presentation"
-      aria-hidden="true"
-      className={cn("flex size-9 items-center justify-center", className)}
-      {...props}
-    >
-      <MoreHorizontal className="size-4" />
-      <span className="sr-only">More</span>
-    </span>
-  );
-}
-
-export {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
-};

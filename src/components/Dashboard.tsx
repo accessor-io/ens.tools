@@ -5,6 +5,7 @@ import { Progress } from './ui/progress';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
+import { EmptyState } from './ui/empty-state';
 import { 
   Globe, 
   Shield, 
@@ -324,7 +325,7 @@ export function Dashboard() {
                   return (
                     <div 
                       key={index} 
-                      className="rounded-lg border bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="rounded-lg border bg-white hover:bg-slate-50 hover:shadow-md transition-all duration-200 cursor-pointer"
                       onClick={() => setSelectedDomain(domain)}
                     >
                       <div className="flex items-center justify-between p-3">
@@ -397,13 +398,15 @@ export function Dashboard() {
                 })}
               </div>
             ) : (
-              <Alert>
-                <Globe className="h-4 w-4" />
-                <AlertTitle>No ENS Names Found</AlertTitle>
-                <AlertDescription>
-                  This address doesn't own any ENS names yet.
-                </AlertDescription>
-              </Alert>
+              <EmptyState
+                icon={<Globe className="h-8 w-8" />}
+                title="No ENS Names Found"
+                description="This address doesn't own any ENS names yet. Connect a different wallet or register your first domain."
+                action={{
+                  label: 'Load Domains',
+                  onClick: loadDomains,
+                }}
+              />
             )}
           </CardContent>
         </Card>

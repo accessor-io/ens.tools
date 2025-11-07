@@ -5,6 +5,7 @@
 
 import { Hash, Address, PublicClient, WalletClient } from 'viem';
 import { toast } from 'sonner';
+import { getErrorMessage, getErrorRecovery } from '../utils/error-handler';
 
 export type TransactionStatus = 'pending' | 'submitted' | 'confirmed' | 'failed' | 'replaced';
 
@@ -122,8 +123,10 @@ export class TransactionManager {
           this.executeTransaction(id);
         }, 3000);
       } else {
+        const errorRecovery = getErrorRecovery(new Error(transaction.error));
         toast.error('Transaction failed', {
-          description: transaction.error,
+          description: errorRecovery.message + (errorRecovery.suggestion ? ` ${errorRecovery.suggestion}` : ''),
+          duration: 8000,
         });
         
         if (transaction.onFailure) {
@@ -168,8 +171,10 @@ export class TransactionManager {
         transaction.failedAt = new Date();
         transaction.error = 'Transaction reverted';
         
+        const errorRecovery = getErrorRecovery(new Error('Transaction reverted'));
         toast.error('Transaction reverted', {
-          description: transaction.description,
+          description: errorRecovery.message + (errorRecovery.suggestion ? ` ${errorRecovery.suggestion}` : ''),
+          duration: 8000,
         });
 
         if (transaction.onFailure) {
@@ -335,4 +340,5 @@ export class TransactionManager {
 }
 
 export const transactionManager = new TransactionManager();
+
 

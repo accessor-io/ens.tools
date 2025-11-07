@@ -988,15 +988,32 @@ export class FeeCollectionService {
   }
 }
 
+// Helper function to get address from environment or use placeholder
+function getAddressFromEnv(envKey: string, defaultValue: string): Address {
+  const envValue = import.meta.env[envKey];
+  if (envValue && envValue !== '0x0000000000000000000000000000000000000000') {
+    return envValue as Address;
+  }
+  return defaultValue as Address;
+}
+
 // Default fee collection service instance
-// In production, this should be configured with actual contract address
+// In production, configure via environment variables:
+// VITE_FEE_COLLECTION_ADDRESS - Deployed contract address
+// VITE_FEE_COLLECTION_ADMIN - Admin address for fee withdrawal
 export const feeCollectionService = new FeeCollectionService({
-  contractAddress: '0x0000000000000000000000000000000000000000' as Address, // Replace with deployed contract
+  contractAddress: getAddressFromEnv(
+    'VITE_FEE_COLLECTION_ADDRESS',
+    '0x0000000000000000000000000000000000000000'
+  ),
   registrationFee: DEFAULT_REGISTRATION_FEE,
   nameRegistrationFee: DEFAULT_NAME_REGISTRATION_FEE,
   subdomainCreationFee: DEFAULT_SUBDOMAIN_CREATION_FEE,
   transferFee: DEFAULT_TRANSFER_FEE,
   marketplaceFeeBps: 250, // 2.5% marketplace fee
-  adminAddress: '0x0000000000000000000000000000000000000000' as Address, // Replace with admin address
+  adminAddress: getAddressFromEnv(
+    'VITE_FEE_COLLECTION_ADMIN',
+    '0x0000000000000000000000000000000000000000'
+  ),
 });
 

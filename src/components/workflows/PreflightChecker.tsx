@@ -5,6 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Breadcrumb } from '../ui/breadcrumb';
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -391,6 +392,37 @@ export function PreflightChecker() {
           Verify contract ownership and set up ENS management delegation
         </p>
       </div>
+
+      <Breadcrumb
+        items={[
+          {
+            label: 'Contract',
+            onClick: () => setStep('contract'),
+            disabled: false,
+          },
+          {
+            label: 'Manager',
+            onClick: ['manager', 'review', 'execute', 'complete'].includes(step) ? () => setStep('manager') : undefined,
+            disabled: step === 'contract',
+          },
+          {
+            label: 'Review',
+            onClick: ['review', 'execute', 'complete'].includes(step) ? () => setStep('review') : undefined,
+            disabled: !['review', 'execute', 'complete'].includes(step),
+          },
+          {
+            label: 'Execute',
+            onClick: ['execute', 'complete'].includes(step) ? () => setStep('execute') : undefined,
+            disabled: !['execute', 'complete'].includes(step),
+          },
+          {
+            label: 'Complete',
+            onClick: undefined,
+            disabled: step !== 'complete',
+          },
+        ]}
+        className="mb-4"
+      />
 
       <div className="flex items-center gap-2 text-sm text-slate-600">
         <div className={`px-3 py-1 rounded-full ${step === 'contract' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100'}`}>

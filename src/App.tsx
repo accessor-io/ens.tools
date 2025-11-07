@@ -20,6 +20,7 @@ import { Web3Provider } from './lib/services';
 import { DomainProvider } from './lib/contexts/DomainContext';
 import { Toaster } from './components/ui/sonner';
 import { JazzCupBackground } from './components/JazzCupBackground';
+import { TransactionStatusPanel } from './components/TransactionStatusPanel';
 import { Network } from 'lucide-react';
 
 export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel';
@@ -105,6 +106,7 @@ export default function App() {
           </main>
         </div>
         <BottomToolbar currentView={currentView} onViewChange={setCurrentView} />
+        <TransactionStatusPanel />
         <Toaster />
       </div>
       </DomainProvider>

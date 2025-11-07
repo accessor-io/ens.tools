@@ -62,6 +62,16 @@ export const PUBLIC_RESOLVER_ABI = [
     stateMutability: 'nonpayable',
     inputs: [
       { name: 'node', type: 'bytes32' },
+      { name: 'a', type: 'address' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'setAddr',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'node', type: 'bytes32' },
       { name: 'coinType', type: 'uint256' },
       { name: 'a', type: 'bytes' },
     ],
@@ -114,6 +124,47 @@ export const PUBLIC_RESOLVER_ABI = [
     stateMutability: 'view',
     inputs: [{ name: 'node', type: 'bytes32' }],
     outputs: [{ name: '', type: 'bytes' }],
+  },
+  {
+    name: 'setTTL',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'node', type: 'bytes32' },
+      { name: 'ttl', type: 'uint64' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'ttl',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'node', type: 'bytes32' }],
+    outputs: [{ name: '', type: 'uint64' }],
+  },
+  {
+    name: 'setABI',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'node', type: 'bytes32' },
+      { name: 'contentType', type: 'uint256' },
+      { name: 'data', type: 'bytes' },
+    ],
+    outputs: [],
+  },
+  {
+    name: 'ABI',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'node', type: 'bytes32' },
+      { name: 'contentTypes', type: 'uint256' },
+    ],
+    outputs: [
+      { name: '', type: 'uint256' },
+      { name: '', type: 'bytes' },
+    ],
   },
   {
     name: 'multicall',

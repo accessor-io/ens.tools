@@ -23,6 +23,7 @@ import {
 import { toast } from 'sonner';
 import { useDomainContext } from '../../lib/contexts/DomainContext';
 import { useWeb3 } from '../../lib/services/web3-provider';
+import { useTransactionManager } from '../../lib/hooks/useTransactionManager';
 import { fetchENSNames, getAllTextRecords, resolveENSName, type ENSDomain } from '../../lib/ens/ens-utils';
 import { setTextRecord, setAddressRecord } from '../../lib/ens/ens-write-operations';
 
@@ -34,6 +35,7 @@ interface TextRecord {
 export function MetadataEditor() {
   const { selectedDomains, selectedDomain, isBulkMode, selectDomain, selectDomains } = useDomainContext();
   const { address, isConnected, walletClient, publicClient } = useWeb3();
+  const txManager = useTransactionManager();
   
   const [availableDomains, setAvailableDomains] = useState<ENSDomain[]>([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState(false);
@@ -193,6 +195,11 @@ export function MetadataEditor() {
   };
 
   const handleSingleAddressSave = async (domainName: string) => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
     if (!domainAddress || !/^0x[a-fA-F0-9]{40}$/.test(domainAddress)) {
       toast.error('Invalid address format');
       return;
@@ -200,17 +207,19 @@ export function MetadataEditor() {
 
     setIsSaving(true);
     try {
-      await setAddressRecord(walletClient!, publicClient!, {
-        name: domainName,
-        value: domainAddress,
-      });
+      const executeFn = async () => {
+        return await setAddressRecord(walletClient, publicClient, {
+          name: domainName,
+          value: domainAddress,
+        });
+      };
 
-      toast.success('Address updated successfully', {
-        description: `${domainName} now resolves to ${domainAddress}`,
+      await txManager.addTransaction(executeFn, {
+        description: `Set address record for ${domainName}`,
+        onSuccess: async () => {
+          await loadDomainAddress(domainName);
+        },
       });
-      
-      // Reload address to confirm
-      await loadDomainAddress(domainName);
     } catch (error) {
       console.error('Error saving address:', error);
       toast.error('Failed to save address', {
@@ -222,41 +231,44 @@ export function MetadataEditor() {
   };
 
   const handleBulkAddressSave = async () => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      let successCount = 0;
-      let errorCount = 0;
-
+      const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
+      const builder = new TransactionBuilder(publicClient, walletClient);
+      
+      let validCount = 0;
       for (const domain of selectedDomains) {
         const address = bulkAddresses[domain.name];
         
-        if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-          continue;
-        }
-
-        try {
-          await setAddressRecord(walletClient!, publicClient!, {
-            name: domain.name,
-            value: address,
-          });
-          successCount++;
-        } catch (error) {
-          console.error(`Error saving address for ${domain.name}:`, error);
-          errorCount++;
+        if (address && /^0x[a-fA-F0-9]{40}$/.test(address)) {
+          builder.addAddressRecord(domain.name, address, 60); // ETH coin type
+          validCount++;
         }
       }
 
-      if (successCount > 0) {
-        toast.success('Bulk address update completed', {
-          description: `Updated ${successCount} domain${successCount !== 1 ? 's' : ''}${errorCount > 0 ? ` (${errorCount} failed)` : ''}`,
-        });
-        // Reload addresses
-        await loadBulkAddresses();
-      } else {
-        toast.error('No addresses were saved', {
-          description: errorCount > 0 ? `${errorCount} errors occurred` : 'No valid addresses found',
-        });
+      if (validCount === 0) {
+        toast.error('No valid addresses to save');
+        setIsSaving(false);
+        return;
       }
+
+      // Execute using transaction manager
+      const executeFn = async () => {
+        const hashes = await builder.execute();
+        return hashes[0]; // Return first hash for tracking
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Bulk set address records (${validCount} domain${validCount !== 1 ? 's' : ''})`,
+        onSuccess: async () => {
+          await loadBulkAddresses();
+        },
+      });
     } catch (error) {
       console.error('Error saving bulk addresses:', error);
       toast.error('Failed to save bulk addresses', {
@@ -268,10 +280,15 @@ export function MetadataEditor() {
   };
 
   const handleSingleSave = async (domainName: string) => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
-      const builder = new TransactionBuilder(publicClient!, walletClient!);
+      const builder = new TransactionBuilder(publicClient, walletClient);
       
       // Add all text records to builder
       for (const record of textRecords) {
@@ -282,19 +299,23 @@ export function MetadataEditor() {
 
       if (builder.getOperationCount() === 0) {
         toast.error('No records to save');
+        setIsSaving(false);
         return;
       }
 
-      // Execute batched transaction
+      // Execute using transaction manager
       const operationCount = builder.getOperationCount();
-      const hashes = await builder.execute();
-      
-      toast.success('Metadata updated successfully', {
-        description: `Saved ${operationCount} record${operationCount !== 1 ? 's' : ''} for ${domainName} in ${hashes.length} transaction${hashes.length !== 1 ? 's' : ''}`,
+      const executeFn = async () => {
+        const hashes = await builder.execute();
+        return hashes[0]; // Return first hash for tracking
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Save metadata for ${domainName} (${operationCount} record${operationCount !== 1 ? 's' : ''})`,
+        onSuccess: async () => {
+          await loadDomainMetadata(domainName);
+        },
       });
-      
-      // Reload metadata
-      await loadDomainMetadata(domainName);
     } catch (error) {
       console.error('Error saving metadata:', error);
       toast.error('Failed to save metadata', {
@@ -306,10 +327,15 @@ export function MetadataEditor() {
   };
 
   const handleBulkSave = async () => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
-      const builder = new TransactionBuilder(publicClient!, walletClient!);
+      const builder = new TransactionBuilder(publicClient, walletClient);
       
       // Add all records to builder
       for (const domain of selectedDomains) {
@@ -323,19 +349,23 @@ export function MetadataEditor() {
 
       if (builder.getOperationCount() === 0) {
         toast.error('No records to save');
+        setIsSaving(false);
         return;
       }
 
-      // Execute batched transactions
+      // Execute using transaction manager
       const totalOps = builder.getOperationCount();
-      const hashes = await builder.execute();
-      
-      toast.success('Bulk metadata update completed', {
-        description: `Saved ${totalOps} record${totalOps !== 1 ? 's' : ''} across ${selectedDomains.length} domain${selectedDomains.length !== 1 ? 's' : ''} in ${hashes.length} transaction${hashes.length !== 1 ? 's' : ''}`,
+      const executeFn = async () => {
+        const hashes = await builder.execute();
+        return hashes[0]; // Return first hash for tracking
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Bulk save metadata (${totalOps} record${totalOps !== 1 ? 's' : ''} across ${selectedDomains.length} domain${selectedDomains.length !== 1 ? 's' : ''})`,
+        onSuccess: async () => {
+          await loadBulkMetadata();
+        },
       });
-      
-      // Reload bulk metadata
-      await loadBulkMetadata();
     } catch (error) {
       console.error('Error saving bulk metadata:', error);
       toast.error('Failed to save bulk metadata', {

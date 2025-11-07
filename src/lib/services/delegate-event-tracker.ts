@@ -35,14 +35,13 @@ export class DelegateEventTracker {
       throw new Error('Public client not set');
     }
 
-    const currentBlock = await this.publicClient.getBlockNumber();
-    const startBlock = fromBlock || (currentBlock - 10000n); // Last ~10k blocks by default
-
     try {
-      // Query DelegateAdded events using the contract ABI
-      const addedEvents = await this.publicClient.getLogs({
-        address: this.contractAddress,
-        event: {
+      const currentBlock = await this.publicClient.getBlockNumber();
+      const startBlock = fromBlock || (currentBlock > 10000n ? currentBlock - 10000n : 0n);
+
+      // Define event ABIs for viem
+      const delegateAddedAbi = [
+        {
           type: 'event',
           name: 'DelegateAdded',
           inputs: [
@@ -51,50 +50,77 @@ export class DelegateEventTracker {
             { name: 'operations', type: 'uint256', indexed: false },
             { name: 'expiresAt', type: 'uint256', indexed: false },
           ],
-        } as const,
-        args: {
-          node,
         },
-        fromBlock: startBlock,
-        toBlock: 'latest',
-      }).catch(() => []);
+      ] as const;
 
-      // Query DelegateRemoved events
-      const removedEvents = await this.publicClient.getLogs({
-        address: this.contractAddress,
-        event: {
+      const delegateRemovedAbi = [
+        {
           type: 'event',
           name: 'DelegateRemoved',
           inputs: [
             { name: 'node', type: 'bytes32', indexed: true },
             { name: 'delegate', type: 'address', indexed: true },
           ],
-        } as const,
+        },
+      ] as const;
+
+      // Query DelegateAdded events
+      const addedEvents = await this.publicClient.getLogs({
+        address: this.contractAddress,
+        event: delegateAddedAbi[0],
         args: {
           node,
         },
         fromBlock: startBlock,
         toBlock: 'latest',
-      }).catch(() => []);
+      }).catch((err) => {
+        console.warn('Error querying DelegateAdded events:', err);
+        return [];
+      });
 
-      // Build set of active delegates
-      const delegateSet = new Set<Address>();
+      // Query DelegateRemoved events
+      const removedEvents = await this.publicClient.getLogs({
+        address: this.contractAddress,
+        event: delegateRemovedAbi[0],
+        args: {
+          node,
+        },
+        fromBlock: startBlock,
+        toBlock: 'latest',
+      }).catch((err) => {
+        console.warn('Error querying DelegateRemoved events:', err);
+        return [];
+      });
+
+      // Build map of delegates with their latest state
+      const delegateMap = new Map<Address, { added: boolean; blockNumber: bigint }>();
       
-      // Add all delegates from DelegateAdded events
+      // Process DelegateAdded events (later events override earlier ones)
       for (const event of addedEvents) {
         if (event.args && 'delegate' in event.args) {
-          delegateSet.add(event.args.delegate as Address);
+          const delegate = event.args.delegate as Address;
+          const existing = delegateMap.get(delegate);
+          if (!existing || event.blockNumber > existing.blockNumber) {
+            delegateMap.set(delegate, { added: true, blockNumber: event.blockNumber });
+          }
         }
       }
 
-      // Remove delegates from DelegateRemoved events
+      // Process DelegateRemoved events (later removals override earlier adds)
       for (const event of removedEvents) {
         if (event.args && 'delegate' in event.args) {
-          delegateSet.delete(event.args.delegate as Address);
+          const delegate = event.args.delegate as Address;
+          const existing = delegateMap.get(delegate);
+          if (!existing || event.blockNumber > existing.blockNumber) {
+            delegateMap.set(delegate, { added: false, blockNumber: event.blockNumber });
+          }
         }
       }
 
-      return Array.from(delegateSet);
+      // Return only delegates that are currently active (added and not removed)
+      return Array.from(delegateMap.entries())
+        .filter(([_, state]) => state.added)
+        .map(([delegate]) => delegate);
     } catch (error) {
       console.error('Error querying delegate events:', error);
       return [];

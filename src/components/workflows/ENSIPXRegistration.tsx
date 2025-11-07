@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Breadcrumb } from '../ui/breadcrumb';
 import {
   FileCode,
   CheckCircle2,
@@ -353,6 +354,14 @@ export function ENSIPXRegistration() {
 
       <Card className="border-2">
         <CardContent className="pt-6">
+          <Breadcrumb
+            items={['basic', 'classification', 'security', 'lifecycle', 'review'].map((s, idx) => ({
+              label: s.charAt(0).toUpperCase() + s.slice(1),
+              onClick: idx <= ['basic', 'classification', 'security', 'lifecycle', 'review'].indexOf(step) ? () => setStep(s as any) : undefined,
+              disabled: idx > ['basic', 'classification', 'security', 'lifecycle', 'review'].indexOf(step),
+            }))}
+            className="mb-4"
+          />
           <div className="flex items-center justify-between">
             {['basic', 'classification', 'security', 'lifecycle', 'review'].map((s, idx) => (
               <div key={s} className="flex items-center">

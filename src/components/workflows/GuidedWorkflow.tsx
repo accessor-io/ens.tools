@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Separator } from '../ui/separator';
 import { Progress } from '../ui/progress';
+import { Breadcrumb } from '../ui/breadcrumb';
 import {
   Globe,
   ChevronRight,
@@ -831,6 +832,31 @@ export function GuidedWorkflow() {
 
       <Card>
         <CardHeader>
+          <Breadcrumb
+            items={[
+              {
+                label: 'Select Domains',
+                onClick: () => setCurrentStep('select-domains'),
+                disabled: false,
+              },
+              {
+                label: 'Choose Action',
+                onClick: () => currentStep !== 'select-domains' && setCurrentStep('select-action'),
+                disabled: currentStep === 'select-domains',
+              },
+              {
+                label: 'Configure',
+                onClick: () => ['schedule', 'configure-action'].includes(currentStep) && setCurrentStep('configure-action'),
+                disabled: !['configure-action', 'schedule'].includes(currentStep),
+              },
+              {
+                label: 'Schedule',
+                onClick: undefined,
+                disabled: currentStep !== 'schedule',
+              },
+            ]}
+            className="mb-4"
+          />
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Step {['1', '2', '3', '4'][['select-domains', 'select-action', 'configure-action', 'schedule'].indexOf(currentStep)]} of 4</CardTitle>

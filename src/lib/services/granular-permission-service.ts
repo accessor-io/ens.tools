@@ -6,6 +6,7 @@
 
 import { PublicClient, WalletClient, Address, Hex, encodeFunctionData } from 'viem';
 import { namehash } from '../ens/ens-helpers';
+import { DelegateEventTracker } from './delegate-event-tracker';
 
 // Permission constants matching ENSNamingDelegateGranular.sol
 export const GRANULAR_PERMISSIONS = {
@@ -333,14 +334,14 @@ export class GranularPermissionService {
     for (const delegate of delegates) {
       try {
         const info = await this.getDelegateInfo(node, delegate);
-        const permissions = parsePermissions(info.allowedOperations);
-        delegateInfo.push({
-          address: delegate,
-          permissions,
-          expiresAt: info.expiresAt,
-          enabled: info.enabled,
-          locked: info.locked,
-        });
+        if (info) {
+          const permissions = this.parsePermissions(info.allowedOperations);
+          delegateInfo.push({
+            address: delegate,
+            permission: info,
+            permissions,
+          });
+        }
       } catch (error) {
         console.error(`Error getting info for delegate ${delegate}:`, error);
       }

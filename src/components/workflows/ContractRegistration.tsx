@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Breadcrumb } from '../ui/breadcrumb';
 import {
   FileCode,
   CheckCircle2,
@@ -350,6 +351,26 @@ export function ContractRegistration() {
       {/* Progress Steps */}
       <Card className="border-2">
         <CardContent className="pt-6">
+          <Breadcrumb
+            items={['contract', 'naming', 'metadata', 'review'].map((s, idx) => {
+              const isNamingStep = s === 'naming';
+              const isDisabled = isNamingStep && !canProceedToNaming;
+              const currentStepIdx = ['contract', 'naming', 'metadata', 'review'].indexOf(step);
+              
+              return {
+                label: s.charAt(0).toUpperCase() + s.slice(1),
+                onClick: idx <= currentStepIdx && !isDisabled ? () => {
+                  if (s === 'naming' && !canProceedToNaming) {
+                    toast.error('Address must be a contract to proceed with naming');
+                    return;
+                  }
+                  setStep(s as any);
+                } : undefined,
+                disabled: idx > currentStepIdx || isDisabled,
+              };
+            })}
+            className="mb-4"
+          />
           <div className="flex items-center justify-between">
             {['contract', 'naming', 'metadata', 'review'].map((s, idx) => {
               const isNamingStep = s === 'naming';
