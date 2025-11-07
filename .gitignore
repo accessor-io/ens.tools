@@ -112,4 +112,10 @@ temp/
 *.md
 !README.md
 
+# Documentation build artifacts
+documentation-compiled/
+documentation-compiled*/
+*.zip
+*.tar.gz
+
 # End of https://www.toptal.com/developers/gitignore/api/node
