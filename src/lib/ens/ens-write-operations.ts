@@ -58,6 +58,11 @@ export interface WrapNameParams {
   expiry: bigint;
 }
 
+export interface RenewDomainParams {
+  name: string;
+  duration: number; // Duration in seconds (typically 365 days = 31536000)
+}
+
 /**
  * Set address record for an ENS name
  */
@@ -168,7 +173,12 @@ export async function createSubdomain(
     }
   } catch (error) {
     console.error('Error paying subdomain creation fee:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    toast.error('Failed to pay subdomain creation fee', {
+      description: errorMessage,
+    });
     // Continue with subdomain creation even if fee payment fails
+    // User can manually pay the fee later if needed
   }
   
   // Using NameWrapper for subdomain creation with fuse support
@@ -352,6 +362,77 @@ export async function unwrapName(
 }
 
 /**
+ * Set resolver for an ENS name
+ */
+export async function setResolver(
+  walletClient: WalletClient,
+  publicClient: PublicClient,
+  params: { name: string; resolverAddress: string }
+): Promise<string> {
+  if (!walletClient.account) {
+    throw new Error('Wallet not connected');
+  }
+
+  const normalizedName = normalize(params.name);
+  const node = namehash(normalizedName);
+  const resolverAddress = params.resolverAddress as `0x${string}`;
+
+  // Validate address format
+  if (!/^0x[a-fA-F0-9]{40}$/.test(resolverAddress)) {
+    throw new Error('Invalid resolver address format');
+  }
+
+  const hash = await walletClient.writeContract({
+    address: ENS_REGISTRY_ADDRESS as `0x${string}`,
+    abi: ENS_REGISTRY_ABI,
+    functionName: 'setResolver',
+    args: [node, resolverAddress],
+  });
+
+  return hash;
+}
+
+/**
+ * Set reverse record (ENS name for an address)
+ */
+export async function setReverseRecord(
+  walletClient: WalletClient,
+  publicClient: PublicClient,
+  params: { address: string; name: string }
+): Promise<string> {
+  if (!walletClient.account) {
+    throw new Error('Wallet not connected');
+  }
+
+  const chainId = await publicClient.getChainId();
+  const addresses = await import('./ens-addresses');
+  const reverseRegistrar = addresses.ENS_ADDRESSES[chainId as keyof typeof addresses.ENS_ADDRESSES]?.reverseRegistrar;
+  
+  if (!reverseRegistrar) {
+    throw new Error('Reverse registrar not available on this chain');
+  }
+
+  const normalizedName = normalize(params.name);
+
+  const hash = await walletClient.writeContract({
+    address: reverseRegistrar as `0x${string}`,
+    abi: [
+      {
+        name: 'setName',
+        type: 'function',
+        stateMutability: 'nonpayable',
+        inputs: [{ name: 'name', type: 'string' }],
+        outputs: [],
+      },
+    ],
+    functionName: 'setName',
+    args: [normalizedName],
+  });
+
+  return hash;
+}
+
+/**
  * Calculate combined fuses from array of fuse names
  */
 export function combineFuses(fuseNames: string[]): number {
@@ -463,4 +544,50 @@ export async function executeDelegationPlan(
   }
 
   return hashes;
+}
+
+/**
+ * Renew domain registration
+ */
+export async function renewDomain(
+  walletClient: WalletClient,
+  publicClient: PublicClient,
+  params: RenewDomainParams
+): Promise<string> {
+  if (!walletClient.account) {
+    throw new Error('Wallet not connected');
+  }
+
+  const normalizedName = normalize(params.name);
+  
+  // Get the ETH Registrar Controller address
+  const chainId = await publicClient.getChainId();
+  const { ETH_REGISTRAR_CONTROLLER_ABI } = await import('./ens-contracts');
+  const { getEnsAddresses } = await import('./ens-addresses');
+  
+  const addresses = getEnsAddresses(chainId as any);
+  if (!addresses?.ethRegistrarController) {
+    throw new Error('ETH Registrar Controller not available on this chain');
+  }
+
+  // Get the price for renewal
+  const price = await publicClient.readContract({
+    address: addresses.ethRegistrarController,
+    abi: ETH_REGISTRAR_CONTROLLER_ABI,
+    functionName: 'rentPrice',
+    args: [normalizedName, BigInt(params.duration)],
+  });
+
+  const totalPrice = price[0] + price[1]; // base + premium
+
+  // Renew the domain
+  const hash = await walletClient.writeContract({
+    address: addresses.ethRegistrarController,
+    abi: ETH_REGISTRAR_CONTROLLER_ABI,
+    functionName: 'renew',
+    args: [normalizedName, BigInt(params.duration)],
+    value: totalPrice,
+  });
+
+  return hash;
 }

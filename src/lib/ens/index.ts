@@ -5,4 +5,5 @@ export * from './ens-contracts';
 export * from './ens-addresses';
 export * from './ens-status-indicators';
 export * from './transfer-domain';
+export * from './granular-contracts';
 

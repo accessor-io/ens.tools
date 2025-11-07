@@ -53,7 +53,12 @@ export async function transferDomainViaRegistry(
     }
   } catch (error) {
     console.error('Error paying transfer fee:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    toast.error('Failed to pay transfer fee', {
+      description: errorMessage,
+    });
     // Continue with transfer even if fee payment fails
+    // User can manually pay the fee later if needed
   }
 
   await simulateContract(publicClient, {
@@ -112,7 +117,12 @@ export async function transferWrappedName(
     }
   } catch (error) {
     console.error('Error paying transfer fee:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    toast.error('Failed to pay transfer fee', {
+      description: errorMessage,
+    });
     // Continue with transfer even if fee payment fails
+    // User can manually pay the fee later if needed
   }
 
   await simulateContract(publicClient, {
