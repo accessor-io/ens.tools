@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services/web3-provider';
 import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens/ens-write-operations';
+import { DomainSelector } from '../ui/domain-selector';
 import {
   ENSIPXMetadata,
   ENSIPX_CATEGORIES,
@@ -683,11 +684,12 @@ export function UnifiedContractRegistration() {
                 <Label htmlFor="parent-domain">
                   Parent Domain <span className="text-red-600">*</span>
                 </Label>
-                <Input
-                  id="parent-domain"
-                  placeholder="company.eth"
+                <DomainSelector
                   value={parentDomain}
-                  onChange={(e) => setParentDomain(e.target.value)}
+                  onValueChange={setParentDomain}
+                  placeholder="Select your domain"
+                  filterSubdomains={true}
+                  allowCustom={true}
                 />
                 <p className="text-slate-600">
                   Your root ENS name (must be owned by your connected wallet)
@@ -711,7 +713,7 @@ export function UnifiedContractRegistration() {
                     >
                       <div className="flex items-center justify-between">
                         <code className="text-blue-600">
-                          {template.label || 'custom'}.{parentDomain || 'example.eth'}
+                          {template.label || 'custom'}.{parentDomain || 'yourdomain.eth'}
                         </code>
                         {selectedTemplate === template.id && (
                           <CheckCircle2 className="h-5 w-5 text-blue-600" />
@@ -734,7 +736,7 @@ export function UnifiedContractRegistration() {
                     value={subdomainLabel}
                     onChange={(e) => setSubdomainLabel(e.target.value)}
                   />
-                  <span className="text-slate-600">.{parentDomain || 'example.eth'}</span>
+                  <span className="text-slate-600">.{parentDomain || 'yourdomain.eth'}</span>
                 </div>
               </div>
 

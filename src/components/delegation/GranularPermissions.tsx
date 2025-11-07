@@ -77,10 +77,22 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
   }, [contractAddress]);
 
   const loadDelegates = async (nodeHash: Hex) => {
-    // Note: The contract doesn't have a getAllDelegates function that returns all delegates
-    // This would need to be implemented via events or a different approach
-    // For now, we'll show a placeholder
-    setDelegates([]);
+    if (!publicClient) return;
+    
+    setLoading(true);
+    try {
+      granularPermissionService.setClients(publicClient, walletClient || undefined);
+      const delegateInfo = await granularPermissionService.getAllDelegateInfo(nodeHash);
+      setDelegates(delegateInfo);
+    } catch (error) {
+      console.error('Error loading delegates:', error);
+      toast.error('Failed to load delegates', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+      setDelegates([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const checkEmergencyPause = async (nodeHash: Hex) => {

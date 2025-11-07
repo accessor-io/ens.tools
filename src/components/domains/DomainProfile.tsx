@@ -54,6 +54,8 @@ import {
   setFuses,
   wrapName,
   unwrapName,
+  setResolver,
+  setReverseRecord,
   FUSES,
   combineFuses,
   getActiveFuses,
@@ -98,6 +100,10 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
   // Transfer state
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferAddress, setTransferAddress] = useState('');
+  
+  // Resolver and reverse record state
+  const [resolverAddress, setResolverAddress] = useState('');
+  const [reverseName, setReverseName] = useState('');
   
   // Fuses state
   const [selectedFuses, setSelectedFuses] = useState<string[]>([]);
@@ -331,6 +337,120 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
     }
   };
 
+  const handleSetResolver = async () => {
+    if (!walletClient || !publicClient || !resolverAddress) {
+      toast.error('Please enter a valid resolver address');
+      return;
+    }
+
+    if (!/^0x[a-fA-F0-9]{40}$/.test(resolverAddress)) {
+      toast.error('Invalid resolver address format');
+      return;
+    }
+
+    try {
+      const hash = await setResolver(walletClient, publicClient, {
+        name: domain.name,
+        resolverAddress,
+      });
+
+      toast.success('Resolver updated', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      setResolverAddress('');
+      onUpdate();
+    } catch (error) {
+      console.error('Error setting resolver:', error);
+      toast.error('Failed to set resolver', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
+
+  const handleSetReverseRecord = async () => {
+    if (!walletClient || !publicClient || !reverseName) {
+      toast.error('Please enter a valid ENS name');
+      return;
+    }
+
+    try {
+      const hash = await setReverseRecord(walletClient, publicClient, {
+        address: domain.owner,
+        name: reverseName,
+      });
+
+      toast.success('Reverse record set', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      setReverseName('');
+      onUpdate();
+    } catch (error) {
+      console.error('Error setting reverse record:', error);
+      toast.error('Failed to set reverse record', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
+
+  const handleWrap = async () => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    try {
+      // Get expiry from domain or set to 1 year from now
+      const expiry = domain.expiryDate 
+        ? BigInt(Math.floor(domain.expiryDate.getTime() / 1000))
+        : BigInt(Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60);
+
+      const hash = await wrapName(walletClient, {
+        name: domain.name,
+        owner: domain.owner as `0x${string}`,
+        fuses: 0, // No fuses by default
+        expiry,
+      });
+
+      toast.success('Name wrapped', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      onUpdate();
+    } catch (error) {
+      console.error('Error wrapping name:', error);
+      toast.error('Failed to wrap name', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
+
+  const handleUnwrap = async () => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    try {
+      const hash = await unwrapName(walletClient, publicClient, {
+        name: domain.name,
+        newController: domain.owner as `0x${string}`,
+      });
+
+      toast.success('Name unwrapped', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      onUpdate();
+    } catch (error) {
+      console.error('Error unwrapping name:', error);
+      toast.error('Failed to unwrap name', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
+
   const handleSetFuses = async () => {
     if (!walletClient) {
       toast.error('Wallet not connected');
@@ -361,9 +481,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
     toast.success('Copied to clipboard');
   };
 
-  const viewOnENSApp = () => {
-    window.open(`https://app.ens.domains/${domain.name}`, '_blank');
-  };
+  // Removed external link - all actions are now native
 
   const updateMetadataField = (key: string, value: string) => {
     setMetadata(prev => ({ ...prev, [key]: value }));
@@ -390,9 +508,6 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={viewOnENSApp}>
-              <ExternalLink className="h-4 w-4" />
-            </Button>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -759,9 +874,13 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                   </div>
                   <div className="space-y-2">
                     <Label>New Resolver Address</Label>
-                    <Input placeholder="0x..." />
+                    <Input 
+                      placeholder="0x..." 
+                      value={resolverAddress}
+                      onChange={(e) => setResolverAddress(e.target.value)}
+                    />
                   </div>
-                  <Button onClick={() => toast.info('Resolver change functionality coming soon')}>
+                  <Button onClick={handleSetResolver} disabled={!resolverAddress}>
                     <Save className="h-4 w-4 mr-2" />
                     Set Resolver
                   </Button>
@@ -785,9 +904,13 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label>ENS Name</Label>
-                    <Input placeholder={domain.name} />
+                    <Input 
+                      placeholder={domain.name} 
+                      value={reverseName}
+                      onChange={(e) => setReverseName(e.target.value)}
+                    />
                   </div>
-                  <Button onClick={() => toast.info('Reverse record functionality coming soon')}>
+                  <Button onClick={handleSetReverseRecord} disabled={!reverseName}>
                     <Save className="h-4 w-4 mr-2" />
                     Set Reverse Name
                   </Button>
@@ -818,7 +941,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                           This name has enhanced security features enabled
                         </AlertDescription>
                       </Alert>
-                      <Button variant="outline" onClick={() => toast.info('Unwrap functionality coming soon')}>
+                      <Button variant="outline" onClick={handleUnwrap}>
                         <Unlock className="h-4 w-4 mr-2" />
                         Unwrap Name
                       </Button>
@@ -831,7 +954,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                           Wrapping provides enhanced security features and finer-grained permissions
                         </AlertDescription>
                       </Alert>
-                      <Button onClick={() => toast.info('Wrap functionality coming soon')}>
+                      <Button onClick={handleWrap}>
                         <Lock className="h-4 w-4 mr-2" />
                         Wrap Name
                       </Button>

@@ -85,6 +85,10 @@ import { wrapName, unwrapName } from '../../lib/ens';
 import { DomainProfile } from './DomainProfile';
 import { eventTracker } from '../../lib/services/event-tracker';
 import { useDomainContext } from '../../lib/contexts/DomainContext';
+import { transferDomainViaRegistry, transferWrappedName } from '../../lib/ens/transfer-domain';
+import { renewDomain as renewDomainFunction } from '../../lib/ens/ens-write-operations';
+import { premiumPriceService } from '../../lib/services/premium-price-service';
+import { formatEther } from 'viem';
 
 interface DomainGroup {
   id: string;
@@ -158,6 +162,13 @@ export function DomainManagement() {
   const [domainHistoryCache, setDomainHistoryCache] = useState<Map<string, DomainHistoryEvent[]>>(new Map());
   const [loadingHistory, setLoadingHistory] = useState<Set<string>>(new Set());
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [transferDomain, setTransferDomain] = useState<ENSDomain | null>(null);
+  const [transferAddress, setTransferAddress] = useState('');
+  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
+  const [renewDomain, setRenewDomain] = useState<ENSDomain | null>(null);
+  const [renewPrice, setRenewPrice] = useState<{ base: string; premium: string; total: string; hasPremium: boolean } | null>(null);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -382,8 +393,127 @@ export function DomainManagement() {
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
-  const viewOnENSApp = (name: string) => {
-    window.open(`https://app.ens.domains/${name}`, '_blank');
+  const handleViewDomain = (domain: ENSDomain) => {
+    setSelectedDomain(domain);
+    selectDomain(domain);
+  };
+
+  const handleTransfer = (domain: ENSDomain) => {
+    setTransferDomain(domain);
+    setTransferAddress('');
+    setTransferDialogOpen(true);
+  };
+
+  const handleTransferSubmit = async () => {
+    if (!transferDomain || !transferAddress || !walletClient || !publicClient) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    // Validate address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(transferAddress)) {
+      toast.error('Invalid address format');
+      return;
+    }
+
+    setProcessingDomain(transferDomain.name);
+    try {
+      const toastId = toast.loading('Transferring domain...');
+      let hash: string;
+      
+      if (transferDomain.isWrapped) {
+        hash = await transferWrappedName(walletClient, publicClient, {
+          name: transferDomain.name,
+          newOwner: transferAddress as `0x${string}`,
+        });
+      } else {
+        hash = await transferDomainViaRegistry(walletClient, publicClient, {
+          name: transferDomain.name,
+          newOwner: transferAddress as `0x${string}`,
+        });
+      }
+      
+      toast.dismiss(toastId);
+      toast.success('Domain transferred successfully', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      setTransferDialogOpen(false);
+      setTransferDomain(null);
+      setTransferAddress('');
+      await loadDomains();
+    } catch (error: any) {
+      console.error('Error transferring domain:', error);
+      toast.error('Failed to transfer domain', {
+        description: error.message || 'Please try again',
+      });
+    } finally {
+      setProcessingDomain(null);
+    }
+  };
+
+  const handleRenew = async (domain: ENSDomain) => {
+    setRenewDomain(domain);
+    setRenewDialogOpen(true);
+    setRenewPrice(null);
+    setIsLoadingPrice(true);
+
+    // Fetch renewal price
+    if (publicClient) {
+      try {
+        const duration = 365 * 24 * 60 * 60; // 1 year in seconds
+        const priceInfo = await premiumPriceService.getPremiumPrice(
+          publicClient,
+          domain.name,
+          duration
+        );
+        
+        if (priceInfo) {
+          setRenewPrice(priceInfo);
+        } else {
+          toast.error('Failed to fetch renewal price');
+        }
+      } catch (error) {
+        console.error('Error fetching renewal price:', error);
+        toast.error('Failed to fetch renewal price');
+      } finally {
+        setIsLoadingPrice(false);
+      }
+    }
+  };
+
+  const handleRenewSubmit = async () => {
+    if (!renewDomain || !walletClient || !publicClient) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    setProcessingDomain(renewDomain.name);
+    try {
+      const toastId = toast.loading('Renewing domain...');
+      const duration = 365 * 24 * 60 * 60; // 1 year in seconds
+      
+      const hash = await renewDomainFunction(walletClient, publicClient, {
+        name: renewDomain.name,
+        duration,
+      });
+      
+      toast.dismiss(toastId);
+      toast.success('Domain renewed successfully', {
+        description: `Transaction: ${hash.slice(0, 10)}...`,
+      });
+      
+      setRenewDialogOpen(false);
+      setRenewDomain(null);
+      await loadDomains();
+    } catch (error: any) {
+      console.error('Error renewing domain:', error);
+      toast.error('Failed to renew domain', {
+        description: error.message || 'Please try again',
+      });
+    } finally {
+      setProcessingDomain(null);
+    }
   };
 
   const toggleEventExpansion = (eventId: string) => {
@@ -757,19 +887,25 @@ export function DomainManagement() {
                         <>
                           <TableRow 
                             key={domain.name}
-                            className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50 hover:bg-blue-100' : 'hover:bg-slate-50'}`}
-                            onClick={() => toggleRowExpansion(domain.name)}
+                            className={`cursor-pointer transition-colors hover:bg-slate-50`}
+                            onClick={() => handleViewDomain(domain)}
                           >
                             {visibleColumns.name && (
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <div className="h-6 w-6 flex items-center justify-center">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleRowExpansion(domain.name);
+                                    }}
+                                    className="h-6 w-6 flex items-center justify-center hover:bg-slate-200 rounded transition-colors"
+                                  >
                                     {isExpanded ? (
                                       <ChevronDown className="h-4 w-4" />
                                     ) : (
                                       <ChevronRight className="h-4 w-4" />
                                     )}
-                                  </div>
+                                  </button>
                                   <Globe className="h-4 w-4 text-blue-600" />
                                   <div>
                                     <p className="text-slate-900">{domain.name}</p>
@@ -963,19 +1099,10 @@ export function DomainManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => {
-                                  setSelectedDomain(domain);
-                                  selectDomain(domain);
-                                }}
+                                onClick={() => handleViewDomain(domain)}
+                                title="View domain profile"
                               >
                                 <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => viewOnENSApp(domain.name)}
-                              >
-                                <ExternalLink className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
@@ -1403,18 +1530,17 @@ export function DomainManagement() {
                                         variant="outline"
                                         size="sm"
                                         className="flex-1 sm:flex-none"
-                                        onClick={() => viewOnENSApp(domain.name)}
+                                        onClick={() => handleViewDomain(domain)}
                                       >
-                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                        <Eye className="h-3 w-3 mr-1" />
                                         View
                                       </Button>
                                       <Button
                                         variant="outline"
                                         size="sm"
                                         className="flex-1 sm:flex-none"
-                                        onClick={() => {
-                                          window.open(`https://app.ens.domains/${domain.name}/extend`, '_blank');
-                                        }}
+                                        onClick={() => handleRenew(domain)}
+                                        disabled={processingDomain === domain.name}
                                       >
                                         <Zap className="h-3 w-3 mr-1" />
                                         Renew
@@ -1424,11 +1550,22 @@ export function DomainManagement() {
                                         size="sm"
                                         className="flex-1 sm:flex-none"
                                         onClick={() => {
-                                          window.open(`https://app.ens.domains/${domain.name}/resolve`, '_blank');
+                                          setSelectedDomain(domain);
+                                          selectDomain(domain);
                                         }}
                                       >
                                         <SettingsIcon className="h-3 w-3 mr-1" />
-                                        Resolver
+                                        Settings
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() => handleTransfer(domain)}
+                                        disabled={processingDomain === domain.name}
+                                      >
+                                        <ArrowRightLeft className="h-3 w-3 mr-1" />
+                                        Transfer
                                       </Button>
                                       <Button
                                         variant="outline"
@@ -1558,7 +1695,7 @@ export function DomainManagement() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => viewOnENSApp(domain.name)}
+                            onClick={() => handleRenew(domain)}
                           >
                             Renew
                           </Button>
@@ -1579,6 +1716,160 @@ export function DomainManagement() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Transfer Dialog */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transfer Domain</DialogTitle>
+            <DialogDescription>
+              Transfer ownership of {transferDomain?.name} to a new address
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="transfer-address">New Owner Address</Label>
+              <Input
+                id="transfer-address"
+                placeholder="0x..."
+                value={transferAddress}
+                onChange={(e) => setTransferAddress(e.target.value)}
+              />
+            </div>
+            <Alert className="border-amber-200 bg-amber-50">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                This action cannot be undone. Make sure you trust the recipient address.
+              </AlertDescription>
+            </Alert>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setTransferDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleTransferSubmit}
+                disabled={!transferAddress || processingDomain === transferDomain?.name}
+              >
+                {processingDomain === transferDomain?.name ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Transferring...
+                  </>
+                ) : (
+                  'Transfer'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Renew Dialog */}
+      <Dialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Renew Domain</DialogTitle>
+            <DialogDescription>
+              Renew {renewDomain?.name} for 1 year
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {renewDomain && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 p-3 bg-slate-50 rounded-lg">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Current Expiry</p>
+                    <p className="text-sm font-medium text-slate-900">
+                      {renewDomain.expiryDate ? new Date(renewDomain.expiryDate).toLocaleDateString() : 'Unknown'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">New Expiry</p>
+                    <p className="text-sm font-medium text-emerald-600">
+                      {renewDomain.expiryDate ? new Date(new Date(renewDomain.expiryDate).getTime() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString() : '1 year from now'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="border border-slate-200 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700">Renewal Cost</span>
+                    {isLoadingPrice ? (
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="h-3 w-3 animate-spin text-slate-400" />
+                        <span className="text-sm text-slate-400">Calculating...</span>
+                      </div>
+                    ) : renewPrice ? (
+                      <span className="text-lg font-semibold text-slate-900">
+                        {premiumPriceService.formatPrice(renewPrice.total)}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-slate-400">Unable to calculate</span>
+                    )}
+                  </div>
+
+                  {renewPrice && (
+                    <div className="pt-2 border-t border-slate-200 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-600">Base Price</span>
+                        <span className="text-slate-700">{premiumPriceService.formatPrice(renewPrice.base)}</span>
+                      </div>
+                      {renewPrice.hasPremium && (
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-600">Premium</span>
+                          <span className="text-amber-600">{premiumPriceService.formatPrice(renewPrice.premium)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200">
+                        <span className="font-medium text-slate-700">Total</span>
+                        <span className="font-semibold text-slate-900">{premiumPriceService.formatPrice(renewPrice.total)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {renewPrice?.hasPremium && (
+                  <Alert className="border-amber-200 bg-amber-50">
+                    <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800 text-xs">
+                      This domain has a premium fee. Premium fees are one-time charges for shorter or more desirable domain names.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
+
+            <Alert className="border-blue-200 bg-blue-50">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 text-xs">
+                Renewing will extend your domain registration by 1 year. Make sure you have enough ETH to cover the renewal cost plus gas fees.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setRenewDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRenewSubmit}
+                disabled={processingDomain === renewDomain?.name || isLoadingPrice || !renewPrice}
+              >
+                {processingDomain === renewDomain?.name ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Renewing...
+                  </>
+                ) : (
+                  <>
+                    Renew for {renewPrice ? premiumPriceService.formatPrice(renewPrice.total) : '...'}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Domain Profile */}
       {selectedDomain && (

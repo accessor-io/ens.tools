@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { toast } from 'sonner';
+import { DomainProfile } from './DomainProfile';
 
 type SortField = 'name' | 'expiryDate' | 'registrationDate' | 'length';
 type SortDirection = 'asc' | 'desc';
@@ -68,6 +69,9 @@ export function NameBrowser() {
   
   // Premium prices cache
   const [premiumPrices, setPremiumPrices] = useState<Map<string, PremiumPriceInfo>>(new Map());
+  
+  // Selected domain for profile view
+  const [selectedDomain, setSelectedDomain] = useState<ENSDomain | null>(null);
 
   const loadDomains = async (reset: boolean = false) => {
     setLoading(true);
@@ -964,16 +968,24 @@ export function NameBrowser() {
                               <>
                               <TableRow 
                                 key={domain.id}
-                                className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50 hover:bg-blue-100' : 'hover:bg-slate-50'}`}
-                                onClick={() => toggleRowExpansion(domain.name)}
+                                className="cursor-pointer transition-colors hover:bg-slate-50"
+                                onClick={() => setSelectedDomain(domain)}
                               >
                                 <TableCell className="font-medium">
                                   <div className="flex items-center gap-2">
-                                    {isExpanded ? (
-                                      <ChevronDown className="h-5 w-5 text-slate-400" />
-                                    ) : (
-                                      <ChevronRight className="h-5 w-5 text-slate-400" />
-                                    )}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleRowExpansion(domain.name);
+                                      }}
+                                      className="h-5 w-5 flex items-center justify-center hover:bg-slate-200 rounded transition-colors"
+                                    >
+                                      {isExpanded ? (
+                                        <ChevronDown className="h-5 w-5 text-slate-400" />
+                                      ) : (
+                                        <ChevronRight className="h-5 w-5 text-slate-400" />
+                                      )}
+                                    </button>
                                     {domain.name}
                                   </div>
                                 </TableCell>
@@ -1368,6 +1380,18 @@ export function NameBrowser() {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Domain Profile Dialog */}
+      {selectedDomain && (
+        <DomainProfile
+          domain={selectedDomain}
+          onClose={() => setSelectedDomain(null)}
+          onUpdate={() => {
+            // Refresh domains if needed
+            loadDomains(true);
+          }}
+        />
+      )}
     </div>
   );
 }
