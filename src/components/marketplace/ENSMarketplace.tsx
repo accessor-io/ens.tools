@@ -129,8 +129,11 @@ export function ENSMarketplace() {
         setStats(data);
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load marketplace data';
       console.error('Error loading marketplace data:', error);
-      toast.error('Failed to load marketplace data');
+      toast.error('Failed to load marketplace data', {
+        description: errorMessage.length < 100 ? errorMessage : undefined,
+      });
     } finally {
       setLoading(false);
     }
@@ -147,8 +150,11 @@ export function ENSMarketplace() {
       const data = await ensMarketplaceService.searchDomains(searchQuery, chainId || 1);
       setListings(data);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to search domains';
       console.error('Error searching domains:', error);
-      toast.error('Failed to search domains');
+      toast.error('Failed to search domains', {
+        description: errorMessage.length < 100 ? errorMessage : undefined,
+      });
     } finally {
       setLoading(false);
     }
@@ -270,7 +276,10 @@ export function ENSMarketplace() {
       loadMarketplaceData();
     } catch (error: any) {
       console.error('Error creating listing:', error);
-      toast.error(error.message || 'Failed to create listing');
+      const errorMessage = error?.message || 'Failed to create listing';
+      toast.error('Failed to create listing', {
+        description: errorMessage.length < 100 ? errorMessage : 'Please check your wallet and try again',
+      });
     } finally {
       setIsCreatingOrder(false);
     }

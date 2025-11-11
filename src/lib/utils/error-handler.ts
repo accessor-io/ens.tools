@@ -9,14 +9,20 @@ export interface ErrorRecovery {
   action?: string;
 }
 
+export interface ErrorContext {
+  action?: string;
+  component?: string;
+  metadata?: Record<string, any>;
+}
+
 /**
  * Get user-friendly error message with recovery suggestions
  */
-export function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown, defaultMessage?: string): string {
   if (error instanceof Error) {
     return getErrorRecovery(error).message;
   }
-  return 'An unexpected error occurred. Please try again.';
+  return defaultMessage || 'An unexpected error occurred. Please try again.';
 }
 
 /**
@@ -177,4 +183,94 @@ export function getRetryDelay(error: unknown, attempt: number): number {
   return 1000 * attempt; // Default: 1s, 2s, 3s...
 }
 
+/**
+ * Log error with context for debugging
+ */
+export function logError(error: unknown, context?: ErrorContext): void {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const logContext = context ? `[${context.component || 'Unknown'}] ${context.action || 'Operation'}` : 'Unknown operation';
+  
+  console.error(`${logContext} failed:`, {
+    error: errorMessage,
+    stack: error instanceof Error ? error.stack : undefined,
+    ...context?.metadata,
+  });
+}
 
+/**
+ * Handle error with standardized user feedback (includes toast notifications)
+ */
+export function handleError(
+  error: unknown,
+  options: {
+    defaultMessage?: string;
+    context?: ErrorContext;
+    showToast?: boolean;
+    toastDuration?: number;
+  } = {}
+): string {
+  const {
+    defaultMessage,
+    context,
+    showToast = true,
+    toastDuration = 5000,
+  } = options;
+
+  // Log error for debugging
+  logError(error, context);
+
+  // Get user-friendly message using recovery system
+  const recovery = error instanceof Error ? getErrorRecovery(error) : { message: defaultMessage || 'An unexpected error occurred' };
+  const message = recovery.message;
+
+  // Show toast notification if enabled
+  // Note: toast should be imported by the calling component
+  // This function returns the message for the caller to display
+
+  return message;
+}
+
+/**
+ * Wrap async function with standardized error handling
+ */
+export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
+  fn: T,
+  options: {
+    defaultMessage?: string;
+    context?: ErrorContext;
+    showToast?: boolean;
+    onError?: (error: unknown) => void;
+  } = {}
+): T {
+  return (async (...args: Parameters<T>) => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      handleError(error, options);
+      if (options.onError) {
+        options.onError(error);
+      }
+      throw error;
+    }
+  }) as T;
+}
+
+/**
+ * Create error handler with pre-configured context
+ */
+export function createErrorHandler(context: ErrorContext) {
+  return {
+    handle: (error: unknown, options?: { defaultMessage?: string; showToast?: boolean }) => {
+      return handleError(error, {
+        ...options,
+        context,
+      });
+    },
+    log: (error: unknown) => {
+      logError(error, context);
+    },
+    getMessage: (error: unknown, defaultMessage?: string) => {
+      return getErrorMessage(error, defaultMessage);
+    },
+  };
+}

@@ -60,6 +60,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   handleGoHome = () => {
+    this.handleReset();
     window.location.href = '/';
   };
 
@@ -147,4 +148,3 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-

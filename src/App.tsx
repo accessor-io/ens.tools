@@ -24,9 +24,10 @@ import { JazzCupBackground } from './components/JazzCupBackground';
 import { TransactionStatusPanel } from './components/TransactionStatusPanel';
 import { DevTools } from './components/devtools';
 import { ENSConsole } from './components/devtools/ENSConsole';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Network, Terminal, Layout } from 'lucide-react';
 
-export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel';
+export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel' | 'guided-workflow';
 
 type ViewMode = 'normal' | 'console';
 
@@ -82,75 +83,81 @@ export default function App() {
         return <MasterDatabaseView />;
       case 'admin-panel':
         return <AdminPanel />;
+      case 'guided-workflow':
+        return <DomainManagement />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <RainbowKitWrapper>
-      <Web3ProviderCompat>
-        <DomainProvider>
-        <div className="flex min-h-screen w-full relative">
-        <JazzCupBackground />
-        <div className="flex-1 relative z-10 flex flex-col">
-          <div className="fixed top-0 left-0 right-0 z-[100] bg-white/98 backdrop-blur-xl border-b border-slate-200/60 px-4 py-3 flex items-center justify-between gap-4 shadow-sm shadow-slate-900/5" style={{ marginLeft: '72px' }}>
-            <div className="flex items-center gap-3.5">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-600 via-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/25 ring-2 ring-purple-500/10 transition-transform hover:scale-105">
-                <Network className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-slate-900 font-semibold text-base leading-tight tracking-tight">ens.tools</h1>
-                <p className="text-slate-500 text-xs leading-tight font-medium">ENS management and marketplace</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode(viewMode === 'normal' ? 'console' : 'normal')}
-                className="h-8 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 flex items-center gap-2 text-sm text-slate-700 transition-colors"
-                title={viewMode === 'normal' ? 'Switch to Console View' : 'Switch to Normal View'}
-              >
-                {viewMode === 'normal' ? (
-                  <>
-                    <Terminal className="h-4 w-4" />
-                    <span>Console View</span>
-                  </>
-                ) : (
-                  <>
-                    <Layout className="h-4 w-4" />
-                    <span>Normal View</span>
-                  </>
+    <ErrorBoundary>
+      <RainbowKitWrapper>
+        <Web3ProviderCompat>
+          <DomainProvider>
+            <div className="flex min-h-screen w-full relative">
+              <JazzCupBackground />
+              <div className="flex-1 relative z-10 flex flex-col">
+                <div className="fixed top-0 left-0 right-0 z-[100] bg-white/98 backdrop-blur-xl border-b border-slate-200/60 px-4 py-3 flex items-center justify-between gap-4 shadow-sm shadow-slate-900/5" style={{ marginLeft: '72px' }}>
+                  <div className="flex items-center gap-3.5">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-600 via-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/25 ring-2 ring-purple-500/10 transition-transform hover:scale-105">
+                      <Network className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-slate-900 font-semibold text-base leading-tight tracking-tight">ens.tools</h1>
+                      <p className="text-slate-500 text-xs leading-tight font-medium">ENS management and marketplace</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setViewMode(viewMode === 'normal' ? 'console' : 'normal')}
+                      className="h-8 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 flex items-center gap-2 text-sm text-slate-700 transition-colors"
+                      title={viewMode === 'normal' ? 'Switch to Console View' : 'Switch to Normal View'}
+                    >
+                      {viewMode === 'normal' ? (
+                        <>
+                          <Terminal className="h-4 w-4" />
+                          <span>Console View</span>
+                        </>
+                      ) : (
+                        <>
+                          <Layout className="h-4 w-4" />
+                          <span>Normal View</span>
+                        </>
+                      )}
+                    </button>
+                    <WalletConnectRainbow />
+                  </div>
+                </div>
+                {viewMode === 'normal' && (
+                  <main 
+                    className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth" 
+                    style={{ 
+                      marginTop: '64px', 
+                      marginLeft: '72px', 
+                      marginRight: '600px', 
+                      height: 'calc(100vh - 64px)', 
+                      paddingBottom: '120px',
+                      WebkitOverflowScrolling: 'touch',
+                      scrollBehavior: 'smooth'
+                    }}
+                  >
+                    <div className="p-6 max-w-7xl mx-auto w-full" style={{ minHeight: '100%' }}>
+                      <ErrorBoundary>
+                        {renderView()}
+                      </ErrorBoundary>
+                    </div>
+                  </main>
                 )}
-              </button>
-              <WalletConnectRainbow />
-            </div>
-          </div>
-          {viewMode === 'normal' && (
-            <main 
-              className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth" 
-              style={{ 
-                marginTop: '64px', 
-                marginLeft: '72px', 
-                marginRight: '600px', 
-                height: 'calc(100vh - 64px)', 
-                paddingBottom: '120px',
-                WebkitOverflowScrolling: 'touch',
-                scrollBehavior: 'smooth'
-              }}
-            >
-              <div className="p-6 max-w-7xl mx-auto w-full" style={{ minHeight: '100%' }}>
-                {renderView()}
               </div>
-            </main>
-          )}
-        </div>
-        {viewMode === 'normal' && <BottomToolbar currentView={currentView} onViewChange={setCurrentView} />}
-        {viewMode === 'normal' && <TransactionStatusPanel />}
-        <ENSConsole isFullScreen={viewMode === 'console'} />
-        <Toaster />
-      </div>
-      </DomainProvider>
+              {viewMode === 'normal' && <BottomToolbar currentView={currentView} onViewChange={setCurrentView} />}
+              {viewMode === 'normal' && <TransactionStatusPanel />}
+              <ENSConsole isFullScreen={viewMode === 'console'} />
+              <Toaster />
+            </div>
+          </DomainProvider>
         </Web3ProviderCompat>
       </RainbowKitWrapper>
+    </ErrorBoundary>
   );
 }
