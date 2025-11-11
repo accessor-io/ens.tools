@@ -45,7 +45,7 @@ import {
 } from 'lucide-react';
 import { masterDatabase, MasterDatabaseEntry, QueryFilters, QueryOptions } from '../../lib/database/master-database';
 import { AuditActionType } from '../../lib/security/audit-log-service';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { toast } from 'sonner';
 import { formatEther } from 'viem';
 
@@ -687,5 +687,6 @@ export function MasterDatabaseView() {
     </div>
   );
 }
+
 
 

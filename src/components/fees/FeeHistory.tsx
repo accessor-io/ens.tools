@@ -11,7 +11,7 @@ import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { feeCollectionService } from '../../lib/services/fee-collection-service';
 import { formatEther } from 'viem';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { Address } from 'viem';
 
 interface FeeTransaction {
@@ -284,5 +284,6 @@ export function FeeHistory() {
     </div>
   );
 }
+
 
 

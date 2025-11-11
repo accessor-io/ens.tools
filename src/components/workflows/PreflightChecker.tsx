@@ -19,7 +19,7 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { permissionService, PermissionCheckResult } from '../../lib/delegation/permission-service';
 import { delegationPlanner, DelegationPlan } from '../../lib/delegation/delegation-planner';
 import { executeDelegationPlan } from '../../lib/ens/ens-write-operations';

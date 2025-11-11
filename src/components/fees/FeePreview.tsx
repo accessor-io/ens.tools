@@ -10,7 +10,7 @@ import { Loader2, Calculator, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { feeCollectionService, FeeEstimate } from '../../lib/services/fee-collection-service';
 import { formatEther } from 'viem';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 
 interface FeePreviewProps {
   operation: 'registration' | 'nameRegistration' | 'subdomainCreation' | 'transfer' | 'marketplace';
@@ -188,5 +188,6 @@ export function FeePreview({ operation, salePrice, gasEstimate, showGas = false 
     </Card>
   );
 }
+
 
 

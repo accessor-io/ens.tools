@@ -3,7 +3,7 @@
  * Specialized marketplace for ENS domain trading
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -28,6 +28,13 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import {
   ShoppingCart,
   Search,
   TrendingUp,
@@ -41,6 +48,7 @@ import {
   Home,
   Globe,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   ExternalLink,
   Key,
@@ -55,10 +63,21 @@ import { ensMarketplaceService, type ENSListing, type ENSOffer, type ENSCollecti
 import { premiumPriceService } from '../../lib/services/premium-price-service';
 import { TransactionConfirmationDialog } from '../TransactionConfirmationDialog';
 import { getErrorMessage } from '../../lib/utils/error-handler';
-import { Sparkles, Info } from 'lucide-react';
+import { Sparkles, Info, ArrowUpDown, Filter, Grid3x3, List } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Skeleton } from '../ui/skeleton';
 import { EmptyState } from '../ui/empty-state';
+import {
+  formatPrice,
+  sortListings,
+  filterListings,
+  debounce,
+  truncateAddress,
+  getTimeUntilExpiry,
+  paginate,
+  type SortOption,
+  type FilterOption,
+} from '../../lib/utils/marketplace-utils';
 
 export function ENSMarketplace() {
   const { address, isConnected, publicClient, walletClient, chainId } = useWeb3();
@@ -86,24 +105,17 @@ export function ENSMarketplace() {
   const [showPremiumConfirmDialog, setShowPremiumConfirmDialog] = useState(false);
   const [pendingListingParams, setPendingListingParams] = useState<{ name: string; price: string } | null>(null);
   const [buyConfirmation, setBuyConfirmation] = useState<{ open: boolean; listing: ENSListing | null }>({ open: false, listing: null });
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [filters, setFilters] = useState<FilterOption>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [showFilters, setShowFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  useEffect(() => {
-    loadMarketplaceData();
-  }, [activeTab]);
-
-  const toggleListingExpansion = (listingId: string) => {
-    setExpandedListings(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(listingId)) {
-        newSet.delete(listingId);
-      } else {
-        newSet.add(listingId);
-      }
-      return newSet;
-    });
-  };
-
-  const loadMarketplaceData = async () => {
+  const loadMarketplaceData = useCallback(async () => {
     setLoading(true);
     try {
       if (activeTab === 'listings') {
@@ -122,9 +134,9 @@ export function ENSMarketplace() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, chainId]);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!searchQuery) {
       toast.error('Please enter a domain name to search');
       return;
@@ -140,6 +152,43 @@ export function ENSMarketplace() {
     } finally {
       setLoading(false);
     }
+  }, [searchQuery, chainId]);
+
+  useEffect(() => {
+    loadMarketplaceData();
+    setCurrentPage(1); // Reset to first page when switching tabs
+  }, [loadMarketplaceData]);
+
+  // Debounced search
+  const debouncedSearch = useMemo(
+    () => debounce((query: string) => {
+      if (query) {
+        handleSearch();
+      } else {
+        loadMarketplaceData();
+      }
+    }, 500),
+    [handleSearch, loadMarketplaceData]
+  );
+
+  useEffect(() => {
+    if (searchQuery) {
+      debouncedSearch(searchQuery);
+    } else {
+      loadMarketplaceData();
+    }
+  }, [searchQuery, debouncedSearch, loadMarketplaceData]);
+
+  const toggleListingExpansion = (listingId: string) => {
+    setExpandedListings(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(listingId)) {
+        newSet.delete(listingId);
+      } else {
+        newSet.add(listingId);
+      }
+      return newSet;
+    });
   };
 
   const checkPremiumName = async (name: string) => {
@@ -337,13 +386,47 @@ export function ENSMarketplace() {
     }
   };
 
-  const filteredListings = listings.filter(listing =>
-    listing.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Apply filters and sorting
+  const processedListings = useMemo(() => {
+    let filtered = listings.filter(listing =>
+      listing.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    filtered = filterListings(filtered, filters);
+    filtered = sortListings(filtered, sortBy);
+    
+    return filtered;
+  }, [listings, searchQuery, filters, sortBy]);
 
-  const filteredOffers = offers.filter(offer =>
-    offer.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const processedOffers = useMemo(() => {
+    let filtered = offers.filter(offer =>
+      offer.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    filtered = filterListings(filtered, filters);
+    filtered = sortListings(filtered, sortBy);
+    
+    return filtered;
+  }, [offers, searchQuery, filters, sortBy]);
+
+  // Pagination
+  const paginatedListings = useMemo(() => {
+    return paginate(processedListings, currentPage, pageSize);
+  }, [processedListings, currentPage, pageSize]);
+
+  const paginatedOffers = useMemo(() => {
+    return paginate(processedOffers, currentPage, pageSize);
+  }, [processedOffers, currentPage, pageSize]);
+
+  // Update filters
+  useEffect(() => {
+    const newFilters: FilterOption = {};
+    if (minPrice) newFilters.minPrice = minPrice;
+    if (maxPrice) newFilters.maxPrice = maxPrice;
+    if (statusFilter.length > 0) newFilters.status = statusFilter;
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [minPrice, maxPrice, statusFilter]);
 
   const formatExpiryDate = (date: Date | null): string => {
     if (!date) return 'N/A';
@@ -539,10 +622,111 @@ export function ENSMarketplace() {
         <TabsContent value="listings" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>ENS Domain Listings</CardTitle>
-              <CardDescription>
-                {filteredListings.length} domains available for purchase
-              </CardDescription>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>ENS Domain Listings</CardTitle>
+                  <CardDescription>
+                    {paginatedListings.totalItems} domains available for purchase
+                  </CardDescription>
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <div className="flex items-center border rounded-md">
+                    <Button
+                      variant={viewMode === 'table' ? 'default' : 'ghost'}
+                      size="sm"
+                      className="rounded-r-none border-r"
+                      onClick={() => setViewMode('table')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                      size="sm"
+                      className="rounded-l-none"
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid3x3 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                      <ArrowUpDown className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                      <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                      <SelectItem value="date-desc">Newest First</SelectItem>
+                      <SelectItem value="date-asc">Oldest First</SelectItem>
+                      <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                      <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="w-full sm:w-auto"
+                  >
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filters
+                  </Button>
+                </div>
+              </div>
+              {showFilters && (
+                <div className="mt-4 p-4 bg-slate-50 rounded-lg space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label>Min Price (ETH)</Label>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label>Max Price (ETH)</Label>
+                      <Input
+                        type="number"
+                        placeholder="100"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label>Status</Label>
+                      <Select
+                        value={statusFilter.join(',')}
+                        onValueChange={(v) => setStatusFilter(v ? v.split(',') : [])}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="All statuses" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="sold">Sold</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setMinPrice('');
+                        setMaxPrice('');
+                        setStatusFilter([]);
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -551,7 +735,7 @@ export function ENSMarketplace() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : filteredListings.length === 0 ? (
+              ) : paginatedListings.items.length === 0 ? (
                 <EmptyState
                   icon={<ShoppingCart className="h-8 w-8" />}
                   title="No Listings Found"
@@ -561,6 +745,70 @@ export function ENSMarketplace() {
                     onClick: handleSearch,
                   }}
                 />
+              ) : viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {paginatedListings.items.map((listing) => (
+                    <Card key={listing.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => toggleListingExpansion(listing.id)}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                ENS
+                              </Badge>
+                              <CardTitle className="text-lg">{listing.name}</CardTitle>
+                            </div>
+                            <CardDescription className="text-xs font-mono">
+                              {truncateAddress(listing.seller)}
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600">Price</span>
+                            <span className="text-lg font-bold text-green-600">
+                              {listing.price !== '0' ? formatPrice(listing.price, listing.currency) : 'Not Listed'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600">Expires</span>
+                            <span className="text-sm text-slate-900">
+                              {getTimeUntilExpiry(listing.expiryDate)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-600">Status</span>
+                            <Badge
+                              variant={
+                                listing.status === 'active'
+                                  ? 'default'
+                                  : listing.status === 'sold'
+                                  ? 'secondary'
+                                  : 'destructive'
+                              }
+                            >
+                              {listing.status}
+                            </Badge>
+                          </div>
+                          {listing.price !== '0' && isConnected && (
+                            <Button
+                              className="w-full mt-4"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleBuyDomain(listing);
+                              }}
+                            >
+                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              Buy Now
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -574,7 +822,7 @@ export function ENSMarketplace() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredListings.map((listing) => {
+                    {paginatedListings.items.map((listing) => {
                       const isExpanded = expandedListings.has(listing.id);
                       return (
                         <>
@@ -600,13 +848,13 @@ export function ENSMarketplace() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm font-mono">
-                            {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
+                            {truncateAddress(listing.seller)}
                           </div>
                         </TableCell>
                         <TableCell>
                           {listing.price !== '0' ? (
                             <div className="font-semibold text-green-600">
-                              {listing.price} {listing.currency}
+                              {formatPrice(listing.price, listing.currency)}
                             </div>
                           ) : (
                             <Badge variant="outline" className="text-slate-500">
@@ -617,7 +865,7 @@ export function ENSMarketplace() {
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm text-slate-600">
                             <Clock className="h-3 w-3" />
-                            {formatExpiryDate(listing.expiryDate)}
+                            {getTimeUntilExpiry(listing.expiryDate)}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -790,6 +1038,36 @@ export function ENSMarketplace() {
                   </TableBody>
                 </Table>
               )}
+              {paginatedListings.totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between mt-4 pt-4 border-t gap-4">
+                  <div className="text-sm text-slate-600">
+                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, paginatedListings.totalItems)} of {paginatedListings.totalItems} listings
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <div className="text-sm text-slate-600 px-2">
+                      Page {currentPage} of {paginatedListings.totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(paginatedListings.totalPages, p + 1))}
+                      disabled={currentPage === paginatedListings.totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -797,10 +1075,28 @@ export function ENSMarketplace() {
         <TabsContent value="offers" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Active Offers</CardTitle>
-              <CardDescription>
-                {filteredOffers.length} active offers on ENS domains
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Active Offers</CardTitle>
+                  <CardDescription>
+                    {paginatedOffers.totalItems} active offers on ENS domains
+                  </CardDescription>
+                </div>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                  <SelectTrigger className="w-[180px]">
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                    <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                    <SelectItem value="date-desc">Newest First</SelectItem>
+                    <SelectItem value="date-asc">Oldest First</SelectItem>
+                    <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                    <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -809,7 +1105,7 @@ export function ENSMarketplace() {
                     <Skeleton key={i} className="h-16 w-full" />
                   ))}
                 </div>
-              ) : filteredOffers.length === 0 ? (
+              ) : paginatedOffers.items.length === 0 ? (
                 <EmptyState
                   icon={<Tag className="h-8 w-8" />}
                   title="No Active Offers"
@@ -831,7 +1127,7 @@ export function ENSMarketplace() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredOffers.map((offer) => (
+                    {paginatedOffers.items.map((offer) => (
                       <TableRow key={offer.id} className="hover:bg-slate-50 transition-colors duration-200">
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -843,12 +1139,12 @@ export function ENSMarketplace() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm font-mono">
-                            {offer.buyer.slice(0, 6)}...{offer.buyer.slice(-4)}
+                            {truncateAddress(offer.buyer)}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="font-semibold text-blue-600">
-                            {offer.price} {offer.currency}
+                            {formatPrice(offer.price, offer.currency)}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -875,6 +1171,36 @@ export function ENSMarketplace() {
                   </TableBody>
                 </Table>
               )}
+              {paginatedOffers.totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="text-sm text-slate-600">
+                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, paginatedOffers.totalItems)} of {paginatedOffers.totalItems} offers
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <div className="text-sm text-slate-600">
+                      Page {currentPage} of {paginatedOffers.totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(paginatedOffers.totalPages, p + 1))}
+                      disabled={currentPage === paginatedOffers.totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -882,53 +1208,53 @@ export function ENSMarketplace() {
         <TabsContent value="stats" className="space-y-4">
           {stats && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Domains</CardTitle>
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-blue-900">Total Domains</CardTitle>
+                  <Globe className="h-5 w-5 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalDomains.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="text-3xl font-bold text-blue-900">{stats.totalDomains.toLocaleString()}</div>
+                  <p className="text-xs text-blue-700 mt-1">
                     Registered ENS domains
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Listed Domains</CardTitle>
-                  <Tag className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-purple-900">Listed Domains</CardTitle>
+                  <Tag className="h-5 w-5 text-purple-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.listedDomains.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="text-3xl font-bold text-purple-900">{stats.listedDomains.toLocaleString()}</div>
+                  <p className="text-xs text-purple-700 mt-1">
                     Currently for sale
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Floor Price</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-green-900">Floor Price</CardTitle>
+                  <DollarSign className="h-5 w-5 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.floorPrice} ETH</div>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="text-3xl font-bold text-green-900">{formatPrice(stats.floorPrice, 'ETH')}</div>
+                  <p className="text-xs text-green-700 mt-1">
                     Lowest listed price
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Volume</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-amber-900">Total Volume</CardTitle>
+                  <TrendingUp className="h-5 w-5 text-amber-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalVolume} ETH</div>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="text-3xl font-bold text-amber-900">{formatPrice(stats.totalVolume, 'ETH')}</div>
+                  <p className="text-xs text-amber-700 mt-1">
                     All-time trading volume
                   </p>
                 </CardContent>
@@ -945,18 +1271,21 @@ export function ENSMarketplace() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Average Price</span>
-                    <span className="font-semibold">{stats.averagePrice} ETH</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <div className="text-sm text-slate-600">Average Price</div>
+                    <div className="text-2xl font-bold text-slate-900">{formatPrice(stats.averagePrice, 'ETH')}</div>
+                    <div className="text-xs text-slate-500">Per domain sale</div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Total Sales</span>
-                    <span className="font-semibold">{stats.totalSales.toLocaleString()}</span>
+                  <div className="space-y-2">
+                    <div className="text-sm text-slate-600">Total Sales</div>
+                    <div className="text-2xl font-bold text-slate-900">{stats.totalSales.toLocaleString()}</div>
+                    <div className="text-xs text-slate-500">Completed transactions</div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Active Offers</span>
-                    <span className="font-semibold">{stats.activeOffers}</span>
+                  <div className="space-y-2">
+                    <div className="text-sm text-slate-600">Active Offers</div>
+                    <div className="text-2xl font-bold text-slate-900">{stats.activeOffers}</div>
+                    <div className="text-xs text-slate-500">Pending offers</div>
                   </div>
                 </div>
               </CardContent>

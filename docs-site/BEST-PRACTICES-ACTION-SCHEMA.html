@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best Practices: ENS Action Schema System - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="active">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#action-file-organization">Action File Organization</a></li>
+  <li><a href="#1-use-clear-file-naming">1. Use Clear File Naming</a></li>
+  <li><a href="#2-organize-actions-logically">2. Organize Actions Logically</a></li>
+  <li><a href="#3-use-comments-liberally">3. Use Comments Liberally</a></li>
+<li><a href="#syntax-best-practices">Syntax Best Practices</a></li>
+  <li><a href="#1-always-use-brackets-for-values">1. Always Use Brackets for Values</a></li>
+  <li><a href="#2-use-consistent-spacing">2. Use Consistent Spacing</a></li>
+  <li><a href="#3-validate-addresses-before-use">3. Validate Addresses Before Use</a></li>
+  <li><a href="#4-use-full-domain-names">4. Use Full Domain Names</a></li>
+<li><a href="#security-considerations">Security Considerations</a></li>
+  <li><a href="#1-review-actions-before-execution">1. Review Actions Before Execution</a></li>
+  <li><a href="#2-test-with-small-batches-first">2. Test with Small Batches First</a></li>
+  <li><a href="#3-use-templates-for-repetitive-operations">3. Use Templates for Repetitive Operations</a></li>
+  <li><a href="#4-verify-permissions">4. Verify Permissions</a></li>
+  <li><a href="#5-double-check-critical-operations">5. Double-Check Critical Operations</a></li>
+<li><a href="#gas-optimization">Gas Optimization</a></li>
+  <li><a href="#1-batch-related-operations">1. Batch Related Operations</a></li>
+  <li><a href="#2-order-actions-by-gas-cost">2. Order Actions by Gas Cost</a></li>
+  <li><a href="#3-avoid-redundant-operations">3. Avoid Redundant Operations</a></li>
+<li><a href="#error-prevention">Error Prevention</a></li>
+  <li><a href="#1-validate-domain-names">1. Validate Domain Names</a></li>
+  <li><a href="#2-check-address-format">2. Check Address Format</a></li>
+  <li><a href="#3-verify-parameter-types">3. Verify Parameter Types</a></li>
+  <li><a href="#4-test-parsing-first">4. Test Parsing First</a></li>
+<li><a href="#template-usage">Template Usage</a></li>
+  <li><a href="#1-start-with-pre-built-templates">1. Start with Pre-built Templates</a></li>
+  <li><a href="#2-customize-templates">2. Customize Templates</a></li>
+  <li><a href="#3-create-your-own-templates">3. Create Your Own Templates</a></li>
+<li><a href="#version-control">Version Control</a></li>
+  <li><a href="#1-track-action-files">1. Track Action Files</a></li>
+  <li><a href="#2-document-changes">2. Document Changes</a></li>
+  <li><a href="#3-tag-releases">3. Tag Releases</a></li>
+  <li><a href="#4-backup-before-major-changes">4. Backup Before Major Changes</a></li>
+<li><a href="#common-patterns">Common Patterns</a></li>
+  <li><a href="#pattern-1-domain-initialization">Pattern 1: Domain Initialization</a></li>
+  <li><a href="#pattern-2-batch-metadata-update">Pattern 2: Batch Metadata Update</a></li>
+  <li><a href="#pattern-3-subdomain-creation">Pattern 3: Subdomain Creation</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+  <li><a href="#issue-actions-not-parsing">Issue: Actions Not Parsing</a></li>
+  <li><a href="#issue-transaction-fails">Issue: Transaction Fails</a></li>
+  <li><a href="#issue-call-data-not-highlighting">Issue: Call Data Not Highlighting</a></li>
+<li><a href="#additional-resources">Additional Resources</a></li>
+<li><a href="#summary">Summary</a></li>
+</ul>
+</div>
+
+        <h1>Best Practices: ENS Action Schema System</h1>
+<h2 id="overview">Overview</h2>
+<p>This document outlines best practices for using the ENS Action Schema System to manage ENS domains efficiently and securely.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol><ul><li><a href="#action-file-organization">Action File Organization</a></li>
+<li><a href="#syntax-best-practices">Syntax Best Practices</a></li>
+<li><a href="#security-considerations">Security Considerations</a></li>
+<li><a href="#gas-optimization">Gas Optimization</a></li>
+<li><a href="#error-prevention">Error Prevention</a></li>
+<li><a href="#template-usage">Template Usage</a></li>
+<li><a href="#version-control">Version Control</a></li>
+<h2 id="action-file-organization">Action File Organization</h2>
+<h3 id="1-use-clear-file-naming">1. Use Clear File Naming</h3>
+<p>Name your action files descriptively:</p>
+<pre><code class="language-text">✅ Good:
+<li>complete-domain-setup.txt</li>
+<li>batch-metadata-update-2024-01.txt</li>
+<li>subdomain-structure-v2.txt</li>
+
+❌ Bad:
+<li>actions.txt</li>
+<li>temp.txt</li>
+<li>file1.txt</code></pre></li>
+
+<h3 id="2-organize-actions-logically">2. Organize Actions Logically</h3>
+
+Group related actions together with comments:
+
+<pre><code class="language-bash"># ============================================
+<h1>Domain Setup</h1>
+<h1>============================================</h1>
+
+<h1>Wrap domain</h1>
++wrap: [example.eth]@domain = [0x742d...]@owner
+
+<h1>Set resolver</h1>
+setResolver: [example.eth]@domain = [0x231b...]@resolver
+
+<h1>============================================</h1>
+<h1>Address Configuration</h1>
+<h1>============================================</h1>
+
+setAddr: [example.eth]@domain = [0x742d...]@address
+
+<h1>============================================</h1>
+<h1>Metadata</h1>
+<h1>============================================</h1>
+
+setText: [example.eth]@domain@[description]@key = [My domain]@value
+setText: [example.eth]@domain@[url]@key = [https://example.com]@value</code></pre>
+
+<h3 id="3-use-comments-liberally">3. Use Comments Liberally</h3>
+
+Add comments to explain complex operations:
+
+<pre><code class="language-bash"># Set up delegation with subdomain management and text record permissions
+<h1>Permission bitmask: 1 (MANAGE_SUBDOMAINS) + 4 (SET_TEXT_RECORD) = 5</h1>
++delegateTo: [example.eth]@domain = [0x742d...]@delegate@[5]@permissions</code></pre>
+
+<h2 id="syntax-best-practices">Syntax Best Practices</h2>
+
+<h3 id="1-always-use-brackets-for-values">1. Always Use Brackets for Values</h3>
+
+<pre><code class="language-bash">✅ Good: setText: [example.eth]@domain@[description]@key = [My domain]@value
+❌ Bad: setText: example.eth@domain@description@key = My domain@value</code></pre>
+
+<h3 id="2-use-consistent-spacing">2. Use Consistent Spacing</h3>
+
+<pre><code class="language-bash">✅ Good: setText: [example.eth]@domain@[description]@key = [My domain]@value
+❌ Bad: setText:[example.eth]@domain@[description]@key=[My domain]@value</code></pre>
+
+<h3 id="3-validate-addresses-before-use">3. Validate Addresses Before Use</h3>
+
+Always verify addresses are correct before including in action files:
+
+<pre><code class="language-bash"># Verify this address on Etherscan before using
+setAddr: [example.eth]@domain = [0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@address</code></pre>
+
+<h3 id="4-use-full-domain-names">4. Use Full Domain Names</h3>
+
+<pre><code class="language-bash">✅ Good: setText: [example.eth]@domain@[description]@key = [My domain]@value
+❌ Bad: setText: [example]@domain@[description]@key = [My domain]@value</code></pre>
+
+<h2 id="security-considerations">Security Considerations</h2>
+
+<h3 id="1-review-actions-before-execution">1. Review Actions Before Execution</h3>
+
+<strong>Always</strong> review parsed actions before executing:
+
+<li>Check all domain names are correct</li>
+<li>Verify all addresses are valid</li>
+<li>Confirm parameter values match expectations</li>
+<li>Review permission settings for delegation</li>
+
+<h3 id="2-test-with-small-batches-first">2. Test with Small Batches First</h3>
+
+Start with 2-3 actions to test your workflow:
+
+<pre><code class="language-bash"># Test batch
+setText: [example.eth]@domain@[description]@key = [Test]@value
+setText: [example.eth]@domain@[url]@key = [https://test.com]@value</code></pre>
+
+Then scale up once confirmed working.
+
+<h3 id="3-use-templates-for-repetitive-operations">3. Use Templates for Repetitive Operations</h3>
+
+Templates reduce errors from manual entry:
+
+<pre><code class="language-bash"># Use template instead of manually typing
+<h1>Template: complete-domain-setup.txt</code></pre></h1>
+
+<h3 id="4-verify-permissions">4. Verify Permissions</h3>
+
+Before delegating, verify:
+<li>You have permission to delegate</li>
+<li>Delegate address is correct</li>
+<li>Permission levels are appropriate</li>
+<li>Expiration dates are set if needed</li>
+
+<h3 id="5-double-check-critical-operations">5. Double-Check Critical Operations</h3>
+
+For critical operations (transfers, wraps, fuses), always:
+<li>Review twice</li>
+<li>Test on testnet first if possible</li>
+<li>Have a rollback plan</li>
+
+<h2 id="gas-optimization">Gas Optimization</h2>
+
+<h3 id="1-batch-related-operations">1. Batch Related Operations</h3>
+
+Group related operations together:
+
+<pre><code class="language-bash"># All metadata updates in one batch
+setText: [example.eth]@domain@[description]@key = [My domain]@value
+setText: [example.eth]@domain@[url]@key = [https://example.com]@value
+setText: [example.eth]@domain@[avatar]@key = [https://example.com/avatar.png]@value</code></pre>
+
+<h3 id="2-order-actions-by-gas-cost">2. Order Actions by Gas Cost</h3>
+
+Place lower gas operations first when possible:
+
+<pre><code class="language-bash"># Text records (lower gas) first
+setText: [example.eth]@domain@[description]@key = [My domain]@value
+
+<h1>Then address records (medium gas)</h1>
+setAddr: [example.eth]@domain = [0x742d...]@address
+
+<h1>Finally complex operations (higher gas)</h1>
++wrap: [example.eth]@domain = [0x742d...]@owner</code></pre>
+
+<h3 id="3-avoid-redundant-operations">3. Avoid Redundant Operations</h3>
+
+Don't set the same value twice:
+
+<pre><code class="language-bash">❌ Bad:
+setText: [example.eth]@domain@[description]@key = [My domain]@value
+setText: [example.eth]@domain@[description]@key = [My domain]@value
+
+✅ Good:
+setText: [example.eth]@domain@[description]@key = [My domain]@value</code></pre>
+
+<h2 id="error-prevention">Error Prevention</h2>
+
+<h3 id="1-validate-domain-names">1. Validate Domain Names</h3>
+
+Ensure domain names are:
+<li>Fully qualified (include .eth)</li>
+<li>Correctly spelled</li>
+<li>Owned by you</li>
+
+<h3 id="2-check-address-format">2. Check Address Format</h3>
+
+All addresses must be:
+<li>Valid Ethereum addresses (42 characters, starts with 0x)</li>
+<li>Checksummed when possible</li>
+<li>Verified on blockchain explorer</li>
+
+<h3 id="3-verify-parameter-types">3. Verify Parameter Types</h3>
+
+<li>Numbers should be integers</li>
+<li>Timestamps should be Unix timestamps</li>
+<li>Booleans should be <code>true</code> or <code>false</code></li>
+
+<h3 id="4-test-parsing-first">4. Test Parsing First</h3>
+
+Before executing, verify actions parse correctly:
+<li>Upload file</li>
+<li>Review parsed actions</li>
+<li>Check for errors</li>
+<li>Then execute</li>
+
+<h2 id="template-usage">Template Usage</h2>
+
+<h3 id="1-start-with-pre-built-templates">1. Start with Pre-built Templates</h3>
+
+Use provided templates as starting points:
+<li><code>complete-domain-setup.txt</code></li>
+<li><code>subdomain-structure.txt</code></li>
+<li><code>batch-metadata-update.txt</code></li>
+<li><code>delegation-setup.txt</code></li>
+
+<h3 id="2-customize-templates">2. Customize Templates</h3>
+
+Modify templates for your needs:
+<li>Copy template</li>
+<li>Replace variables</li>
+<li>Add/remove actions</li>
+<li>Save with descriptive name</li>
+
+<h3 id="3-create-your-own-templates">3. Create Your Own Templates</h3>
+
+For repetitive tasks, create custom templates:
+
+<pre><code class="language-bash"># my-custom-template.txt
+<h1>Description: Sets up project subdomains with metadata</h1>
+
++mintSubdomain: [{{subname}}]@subname@[{{parent}}]@parent = [{{owner}}]@owner
+setText: [{{subname}}.{{parent}}]@domain@[description]@key = [{{description}}]@value</code></pre>
+
+<h2 id="version-control">Version Control</h2>
+
+<h3 id="1-track-action-files">1. Track Action Files</h3>
+
+Keep action files in version control:
+
+<pre><code class="language-bash">git add actions/complete-domain-setup.txt
+git commit -m &quot;Add complete domain setup action file&quot;</code></pre>
+
+<h3 id="2-document-changes">2. Document Changes</h3>
+
+Include changelog comments:
+
+<pre><code class="language-bash"># v1.0 - Initial setup
+<h1>v1.1 - Added content hash</h1>
+<h1>v1.2 - Updated resolver address</code></pre></h1>
+
+<h3 id="3-tag-releases">3. Tag Releases</h3>
+
+Tag action file versions:
+
+<pre><code class="language-bash">git tag -a v1.0 -m &quot;Initial action file set&quot;</code></pre>
+
+<h3 id="4-backup-before-major-changes">4. Backup Before Major Changes</h3>
+
+Before executing major changes:
+<li>Export current state</li>
+<li>Backup action files</li>
+<li>Document expected outcomes</li>
+
+<h2 id="common-patterns">Common Patterns</h2>
+
+<h3 id="pattern-1-domain-initialization">Pattern 1: Domain Initialization</h3>
+
+<pre><code class="language-bash"># 1. Wrap (if using NameWrapper)
++wrap: [example.eth]@domain = [0x742d...]@owner
+
+<h1>2. Set resolver</h1>
+setResolver: [example.eth]@domain = [0x231b...]@resolver
+
+<h1>3. Set address</h1>
+setAddr: [example.eth]@domain = [0x742d...]@address
+
+<h1>4. Add metadata</h1>
+setText: [example.eth]@domain@[description]@key = [My domain]@value</code></pre>
+
+<h3 id="pattern-2-batch-metadata-update">Pattern 2: Batch Metadata Update</h3>
+
+<pre><code class="language-bash"># Update all metadata in one transaction
+setText: [example.eth]@domain@[description]@key = [Updated description]@value
+setText: [example.eth]@domain@[url]@key = [https://new-url.com]@value
+setText: [example.eth]@domain@[avatar]@key = [https://new-avatar.png]@value</code></pre>
+
+<h3 id="pattern-3-subdomain-creation">Pattern 3: Subdomain Creation</h3>
+
+<pre><code class="language-bash"># Create multiple subdomains
++mintSubdomain: [app]@subname@[example.eth]@parent = [0x742d...]@owner
++mintSubdomain: [api]@subname@[example.eth]@parent = [0x742d...]@owner
++mintSubdomain: [www]@subname@[example.eth]@parent = [0x742d...]@owner</code></pre>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="issue-actions-not-parsing">Issue: Actions Not Parsing</h3>
+
+<strong>Solution:</strong>
+<li>Check bracket notation syntax</li>
+<li>Verify all parameters are provided</li>
+<li>Check for typos in action names</li>
+<li>Ensure operators are correct</li>
+
+<h3 id="issue-transaction-fails">Issue: Transaction Fails</h3>
+
+<strong>Solution:</strong>
+<li>Check you have permissions</li>
+<li>Verify domain ownership</li>
+<li>Ensure sufficient gas</li>
+<li>Review error in audit log</li></ol>
+
+<h3 id="issue-call-data-not-highlighting">Issue: Call Data Not Highlighting</h3>
+
+<strong>Solution:</strong>
+<li>This is normal for some complex actions</li>
+<li>Full call data is always available</li>
+<li>Highlighting is approximate for display</li>
+
+<h2 id="additional-resources">Additional Resources</h2>
+
+<li><a href="./ENS-ACTION-SCHEMA-GUIDE.html">Complete Guide</a></li>
+<li><a href="../src/lib/schemas/README.html">Schema Reference</a></li>
+<li><a href="../src/lib/schemas/index.ts">Action Patterns</a></li>
+
+<h2 id="summary">Summary</h2>
+
+Following these best practices will help you:
+<li>✅ Reduce errors</li>
+<li>✅ Save gas costs</li>
+<li>✅ Maintain organized action files</li>
+<li>✅ Execute operations safely</li>
+<li>✅ Track changes over time</li></ul>
+
+Remember: <strong>Always review before executing!</strong>
+
+
+
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

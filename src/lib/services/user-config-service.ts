@@ -7,6 +7,17 @@ export interface UserConfig {
     showAdvanced: boolean;
     refreshInterval: number;
   };
+  consoleColors?: {
+    background: string;
+    headerBackground: string;
+    border: string;
+    text: string;
+    textSecondary: string;
+    activeTab: string;
+    inactiveTab: string;
+    inputBackground: string;
+    inputBorder: string;
+  };
   domainGroups: {
     id: string;
     name: string;
@@ -39,6 +50,17 @@ const defaultConfig: UserConfig = {
     compactMode: false,
     showAdvanced: false,
     refreshInterval: 30000,
+  },
+  consoleColors: {
+    background: '#1e293b',
+    headerBackground: '#334155',
+    border: '#475569',
+    text: '#ffffff',
+    textSecondary: '#cbd5e1',
+    activeTab: '#1e293b',
+    inactiveTab: '#475569',
+    inputBackground: '#0f172a',
+    inputBorder: '#475569',
   },
   domainGroups: [
     { id: 'personal', name: 'Personal', color: 'blue' },

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Index - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="active">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#total-files-72">Total Files: 72</a></li>
+<li><a href="#all-documentation-files">All Documentation Files</a></li>
+  <li><a href="#core-documentation">Core Documentation</a></li>
+  <li><a href="#implementation">Implementation</a></li>
+  <li><a href="#features">Features</a></li>
+  <li><a href="#setup-deployment">Setup &amp; Deployment</a></li>
+  <li><a href="#security">Security</a></li>
+  <li><a href="#legal-compliance">Legal &amp; Compliance</a></li>
+  <li><a href="#other">Other</a></li>
+</ul>
+</div>
+
+        <h1>Documentation Index</h1>
+<strong>Last Updated</strong>: 2025-11-09
+<p>This directory contains all documentation for ENS Tools.</p>
+<h2 id="total-files-72">Total Files: 72</h2>
+<h2 id="all-documentation-files">All Documentation Files</h2>
+<h3 id="core-documentation">Core Documentation</h3>
+<ul><li><a href="./API-REFERENCE.html">API-REFERENCE.md</a></li>
+<li><a href="./BUSINESS-LOGIC.html">BUSINESS-LOGIC.md</a></li>
+<li><a href="./CODE-USAGE.html">CODE-USAGE.md</a></li>
+<li><a href="./FUNCTIONALITY.html">FUNCTIONALITY.md</a></li>
+<li><a href="./PROJECT-HOURS-ESTIMATE-REPORT.html">PROJECT-HOURS-ESTIMATE-REPORT.md</a></li>
+<li><a href="./PROJECT-OVERVIEW.html">PROJECT-OVERVIEW.md</a></li>
+<li><a href="./TERMINAL-USAGE.html">TERMINAL-USAGE.md</a></li>
+<h3 id="implementation">Implementation</h3>
+<li><a href="./AUDIT-LOG-IMPLEMENTATION.html">AUDIT-LOG-IMPLEMENTATION.md</a></li>
+<li><a href="./BASE-METADATA-IMPLEMENTATION.html">BASE-METADATA-IMPLEMENTATION.md</a></li>
+<li><a href="./ENSIP19-IMPLEMENTATION.html">ENSIP19-IMPLEMENTATION.md</a></li>
+<li><a href="./GRANULAR-PERMISSIONS-INTEGRATION.html">GRANULAR-PERMISSIONS-INTEGRATION.md</a></li>
+<li><a href="./IMPLEMENTATION-COMPLETE.html">IMPLEMENTATION-COMPLETE.md</a></li>
+<li><a href="./IMPLEMENTATION-SUMMARY.html">IMPLEMENTATION-SUMMARY.md</a></li>
+<li><a href="./IMPORT-REVIEW-COMPLETE.html">IMPORT-REVIEW-COMPLETE.md</a></li>
+<li><a href="./INTEGRATION-COMPLETE.html">INTEGRATION-COMPLETE.md</a></li>
+<li><a href="./MARKETPLACE-IMPLEMENTATION.html">MARKETPLACE-IMPLEMENTATION.md</a></li>
+<li><a href="./MARKETPLACE-SUMMARY.html">MARKETPLACE-SUMMARY.md</a></li>
+<li><a href="./PRODUCTION-SEAPORT-IMPLEMENTATION.html">PRODUCTION-SEAPORT-IMPLEMENTATION.md</a></li>
+<li><a href="./PRODUCTION-UPDATE-SUMMARY.html">PRODUCTION-UPDATE-SUMMARY.md</a></li>
+<li><a href="./REFACTORING-COMPLETE.html">REFACTORING-COMPLETE.md</a></li>
+<li><a href="./TOOLING-ORGANIZATION-COMPLETE.html">TOOLING-ORGANIZATION-COMPLETE.md</a></li>
+<h3 id="features">Features</h3>
+<li><a href="./ACCESSOR-ETH-USDC-TRANSACTIONS.html">ACCESSOR-ETH-USDC-TRANSACTIONS.md</a></li>
+<li><a href="./ACTION-SCHEMA-QUICK-REFERENCE.html">ACTION-SCHEMA-QUICK-REFERENCE.md</a></li>
+<li><a href="./BEST-PRACTICES-ACTION-SCHEMA.html">BEST-PRACTICES-ACTION-SCHEMA.md</a></li>
+<li><a href="./COMPREHENSIVE-FEATURES.html">COMPREHENSIVE-FEATURES.md</a></li>
+<li><a href="./ENS-ACTION-SCHEMA-GUIDE.html">ENS-ACTION-SCHEMA-GUIDE.md</a></li>
+<li><a href="./ENS-ENTERPRISE-FEATURES.html">ENS-ENTERPRISE-FEATURES.md</a></li>
+<li><a href="./ENS-MARKETPLACE-DOCUMENTATION.html">ENS-MARKETPLACE-DOCUMENTATION.md</a></li>
+<li><a href="./SCHEMA-PREVIEW-EDITOR.html">SCHEMA-PREVIEW-EDITOR.md</a></li>
+<li><a href="./SRC-COMPREHENSIVE-FEATURES.html">SRC-COMPREHENSIVE-FEATURES.md</a></li>
+<li><a href="./SRC-ENS-ENTERPRISE-FEATURES.html">SRC-ENS-ENTERPRISE-FEATURES.md</a></li>
+<li><a href="./USDC-TRANSACTION-CHECK.html">USDC-TRANSACTION-CHECK.md</a></li>
+<h3 id="setup-deployment">Setup & Deployment</h3>
+<li><a href="./DEPLOYMENT-CHECKLIST.html">DEPLOYMENT-CHECKLIST.md</a></li>
+<li><a href="./ENCRYPTION-SETUP.html">ENCRYPTION-SETUP.md</a></li>
+<li><a href="./PRODUCTION-READY.html">PRODUCTION-READY.md</a></li>
+<li><a href="./PRODUCTION-SETUP.html">PRODUCTION-SETUP.md</a></li>
+<li><a href="./SEAPORT-PRODUCTION-READY.html">SEAPORT-PRODUCTION-READY.md</a></li>
+<li><a href="./SRC-PRODUCTION-READY.html">SRC-PRODUCTION-READY.md</a></li>
+<li><a href="./TOOLING-ORGANIZATION.html">TOOLING-ORGANIZATION.md</a></li>
+<h3 id="security">Security</h3>
+<li><a href="./SECURITY-FIXES-APPLIED.html">SECURITY-FIXES-APPLIED.md</a></li>
+<li><a href="./SECURITY-VULNERABILITIES-REPORT.html">SECURITY-VULNERABILITIES-REPORT.md</a></li>
+<h3 id="legal-compliance">Legal & Compliance</h3>
+<li><a href="./FINANCIAL-RISK-DISCLOSURE.html">FINANCIAL-RISK-DISCLOSURE.md</a></li>
+<li><a href="./LEGAL-COMPLIANCE.html">LEGAL-COMPLIANCE.md</a></li>
+<li><a href="./PRIVACY-POLICY.html">PRIVACY-POLICY.md</a></li>
+<li><a href="./TERMS-OF-AGREEMENT.html">TERMS-OF-AGREEMENT.md</a></li>
+<li><a href="./USAGE-POLICY.html">USAGE-POLICY.md</a></li>
+<li><a href="./USER-AGREEMENTS.html">USER-AGREEMENTS.md</a></li>
+<h3 id="other">Other</h3>
+<li><a href="./APPLICATION-TREE.html">APPLICATION-TREE.md</a></li>
+<li><a href="./Attributions.html">Attributions.md</a></li>
+<li><a href="./BEST-PRACTICES.html">BEST-PRACTICES.md</a></li>
+<li><a href="./CONDITIONS-AND-RESULTS.html">CONDITIONS-AND-RESULTS.md</a></li>
+<li><a href="./CONTRACT-NAMING-IMPROVEMENTS.html">CONTRACT-NAMING-IMPROVEMENTS.md</a></li>
+<li><a href="./CONTRACTS-LIST.html">CONTRACTS-LIST.md</a></li>
+<li><a href="./COST-ESTIMATE-SINCE-SEPT-10-2024.html">COST-ESTIMATE-SINCE-SEPT-10-2024.md</a></li>
+<li><a href="./DELEGATION-SYSTEM-DOCUMENTATION.html">DELEGATION-SYSTEM-DOCUMENTATION.md</a></li>
+<li><a href="./DOCUMENTATION-PACKAGE.html">DOCUMENTATION-PACKAGE.md</a></li>
+<li><a href="./ENSIP19-QUICKSTART.html">ENSIP19-QUICKSTART.md</a></li>
+<li><a href="./FIXES-APPLIED.html">FIXES-APPLIED.md</a></li>
+<li><a href="./HELP-AND-SUGGESTIONS.html">HELP-AND-SUGGESTIONS.md</a></li>
+<li><a href="./IMPROVEMENT-ROADMAP.html">IMPROVEMENT-ROADMAP.md</a></li>
+<li><a href="./IMPROVEMENTS-IMPLEMENTED.html">IMPROVEMENTS-IMPLEMENTED.md</a></li>
+<li><a href="./MISSING-ENS-FUNCTIONALITY.html">MISSING-ENS-FUNCTIONALITY.md</a></li>
+<li><a href="./MISSING-FUNCTIONALITY-REPORT.html">MISSING-FUNCTIONALITY-REPORT.md</a></li>
+<li><a href="./MODULE-CONSOLIDATION-PLAN.html">MODULE-CONSOLIDATION-PLAN.md</a></li>
+<li><a href="./PRESENTATION-SCRIPT.html">PRESENTATION-SCRIPT.md</a></li>
+<li><a href="./REFACTORING-PROGRESS.html">REFACTORING-PROGRESS.md</a></li>
+<li><a href="./REVENUE-BREAKDOWN.html">REVENUE-BREAKDOWN.md</a></li>
+<li><a href="./REVENUE-ESTIMATE.html">REVENUE-ESTIMATE.md</a></li>
+<li><a href="./SRC-Attributions.html">SRC-Attributions.md</a></li>
+<li><a href="./SRC-FIXES-APPLIED.html">SRC-FIXES-APPLIED.md</a></li>
+<li><a href="./SRC-Guidelines.html">SRC-Guidelines.md</a></li>
+<li><a href="./WEB3-PROVIDER-DISCLOSURE.html">WEB3-PROVIDER-DISCLOSURE.md</a></li></ul>
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

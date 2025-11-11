@@ -19,7 +19,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { fetchENSNames, ENSDomain, getDaysUntilExpiration } from '../../lib/ens';
 import { notificationService } from '../../lib/services/notification-service';
 

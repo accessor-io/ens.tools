@@ -83,7 +83,7 @@ export const ENSIPX_SUBCATEGORIES: Record<ENSIPXCategory, string[]> = {
   supply: ['tracking', 'verification', 'logistics', 'compliance'],
   health: ['medical-records', 'data-sharing', 'consent'],
   finance: ['banking', 'settlement', 'custody', 'compliance'],
-  dev: ['framework', 'testing', 'deployment', 'debugging', 'plugins'],
+  dev: ['framework', 'testing', 'deployment', 'Debugging', 'plugins'],
   art: ['platform', 'curation', 'royalty', 'minting'],
 };
 

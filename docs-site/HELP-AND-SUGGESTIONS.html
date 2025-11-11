@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help and Suggestions - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="active">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#getting-help">Getting Help</a></li>
+  <li><a href="#documentation">Documentation</a></li>
+  <li><a href="#support-channels">Support Channels</a></li>
+  <li><a href="#common-questions">Common Questions</a></li>
+<li><a href="#suggestions">Suggestions</a></li>
+  <li><a href="#performance-optimization">Performance Optimization</a></li>
+  <li><a href="#security-best-practices">Security Best Practices</a></li>
+  <li><a href="#user-experience">User Experience</a></li>
+  <li><a href="#development-suggestions">Development Suggestions</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+  <li><a href="#common-issues">Common Issues</a></li>
+  <li><a href="#debugging-tips">Debugging Tips</a></li>
+<li><a href="#feature-requests">Feature Requests</a></li>
+  <li><a href="#suggested-enhancements">Suggested Enhancements</a></li>
+  <li><a href="#contributing">Contributing</a></li>
+<li><a href="#additional-help-content">Additional Help Content</a></li>
+  <li><a href="#from-deployment-checklistmd">From DEPLOYMENT-CHECKLIST.md</a></li>
+<li><a href="#critical-updates-must-complete-before-launch">Critical Updates (Must Complete Before Launch)</a></li>
+  <li><a href="#from-encryption-setupmd">From ENCRYPTION-SETUP.md</a></li>
+<li><a href="#overview">Overview</a></li>
+  <li><a href="#client-side-encryption">Client-Side Encryption</a></li>
+  <li><a href="#server-side-encryption">Server-Side Encryption</a></li>
+  <li><a href="#from-ensip19-quickstartmd">From ENSIP19-QUICKSTART.md</a></li>
+<li><a href="#installation">Installation</a></li>
+  <li><a href="#from-implementation-summarymd">From IMPLEMENTATION-SUMMARY.md</a></li>
+<li><a href="#what-was-accomplished">What Was Accomplished</a></li>
+  <li><a href="#-core-refactoring-complete">✅ Core Refactoring Complete</a></li>
+  <li><a href="#from-integration-completemd">From INTEGRATION-COMPLETE.md</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#what-was-added">What Was Added</a></li>
+  <li><a href="#from-missing-ens-functionalitymd">From MISSING-ENS-FUNCTIONALITY.md</a></li>
+<li><a href="#-critical-missing-features">🔴 Critical Missing Features</a></li>
+  <li><a href="#1-content-hash-management-high-priority">1. **Content Hash Management** ⚠️ HIGH PRIORITY</a></li>
+  <li><a href="#from-presentation-scriptmd">From PRESENTATION-SCRIPT.md</a></li>
+<li><a href="#introduction-2-minutes">Introduction (2 minutes)</a></li>
+  <li><a href="#hook">Hook</a></li>
+  <li><a href="#the-problem">The Problem</a></li>
+  <li><a href="#the-solution">The Solution</a></li>
+  <li><a href="#from-production-setupmd">From PRODUCTION-SETUP.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#architecture">Architecture</a></li>
+  <li><a href="#from-production-update-summarymd">From PRODUCTION-UPDATE-SUMMARY.md</a></li>
+<li><a href="#what-was-implemented">What Was Implemented</a></li>
+<li><a href="#major-changes">Major Changes</a></li>
+  <li><a href="#1-backend-infrastructure-created">1. Backend Infrastructure Created</a></li>
+  <li><a href="#from-refactoring-completemd">From REFACTORING-COMPLETE.md</a></li>
+<li><a href="#summary">Summary</a></li>
+  <li><a href="#from-seaport-production-readymd">From SEAPORT-PRODUCTION-READY.md</a></li>
+<li><a href="#what-was-implemented">What Was Implemented</a></li>
+<li><a href="#new-files-created">New Files Created</a></li>
+  <li><a href="#core-services">Core Services</a></li>
+  <li><a href="#from-tooling-organization-completemd">From TOOLING-ORGANIZATION-COMPLETE.md</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#changes-made">Changes Made</a></li>
+  <li><a href="#components-organization">Components Organization</a></li>
+  <li><a href="#from-tooling-organizationmd">From TOOLING-ORGANIZATION.md</a></li>
+<li><a href="#new-structure">New Structure</a></li>
+  <li><a href="#components-by-feature-domain">Components by Feature Domain</a></li>
+  <li><a href="#library-by-feature-domain">Library by Feature Domain</a></li>
+  <li><a href="#from-action-schema-quick-referencemd">From ACTION-SCHEMA-QUICK-REFERENCE.md</a></li>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#bracket-notation-cheat-sheet">Bracket Notation Cheat Sheet</a></li>
+  <li><a href="#from-application-treemd">From APPLICATION-TREE.md</a></li>
+<li><a href="#root-directory">Root Directory</a></li>
+<li><a href="#source-code-src">Source Code (src/)</a></li>
+  <li><a href="#from-best-practices-action-schemamd">From BEST-PRACTICES-ACTION-SCHEMA.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+  <li><a href="#from-comprehensive-featuresmd">From COMPREHENSIVE-FEATURES.md</a></li>
+<li><a href="#complete-implementation-guide">Complete Implementation Guide</a></li>
+<li><a href="#1-contract-registration-system">1. Contract Registration System</a></li>
+  <li><a href="#from-cost-estimate-since-sept-10-2024md">From COST-ESTIMATE-SINCE-SEPT-10-2024.md</a></li>
+<li><a href="#for-one-person-total-project-scope">For One Person - Total Project Scope</a></li>
+<li><a href="#executive-summary">Executive Summary</a></li>
+  <li><a href="#from-documentation-indexmd">From DOCUMENTATION-INDEX.md</a></li>
+<li><a href="#core-documentation">Core Documentation</a></li>
+  <li><a href="#getting-started">Getting Started</a></li>
+  <li><a href="#feature-documentation">Feature Documentation</a></li>
+  <li><a href="#from-documentation-packagemd">From DOCUMENTATION-PACKAGE.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#part-1-getting-started-essential-reading">Part 1: Getting Started (Essential Reading)</a></li>
+  <li><a href="#from-ens-action-schema-guidemd">From ENS-ACTION-SCHEMA-GUIDE.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+  <li><a href="#from-ens-enterprise-featuresmd">From ENS-ENTERPRISE-FEATURES.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#core-feature-modules">Core Feature Modules</a></li>
+  <li><a href="#1-dashboard">1. **Dashboard**</a></li>
+  <li><a href="#2-advanced-analytics">2. **Advanced Analytics**</a></li>
+  <li><a href="#from-ensip19-quickstartmd">From ENSIP19-QUICKSTART.md</a></li>
+<li><a href="#installation">Installation</a></li>
+  <li><a href="#from-help-and-suggestionsmd">From HELP-AND-SUGGESTIONS.md</a></li>
+<li><a href="#getting-help">Getting Help</a></li>
+  <li><a href="#documentation">Documentation</a></li>
+  <li><a href="#support-channels">Support Channels</a></li>
+  <li><a href="#common-questions">Common Questions</a></li>
+  <li><a href="#from-integration-completemd">From INTEGRATION-COMPLETE.md</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#what-was-added">What Was Added</a></li>
+  <li><a href="#from-legal-compliancemd">From LEGAL-COMPLIANCE.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#regulatory-compliance">Regulatory Compliance</a></li>
+  <li><a href="#applicable-regulations">Applicable Regulations</a></li>
+  <li><a href="#from-presentation-scriptmd">From PRESENTATION-SCRIPT.md</a></li>
+<li><a href="#introduction-2-minutes">Introduction (2 minutes)</a></li>
+  <li><a href="#hook">Hook</a></li>
+  <li><a href="#the-problem">The Problem</a></li>
+  <li><a href="#the-solution">The Solution</a></li>
+  <li><a href="#from-production-setupmd">From PRODUCTION-SETUP.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#architecture">Architecture</a></li>
+  <li><a href="#from-production-update-summarymd">From PRODUCTION-UPDATE-SUMMARY.md</a></li>
+<li><a href="#what-was-implemented">What Was Implemented</a></li>
+<li><a href="#major-changes">Major Changes</a></li>
+  <li><a href="#1-backend-infrastructure-created">1. Backend Infrastructure Created</a></li>
+  <li><a href="#from-project-hours-estimate-reportmd">From PROJECT-HOURS-ESTIMATE-REPORT.md</a></li>
+<li><a href="#itemized-breakdown-with-source-evidence">Itemized Breakdown with Source Evidence</a></li>
+<li><a href="#executive-summary">Executive Summary</a></li>
+  <li><a href="#from-terms-of-agreementmd">From TERMS-OF-AGREEMENT.md</a></li>
+<li><a href="#effective-date">Effective Date</a></li>
+<li><a href="#parties">Parties</a></li>
+  <li><a href="#from-tooling-organization-completemd">From TOOLING-ORGANIZATION-COMPLETE.md</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#changes-made">Changes Made</a></li>
+  <li><a href="#components-organization">Components Organization</a></li>
+  <li><a href="#from-tooling-organizationmd">From TOOLING-ORGANIZATION.md</a></li>
+<li><a href="#new-structure">New Structure</a></li>
+  <li><a href="#components-by-feature-domain">Components by Feature Domain</a></li>
+  <li><a href="#library-by-feature-domain">Library by Feature Domain</a></li>
+  <li><a href="#from-usage-policymd">From USAGE-POLICY.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#acceptable-use">Acceptable Use</a></li>
+  <li><a href="#permitted-uses">Permitted Uses</a></li>
+  <li><a href="#from-user-agreementsmd">From USER-AGREEMENTS.md</a></li>
+<li><a href="#terms-of-service">Terms of Service</a></li>
+  <li><a href="#acceptance">Acceptance</a></li>
+  <li><a href="#eligibility">Eligibility</a></li>
+  <li><a href="#account-responsibility">Account Responsibility</a></li>
+  <li><a href="#from-web3-provider-disclosuremd">From WEB3-PROVIDER-DISCLOSURE.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#supported-providers">Supported Providers</a></li>
+  <li><a href="#metamask">MetaMask</a></li>
+</ul>
+</div>
+
+        <h1>Help and Suggestions</h1>
+<h2 id="getting-help">Getting Help</h2>
+<h3 id="documentation">Documentation</h3>
+<li>Check this documentation for detailed information</li>
+<li>Review API-REFERENCE.md for API usage</li>
+<li>See CODE-USAGE.md for code examples</li>
+<li>Check BEST-PRACTICES.md for recommended approaches</li>
+<h3 id="support-channels">Support Channels</h3>
+<li><a href="link-to-issues">GitHub Issues</a> - Report bugs and request features</li>
+<li><a href="link">Discord/Slack</a> - Community support</li>
+<li><a href="email">Email Support</a> - Direct support inquiries</li>
+<h3 id="common-questions">Common Questions</h3>
+<h4 id="how-do-i-register-a-domain">How do I register a domain?</h4>
+<ol><li>Check domain availability</li>
+<li>Ensure sufficient ETH balance</li>
+<li>Execute registration transaction</li>
+<li>Wait for confirmation</li>
+<h4 id="how-do-i-set-up-delegation">How do I set up delegation?</h4>
+<li>Identify the domain and delegate address</li>
+<li>Determine required permissions</li>
+<li>Use delegation interface or API</li>
+<li>Verify delegation was successful</li>
+<h4 id="how-do-i-list-a-domain-for-sale">How do I list a domain for sale?</h4>
+<li>Navigate to marketplace</li>
+<li>Select domain to list</li>
+<li>Set price and terms</li>
+<li>Create listing</li>
+<li>Monitor offers</li>
+<h4 id="how-do-i-configure-metadata">How do I configure metadata?</h4>
+<li>Access domain configuration</li>
+<li>Navigate to metadata section</li>
+<li>Fill in metadata fields</li>
+<li>Validate and save</li>
+<h2 id="suggestions">Suggestions</h2>
+<h3 id="performance-optimization">Performance Optimization</h3>
+<h4 id="transaction-batching">Transaction Batching</h4>
+<li>Batch multiple operations into single transaction when possible</li>
+<li>Reduces gas costs</li>
+<li>Improves user experience</li>
+<li>Use transaction builder for optimal batching</li>
+<h4 id="caching">Caching</h4>
+<li>Cache domain information when appropriate</li>
+<li>Use Redis for server-side caching</li>
+<li>Implement client-side caching for frequently accessed data</li>
+<h4 id="network-optimization">Network Optimization</h4>
+<li>Use appropriate gas prices</li>
+<li>Monitor network congestion</li>
+<li>Consider transaction timing</li>
+<h3 id="security-best-practices">Security Best Practices</h3>
+<h4 id="wallet-security">Wallet Security</h4>
+<li>Use hardware wallets for large operations</li>
+<li>Never share private keys</li>
+<li>Verify transaction details before signing</li>
+<li>Use multi-signature wallets for important domains</li>
+<h4 id="access-control">Access Control</h4>
+<li>Implement proper delegation</li>
+<li>Regularly review delegate permissions</li>
+<li>Remove unused delegates</li>
+<li>Use minimum required permissions</li>
+<h4 id="data-protection">Data Protection</h4>
+<li>Encrypt sensitive data</li>
+<li>Use secure connections (HTTPS)</li>
+<li>Implement proper authentication</li>
+<li>Regular security audits</li>
+<h3 id="user-experience">User Experience</h3>
+<h4 id="interface-design">Interface Design</h4>
+<li>Provide clear feedback for all operations</li>
+<li>Show transaction status clearly</li>
+<li>Display estimated costs upfront</li>
+<li>Offer transaction preview before execution</li>
+<h4 id="error-messages">Error Messages</h4>
+<li>Provide clear, actionable error messages</li>
+<li>Include suggested solutions</li>
+<li>Link to relevant documentation</li>
+<li>Offer support contact information</li>
+<h4 id="workflow-optimization">Workflow Optimization</h4>
+<li>Streamline common operations</li>
+<li>Provide templates for frequent tasks</li>
+<li>Offer guided workflows</li>
+<li>Save user preferences</li>
+<h3 id="development-suggestions">Development Suggestions</h3>
+<h4 id="code-organization">Code Organization</h4>
+<li>Follow established patterns</li>
+<li>Use TypeScript for type safety</li>
+<li>Implement proper error handling</li>
+<li>Write tests for critical paths</li>
+<h4 id="api-design">API Design</h4>
+<li>Use RESTful conventions</li>
+<li>Provide clear documentation</li>
+<li>Include examples in documentation</li>
+<li>Version APIs appropriately</li>
+<h4 id="testing">Testing</h4>
+<li>Write unit tests</li>
+<li>Implement integration tests</li>
+<li>Test error cases</li>
+<li>Test edge cases</li>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<h4 id="transaction-stuck">Transaction Stuck</h4>
+<li>Check network status</li>
+<li>Verify gas price</li>
+<li>Check nonce conflicts</li>
+<li>Consider transaction replacement</li>
+<h4 id="domain-not-found">Domain Not Found</h4>
+<li>Verify domain spelling</li>
+<li>Check if domain exists</li>
+<li>Verify network (mainnet vs testnet)</li>
+<li>Check resolver configuration</li>
+<h4 id="permission-denied">Permission Denied</h4>
+<li>Verify ownership</li>
+<li>Check delegate permissions</li>
+<li>Verify transaction signer</li>
+<li>Check domain restrictions</li>
+<h4 id="api-errors">API Errors</h4>
+<li>Verify authentication</li>
+<li>Check rate limits</li>
+<li>Verify request format</li>
+<li>Check server status</li>
+<h3 id="debugging-tips">Debugging Tips</h3>
+<h4 id="enable-logging">Enable Logging</h4>
+<li>Enable debug logging in development</li>
+<li>Check browser console</li>
+<li>Review server logs</li>
+<li>Use transaction explorers</li>
+<h4 id="network-inspection">Network Inspection</h4>
+<li>Use Etherscan to verify transactions</li>
+<li>Check ENS registry directly</li>
+<li>Verify resolver configuration</li>
+<li>Check event logs</li>
+<h4 id="transaction-analysis">Transaction Analysis</h4>
+<li>Use transaction simulators</li>
+<li>Check gas estimation</li>
+<li>Verify call data</li>
+<li>Review transaction history</li>
+<h2 id="feature-requests">Feature Requests</h2>
+<h3 id="suggested-enhancements">Suggested Enhancements</h3>
+<li>[List feature requests]</li>
+<li>[Community suggestions]</li>
+<li>[Roadmap items]</li>
+<h3 id="contributing">Contributing</h3>
+<li>See CONTRIBUTING.md for guidelines</li>
+<li>Submit pull requests</li>
+<li>Report issues</li>
+<li>Join discussions</li>
+<hr>
+<h2 id="additional-help-content">Additional Help Content</h2>
+<h3 id="from-deployment-checklistmd">From DEPLOYMENT-CHECKLIST.md</h3>
+<h1>Deployment Checklist - Required Updates</h1>
+<strong>Status</strong>: Pre-Production  
+<strong>Last Updated</strong>: January 2025
+<p>This document lists all updates required before production deployment of the fee collection system.</p>
+<hr>
+<h2 id="critical-updates-must-complete-before-launch">Critical Updates (Must Complete Before Launch)</h2>
+<h3 id="from-encryption-setupmd">From ENCRYPTION-SETUP.md</h3>
+<h1>Encryption Setup Guide</h1>
+<p>This application now uses encryption for all user data stored in the database and localStorage.</p>
+<h2 id="overview">Overview</h2>
+<h3 id="client-side-encryption">Client-Side Encryption</h3>
+<li><strong>Location</strong>: Browser localStorage</li>
+<li><strong>Algorithm</strong>: AES-256 via crypto-js</li>
+<li><strong>Key Derivation</strong>: User address + session secret</li>
+<li><strong>Auto-migration</strong>: Automatically migrates unencrypted data to encrypted format</li>
+<h3 id="server-side-encryption">Server-Side Encryption</h3>
+<li><strong>Location</strong>: PostgreSQL database (<code>user_configs</code> table)</li>
+<li><strong>Algorithm</strong>: AES-256-GCM (via Node.js crypto)</li>
+<li><strong>Key Derivation</strong>: User address + environment key</li>
+<li><strong>Format</strong>: Base64-encoded encrypted strings</li>
+<h3 id="from-ensip19-quickstartmd">From ENSIP19-QUICKSTART.md</h3>
+<h1>ENSIP-19 Quick Start Guide</h1>
+<h2 id="installation">Installation</h2>
+<li>Install dependencies:</li>
+<pre><code class="language-bash">npm install</code></pre>
+
+This will install the new required packages:
+<li><code>ajv</code> - JSON Schema validator</li>
+<li><code>ajv-formats</code> - Format validators</li>
+
+<li>Start the development server:</li>
+<pre><code class="language-bash">npm run dev</code></pre>
+
+<h3 id="from-implementation-summarymd">From IMPLEMENTATION-SUMMARY.md</h3>
+
+<h1>Implementation Summary - ENS Tools Improvements</h1>
+
+<h2 id="what-was-accomplished">What Was Accomplished</h2>
+
+<h3 id="-core-refactoring-complete">✅ Core Refactoring Complete</h3>
+
+<strong>Problem</strong>: ENSConsole.tsx was a monolithic 2,985-line file that was difficult to maintain, test, and extend.
+
+<strong>Solution</strong>: Refactored into a modular architecture with:
+<li><strong>4 Custom Hooks</strong> for business logic</li>
+<li><strong>4 Tab Components</strong> for UI</li>
+<li><strong>1 Error Boundary</strong> for resilience</li>
+<li><strong>Centralized Type Definitions</strong></li>
+<li><strong>Testing Infrastructure</strong></li>
+
+<h3 id="from-integration-completemd">From INTEGRATION-COMPLETE.md</h3>
+
+<h1>ENSIP-19 Integration Complete ✓</h1>
+
+<h2 id="summary">Summary</h2>
+
+The ENS Contract Naming Best Practices application has been successfully upgraded with <strong>full ENSIP-19 compliance</strong> based on the <code>~/ens-metadata-tools-repo</code> standard.
+
+<strong>Compliance Score: 25% → 95%</strong>
+
+<h2 id="what-was-added">What Was Added</h2>
+
+<h3 id="from-missing-ens-functionalitymd">From MISSING-ENS-FUNCTIONALITY.md</h3>
+
+<h1>Missing ENS Functionality Analysis</h1>
+
+<strong>Generated</strong>: 2025-01-27  
+<strong>Status</strong>: Core operations implemented, advanced features missing
+
+<hr>
+
+<h2 id="-critical-missing-features">🔴 Critical Missing Features</h2>
+
+<h3 id="1-content-hash-management-high-priority">1. <strong>Content Hash Management</strong> ⚠️ HIGH PRIORITY</h3>
+
+<h3 id="from-presentation-scriptmd">From PRESENTATION-SCRIPT.md</h3>
+
+<h1>ENS.tools Presentation Talking Points</h1>
+
+<h2 id="introduction-2-minutes">Introduction (2 minutes)</h2>
+
+<h3 id="hook">Hook</h3>
+"Managing ENS domains shouldn't require navigating multiple dashboards, reading through endless documentation, or worrying about security vulnerabilities."
+
+<h3 id="the-problem">The Problem</h3>
+<li>ENS domain management is fragmented across multiple tools</li>
+<li>Metadata configuration is complex and error-prone</li>
+<li>Security monitoring lacks visibility</li>
+<li>Governance participation is difficult to track</li>
+<li>No unified marketplace for ENS transactions</li>
+
+<h3 id="the-solution">The Solution</h3>
+"ENS.tools is a single platform that brings together everything you need to manage, secure, and trade ENS domains."
+
+<h3 id="from-production-setupmd">From PRODUCTION-SETUP.md</h3>
+
+<h1>ENS Tools Production Setup Guide</h1>
+
+<h2 id="overview">Overview</h2>
+
+This guide covers setting up the ENS Tools application for production with a backend API, database, and real blockchain integration.
+
+<h2 id="architecture">Architecture</h2>
+
+<li><strong>Frontend</strong>: React + Vite app (<code>src/</code>)</li>
+<li><strong>Backend</strong>: Express.js API server (<code>server/</code>)</li>
+<li><strong>Database</strong>: PostgreSQL for persistent storage</li>
+<li><strong>Cache</strong>: Redis for performance</li>
+<li><strong>Blockchain</strong>: viem for Ethereum interactions</li>
+
+<h3 id="from-production-update-summarymd">From PRODUCTION-UPDATE-SUMMARY.md</h3>
+
+<h1>Production Update Summary</h1>
+
+<h2 id="what-was-implemented">What Was Implemented</h2>
+
+This update transforms ENS Tools from a localStorage-based demo into a production-ready application with real backend services, database persistence, and full blockchain integration.
+
+<h2 id="major-changes">Major Changes</h2>
+
+<h3 id="1-backend-infrastructure-created">1. Backend Infrastructure Created</h3>
+
+<h3 id="from-refactoring-completemd">From REFACTORING-COMPLETE.md</h3>
+
+<h1>ENSConsole Refactoring - Complete Implementation Guide</h1>
+
+<h2 id="summary">Summary</h2>
+
+The ENSConsole component has been successfully refactored from a monolithic 2,985-line file into a modular, maintainable architecture with:
+
+<li><strong>4 Custom Hooks</strong> (~700 lines total)</li>
+<li><strong>4 Tab Components</strong> (~600 lines total)  </li>
+<li><strong>1 Error Boundary</strong> (~60 lines)</li>
+<li><strong>Type Definitions</strong> (~80 lines)</li>
+<li><strong>Example Refactored Component</strong> (~400 lines)</li>
+
+<strong>Total reduction: ~60% code reduction in main component</strong>
+
+<h3 id="from-seaport-production-readymd">From SEAPORT-PRODUCTION-READY.md</h3>
+
+<h1>Seaport Production-Ready Implementation Summary</h1>
+
+<h2 id="what-was-implemented">What Was Implemented</h2>
+
+A production-ready Seaport integration for ens.tools that enables NFT marketplace operations using OpenSea's Seaport protocol.
+
+<h2 id="new-files-created">New Files Created</h2>
+
+<h3 id="core-services">Core Services</h3>
+
+<h3 id="from-tooling-organization-completemd">From TOOLING-ORGANIZATION-COMPLETE.md</h3>
+
+<h1>Tooling Organization Complete</h1>
+
+<h2 id="summary">Summary</h2>
+
+Reorganized the entire codebase into a feature-based structure with clear domain boundaries.
+
+<h2 id="changes-made">Changes Made</h2>
+
+<h3 id="components-organization">Components Organization</h3>
+Moved 23+ components into domain-specific folders:
+<li><strong>workflows/</strong> - PreflightChecker, UnifiedContractRegistration, ContractRegistration, ENSIP19Registration</li>
+<li><strong>domains/</strong> - DomainManagement, DomainProfile</li>
+<li><strong>registry/</strong> - ContractRegistry, DAORegistry, ENSContractsRegistry, IntegrationRegistry</li>
+<li><strong>metadata/</strong> - MetadataEditor, MetadataTools, SchemaPreviewEditor, SchemaPreviewView</li>
+<li><strong>security/</strong> - SecurityMonitor, AuditLog, AuditLogTray</li>
+<li><strong>governance/</strong> - GovernancePanel</li>
+<li><strong>reference/</strong> - ProtocolReference, ProtocolSection, BestPractices, BestPracticesView, NamingToolkit</li>
+
+<h3 id="from-tooling-organizationmd">From TOOLING-ORGANIZATION.md</h3>
+
+<h1>Tooling Organization</h1>
+
+<h2 id="new-structure">New Structure</h2>
+
+<h3 id="components-by-feature-domain">Components by Feature Domain</h3>
+
+<pre><code class="language-text">src/components/
+├── ui/                     # UI primitives (shadcn/ui)
+├── workflows/              # Workflow components
+│   ├── PreflightChecker.tsx
+│   ├── UnifiedContractRegistration.tsx
+│   ├── ContractRegistration.tsx
+│   └── ENSIP19Registration.tsx
+├── domains/                # Domain management
+│   ├── DomainManagement.tsx
+│   └── DomainProfile.tsx
+├── registry/               # Contract registry
+│   ├── ContractRegistry.tsx
+│   ├── DAORegistry.tsx
+│   ├── ENSContractsRegistry.tsx
+│   └── IntegrationRegistry.tsx
+├── metadata/               # Metadata editing
+│   ├── MetadataEditor.tsx
+│   ├── MetadataTools.tsx
+│   ├── SchemaPreviewEditor.tsx
+│   └── SchemaPreviewView.tsx
+├── security/               # Security &amp; monitoring
+│   ├── SecurityMonitor.tsx
+│   ├── AuditLog.tsx
+│   └── AuditLogTray.tsx
+├── governance/             # Governance
+│   └── GovernancePanel.tsx
+└── reference/              # Documentation/reference
+    ├── ProtocolReference.tsx
+    ├── ProtocolSection.tsx
+    ├── BestPractices.tsx
+    ├── BestPracticesView.tsx
+    └── NamingToolkit.tsx</code></pre>
+
+<h3 id="library-by-feature-domain">Library by Feature Domain</h3>
+
+<h3 id="from-action-schema-quick-referencemd">From ACTION-SCHEMA-QUICK-REFERENCE.md</h3>
+
+<h1>Action Schema System - Quick Reference</h1>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<li><strong>Create an action file</strong> (<code>.txt</code> or <code>.ens</code>)</li>
+<li><strong>Write actions</strong> using bracket notation</li>
+<li><strong>Upload and review</strong> parsed actions</li>
+<li><strong>Execute batch transaction</strong></li>
+
+<h2 id="bracket-notation-cheat-sheet">Bracket Notation Cheat Sheet</h2>
+
+<pre><code class="language-text">[operator]action: [value1]@parameter1@[value2]@parameter2</code></pre>
+
+<h3 id="from-application-treemd">From APPLICATION-TREE.md</h3>
+
+<h1>ENS Tools Application Directory Tree</h1>
+
+<h2 id="root-directory">Root Directory</h2>
+
+<pre><code class="language-text">ens.tools/
+├── index.html
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+├── vercel.json
+├── src/
+└── server/</code></pre>
+
+<h2 id="source-code-src">Source Code (src/)</h2>
+
+<pre><code class="language-text">src/
+├── App.tsx
+├── main.tsx
+├── index.css
+├── components/
+│   ├── AnalyticsDashboard.tsx
+│   ├── AppSidebar.tsx
+│   ├── Dashboard.tsx
+│   ├── Settings.tsx
+│   ├── WalletConnect.tsx
+│   ├── WalletSelectionModal.tsx
+│   ├── domains/
+│   │   ├── DomainManagement.tsx
+│   │   ├── DomainProfile.tsx
+│   │   ├── NameBrowser.tsx
+│   │   └── index.ts
+│   ├── figma/
+│   │   └── ImageWithFallback.tsx
+│   ├── governance/
+│   │   ├── GovernancePanel.tsx
+│   │   └── index.ts
+│   ├── marketplace/
+│   │   ├── ENSMarketplace.tsx
+│   │   ├── Marketplace.tsx
+│   │   └── index.ts
+│   ├── metadata/
+│   │   ├── MetadataEditor.tsx
+│   │   ├── MetadataTools.tsx
+│   │   ├── SchemaPreviewEditor.tsx
+│   │   ├── SchemaPreviewView.tsx
+│   │   └── index.ts
+│   ├── reference/
+│   │   ├── BestPractices.tsx
+│   │   ├── BestPracticesView.tsx
+│   │   ├── NamingToolkit.tsx
+│   │   ├── ProtocolReference.tsx
+│   │   ├── ProtocolSection.tsx
+│   │   └── index.ts
+│   ├── registry/
+│   │   ├── ContractRegistry.tsx
+│   │   ├── DAORegistry.tsx
+│   │   ├── ENSContractsRegistry.tsx
+│   │   ├── IntegrationRegistry.tsx
+│   │   └── index.ts
+│   ├── security/
+│   │   ├── AuditLog.tsx
+│   │   ├── AuditLogTray.tsx
+│   │   ├── SecurityMonitor.tsx
+│   │   └── index.ts
+│   ├── ui/
+│   │   ├── accordion.tsx
+│   │   ├── alert-dialog.tsx
+│   │   ├── alert.tsx
+│   │   ├── aspect-ratio.tsx
+│   │   ├── avatar.tsx
+│   │   ├── badge.tsx
+│   │   ├── breadcrumb.tsx
+│   │   ├── button.tsx
+│   │   ├── calendar.tsx
+│   │   ├── card.tsx
+│   │   ├── carousel.tsx
+│   │   ├── chart.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── collapsible.tsx
+│   │   ├── command.tsx
+│   │   ├── context-menu.tsx
+│   │   ├── dialog.tsx
+│   │   ├── drawer.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── form.tsx
+│   │   ├── hover-card.tsx
+│   │   ├── input-otp.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── menubar.tsx
+│   │   ├── navigation-menu.tsx
+│   │   ├── pagination.tsx
+│   │   ├── popover.tsx
+│   │   ├── progress.tsx
+│   │   ├── radio-group.tsx
+│   │   ├── resizable.tsx
+│   │   ├── scroll-area.tsx
+│   │   ├── select.tsx
+│   │   ├── separator.tsx
+│   │   ├── sheet.tsx
+│   │   ├── sidebar.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── slider.tsx
+│   │   ├── sonner.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   ├── tabs.tsx
+│   │   ├── textarea.tsx
+│   │   ├── toggle-group.tsx
+│   │   ├── toggle.tsx
+│   │   ├── tooltip.tsx
+│   │   ├── use-mobile.ts
+│   │   └── utils.ts
+│   ├── workflows/
+│   │   ├── ContractRegistration.tsx
+│   │   ├── ENSIPXRegistration.tsx
+│   │   ├── PreflightChecker.tsx
+│   │   ├── UnifiedContractRegistration.tsx
+│   │   └── index.ts
+│   └── styles/
+│       └── globals.css
+└── lib/
+    ├── delegation/
+    │   ├── delegation-planner.ts
+    │   ├── permission-service.ts
+    │   ├── post-verification-service.ts
+    │   ├── safe-transaction-bundler.ts
+    │   └── index.ts
+    ├── ens/
+    │   ├── ens-addresses.ts
+    │   ├── ens-contracts.ts
+    │   ├── ens-helpers.ts
+    │   ├── ens-status-indicators.ts
+    │   ├── ens-utils.ts
+    │   ├── ens-write-operations.ts
+    │   ├── transfer-domain.ts
+    │   └── index.ts
+    ├── metadata/
+    │   ├── ensipx-hierarchical.ts
+    │   ├── ensipx-schema.json
+    │   ├── ensipx-utils.ts
+    │   ├── ensipx-validator.ts
+    │   ├── metadata-schemas.ts
+    │   ├── metadata-templates.ts
+    │   └── index.ts
+    ├── security/
+    │   ├── audit-log-service.ts
+    │   └── index.ts
+    └── services/
+        ├── address-display-service.ts
+        ├── base-metadata-service.ts
+        ├── ens-marketplace-service.ts
+        ├── etherscan-service.ts
+        ├── event-tracker.ts
+        ├── history-cache-service.ts
+        ├── name-browser-service.ts
+        ├── name-watching-service.ts
+        ├── notification-service.ts
+        ├── opensea-marketplace-service.ts
+        ├── premium-price-service.ts
+        ├── registry-service.ts
+        ├── seaport-advanced.ts
+        ├── seaport-error-handler.ts
+        ├── seaport-service.ts
+        ├── seaport-signer.ts
+        ├── user-config-service.ts
+        ├── web3-provider.tsx
+        └── index.ts</code></pre>
+
+<h3 id="from-best-practices-action-schemamd">From BEST-PRACTICES-ACTION-SCHEMA.md</h3>
+
+<h1>Best Practices: ENS Action Schema System</h1>
+
+<h2 id="overview">Overview</h2>
+
+This document outlines best practices for using the ENS Action Schema System to manage ENS domains efficiently and securely.
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<li><a href="#action-file-organization">Action File Organization</a></li>
+<li><a href="#syntax-best-practices">Syntax Best Practices</a></li>
+<li><a href="#security-considerations">Security Considerations</a></li>
+<li><a href="#gas-optimization">Gas Optimization</a></li>
+<li><a href="#error-prevention">Error Prevention</a></li>
+<li><a href="#template-usage">Template Usage</a></li>
+<li><a href="#version-control">Version Control</a></li>
+
+<h3 id="from-comprehensive-featuresmd">From COMPREHENSIVE-FEATURES.md</h3>
+
+<h1>Comprehensive ens.tools Features</h1>
+
+<h2 id="complete-implementation-guide">Complete Implementation Guide</h2>
+
+This document details all the production-ready features now available in ens.tools, following standards from github.com/accessor-io/naming-convention-toolkit and official ENS specifications.
+
+<hr>
+
+<h2 id="1-contract-registration-system">1. Contract Registration System</h2>
+
+<h3 id="from-cost-estimate-since-sept-10-2024md">From COST-ESTIMATE-SINCE-SEPT-10-2024.md</h3>
+
+<h1>Cost Estimate Report: Work Since September 10, 2024</h1>
+<h2 id="for-one-person-total-project-scope">For One Person - Total Project Scope</h2>
+
+<strong>Report Date:</strong> January 2025  
+<strong>Period:</strong> September 10, 2024 - Present  
+<strong>Developer:</strong> Single Full-Stack Web3 Developer  
+<strong>Rate Applied:</strong> $75-$150/hour (conservative market rate)
+
+<hr>
+
+<h2 id="executive-summary">Executive Summary</h2>
+
+This report estimates the total cost for all development work completed on the ens.tools project since September 10, 2024, including:
+<li>ENS.Tools 'app' repository development</li>
+<li>Research and development on accessor-io GitHub specifications</li>
+   - Granular-permissions research
+   - DAO registry specification work
+   - Naming convention toolkit research
+<li>Full-stack application development</li>
+<li>Specification implementation work</li>
+
+<h3 id="from-documentation-indexmd">From DOCUMENTATION-INDEX.md</h3>
+
+<h1>ENS Tools Documentation Index</h1>
+
+<h2 id="core-documentation">Core Documentation</h2>
+
+<h3 id="getting-started">Getting Started</h3>
+<li><a href="../README.html">README</a> - Project overview and setup</li>
+<li><a href="./PRODUCTION-SETUP.html">Production Setup</a> - Production deployment guide</li>
+<li><a href="./ENSIP19-QUICKSTART.html">ENSIP19 Quickstart</a> - Quick start guide for ENSIP-19</li>
+
+<h3 id="feature-documentation">Feature Documentation</h3>
+
+<h4 id="action-schema-system">Action Schema System</h4>
+<li><a href="./ENS-ACTION-SCHEMA-GUIDE.html">ENS Action Schema Guide</a> - Complete guide to using the action schema system</li>
+<li><a href="./BEST-PRACTICES-ACTION-SCHEMA.html">Best Practices: Action Schema</a> - Best practices for action schema usage</li>
+<li><a href="../src/lib/schemas/README.html">Schema Reference</a> - Technical reference for schema system</li>
+
+<h3 id="from-documentation-packagemd">From DOCUMENTATION-PACKAGE.md</h3>
+
+<h1>ENS Tools Documentation Package</h1>
+
+<h2 id="overview">Overview</h2>
+
+This document provides a compiled, organized package of all ENS Tools documentation, arranged in logical order for different use cases and audiences.
+
+<hr>
+
+<h2 id="part-1-getting-started-essential-reading">Part 1: Getting Started (Essential Reading)</h2>
+
+<h3 id="from-ens-action-schema-guidemd">From ENS-ACTION-SCHEMA-GUIDE.md</h3>
+
+<h1>ENS Action Schema System - Complete Guide</h1>
+
+<h2 id="overview">Overview</h2>
+
+The ENS Action Schema System allows you to define, batch, and execute multiple ENS protocol operations using a simple bracket notation syntax. This system enables you to:
+
+<li>Define custom action sequences using bracket notation</li>
+<li>Batch multiple actions into a single transaction (saving gas)</li>
+<li>Upload and execute action files</li>
+<li>Track all actions in the audit log with highlighted call data</li>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<h3 id="from-ens-enterprise-featuresmd">From ENS-ENTERPRISE-FEATURES.md</h3>
+
+<h1>ens.tools - Comprehensive Feature Guide</h1>
+
+<h2 id="overview">Overview</h2>
+A complete, industry-standard ENS management platform built following best practices from DAO Registry (accessor-io/dao-registry) and ENS Metadata Tools specifications. This enterprise-grade system provides full lifecycle management for ENS domains, contracts, DAOs, and integrations across multiple chains.
+
+<h2 id="core-feature-modules">Core Feature Modules</h2>
+
+<h3 id="1-dashboard">1. <strong>Dashboard</strong></h3>
+<li>Real-time overview of domains, contracts, and security metrics</li>
+<li>Treasury value tracking and governance activity</li>
+<li>Security posture monitoring with fuse protection, multisig coverage</li>
+<li>Domain portfolio with expiration tracking</li>
+<li>Recent alerts and notifications</li>
+
+<h3 id="2-advanced-analytics">2. <strong>Advanced Analytics</strong></h3>
+Comprehensive cross-chain analytics dashboard with:
+<li><strong>Network Metrics</strong>: TVL, transaction volume, contract distribution across Ethereum, Polygon, Arbitrum, Optimism, Base</li>
+<li><strong>DAO Performance</strong>: Ranked DAOs by activity, member count, treasury size, proposal count</li>
+<li><strong>Integration Health</strong>: Real-time monitoring of oracles, APIs, bridges, IPFS, subgraphs</li>
+<li><strong>Activity Feed</strong>: Live stream of all registry actions</li>
+<li><strong>Growth Insights</strong>: Month-over-month trends, participation rates, security scores</li>
+
+<h3 id="from-ensip19-quickstartmd">From ENSIP19-QUICKSTART.md</h3>
+
+<h1>ENSIP-19 Quick Start Guide</h1>
+
+<h2 id="installation">Installation</h2>
+
+<li>Install dependencies:</li>
+<pre><code class="language-bash">npm install</code></pre>
+
+This will install the new required packages:
+<li><code>ajv</code> - JSON Schema validator</li>
+<li><code>ajv-formats</code> - Format validators</li>
+
+<li>Start the development server:</li></ol>
+<pre><code class="language-bash">npm run dev</code></pre>
+
+<h3 id="from-help-and-suggestionsmd">From HELP-AND-SUGGESTIONS.md</h3>
+
+<h1>Help and Suggestions</h1>
+
+<h2 id="getting-help">Getting Help</h2>
+
+<h3 id="documentation">Documentation</h3>
+<li>Check this documentation for detailed information</li>
+<li>Review API-REFERENCE.md for API usage</li>
+<li>See CODE-USAGE.md for code examples</li>
+<li>Check BEST-PRACTICES.md for recommended approaches</li>
+
+<h3 id="support-channels">Support Channels</h3>
+<li><a href="link-to-issues">GitHub Issues</a> - Report bugs and request features</li>
+<li><a href="link">Discord/Slack</a> - Community support</li>
+<li><a href="email">Email Support</a> - Direct support inquiries</li>
+
+<h3 id="common-questions">Common Questions</h3>
+
+<h3 id="from-integration-completemd">From INTEGRATION-COMPLETE.md</h3>
+
+<h1>ENSIP-19 Integration Complete</h1>
+
+<h2 id="summary">Summary</h2>
+
+The ENS Contract Naming Best Practices application has been successfully upgraded with <strong>full ENSIP-19 compliance</strong> based on the <code>~/ens-metadata-tools-repo</code> standard.
+
+<strong>Compliance Score: 25% → 95%</strong>
+
+<h2 id="what-was-added">What Was Added</h2>
+
+<h3 id="from-legal-compliancemd">From LEGAL-COMPLIANCE.md</h3>
+
+<h1>Legal Compliance</h1>
+
+<h2 id="overview">Overview</h2>
+
+This document outlines legal compliance information for ENS Tools.
+
+<h2 id="regulatory-compliance">Regulatory Compliance</h2>
+
+<h3 id="applicable-regulations">Applicable Regulations</h3>
+<li>[List applicable regulations]</li>
+<li>GDPR (if applicable)</li>
+<li>CCPA (if applicable)</li>
+<li>Financial regulations (if applicable)</li>
+<li>Data protection laws</li>
+
+<h3 id="from-presentation-scriptmd">From PRESENTATION-SCRIPT.md</h3>
+
+<h1>ENS.tools Presentation Talking Points</h1>
+
+<h2 id="introduction-2-minutes">Introduction (2 minutes)</h2>
+
+<h3 id="hook">Hook</h3>
+"Managing ENS domains shouldn't require navigating multiple dashboards, reading through endless documentation, or worrying about security vulnerabilities."
+
+<h3 id="the-problem">The Problem</h3>
+<li>ENS domain management is fragmented across multiple tools</li>
+<li>Metadata configuration is complex and error-prone</li>
+<li>Security monitoring lacks visibility</li>
+<li>Governance participation is difficult to track</li>
+<li>No unified marketplace for ENS transactions</li>
+
+<h3 id="the-solution">The Solution</h3>
+"ENS.tools is a single platform that brings together everything you need to manage, secure, and trade ENS domains."
+
+<h3 id="from-production-setupmd">From PRODUCTION-SETUP.md</h3>
+
+<h1>ENS Tools Production Setup Guide</h1>
+
+<h2 id="overview">Overview</h2>
+
+This guide covers setting up the ENS Tools application for production with a backend API, database, and real blockchain integration.
+
+<h2 id="architecture">Architecture</h2>
+
+<li><strong>Frontend</strong>: React + Vite app (<code>src/</code>)</li>
+<li><strong>Backend</strong>: Express.js API server (<code>server/</code>)</li>
+<li><strong>Database</strong>: PostgreSQL for persistent storage</li>
+<li><strong>Cache</strong>: Redis for performance</li>
+<li><strong>Blockchain</strong>: viem for Ethereum interactions</li>
+
+<h3 id="from-production-update-summarymd">From PRODUCTION-UPDATE-SUMMARY.md</h3>
+
+<h1>Production Update Summary</h1>
+
+<h2 id="what-was-implemented">What Was Implemented</h2>
+
+This update transforms ENS Tools from a localStorage-based demo into a production-ready application with real backend services, database persistence, and full blockchain integration.
+
+<h2 id="major-changes">Major Changes</h2>
+
+<h3 id="1-backend-infrastructure-created">1. Backend Infrastructure Created</h3>
+
+<h3 id="from-project-hours-estimate-reportmd">From PROJECT-HOURS-ESTIMATE-REPORT.md</h3>
+
+<h1>ENS.Tools Development Hours Estimate Report</h1>
+<h2 id="itemized-breakdown-with-source-evidence">Itemized Breakdown with Source Evidence</h2>
+
+<strong>Report Date:</strong> January 2025  
+<strong>Project:</strong> ENS.Tools - Enterprise ENS Management Platform  
+<strong>Total Estimated Hours:</strong> 450-550 hours  
+<strong>Total Estimated Value:</strong> $33,750 - $82,500 (at $75-$150/hour)
+
+<hr>
+
+<h2 id="executive-summary">Executive Summary</h2>
+
+This report provides an itemized breakdown of development hours for the ENS.Tools project, with supporting evidence from the codebase. The project is a full-stack TypeScript/React application providing enterprise-grade ENS domain management, contract registry, DAO registry, marketplace integration, and ENSIP-19 compliance.
+
+<h3 id="from-terms-of-agreementmd">From TERMS-OF-AGREEMENT.md</h3>
+
+<h1>Terms of Agreement</h1>
+
+<h2 id="effective-date">Effective Date</h2>
+
+[Date]
+
+<h2 id="parties">Parties</h2>
+
+This agreement is between:
+<li><strong>Service Provider</strong>: ENS Tools</li>
+<li><strong>User</strong>: Individual or entity using the services</li>
+
+<h3 id="from-tooling-organization-completemd">From TOOLING-ORGANIZATION-COMPLETE.md</h3>
+
+<h1>Tooling Organization Complete</h1>
+
+<h2 id="summary">Summary</h2>
+
+Reorganized the entire codebase into a feature-based structure with clear domain boundaries.
+
+<h2 id="changes-made">Changes Made</h2>
+
+<h3 id="components-organization">Components Organization</h3>
+Moved 23+ components into domain-specific folders:
+<li><strong>workflows/</strong> - PreflightChecker, UnifiedContractRegistration, ContractRegistration, ENSIP19Registration</li>
+<li><strong>domains/</strong> - DomainManagement, DomainProfile</li>
+<li><strong>registry/</strong> - ContractRegistry, DAORegistry, ENSContractsRegistry, IntegrationRegistry</li>
+<li><strong>metadata/</strong> - MetadataEditor, MetadataTools, SchemaPreviewEditor, SchemaPreviewView</li>
+<li><strong>security/</strong> - SecurityMonitor, AuditLog, AuditLogTray</li>
+<li><strong>governance/</strong> - GovernancePanel</li>
+<li><strong>reference/</strong> - ProtocolReference, ProtocolSection, BestPractices, BestPracticesView, NamingToolkit</li>
+
+<h3 id="from-tooling-organizationmd">From TOOLING-ORGANIZATION.md</h3>
+
+<h1>Tooling Organization</h1>
+
+<h2 id="new-structure">New Structure</h2>
+
+<h3 id="components-by-feature-domain">Components by Feature Domain</h3>
+
+<pre><code class="language-text">src/components/
+├── ui/                     # UI primitives (shadcn/ui)
+├── workflows/              # Workflow components
+│   ├── PreflightChecker.tsx
+│   ├── UnifiedContractRegistration.tsx
+│   ├── ContractRegistration.tsx
+│   └── ENSIP19Registration.tsx
+├── domains/                # Domain management
+│   ├── DomainManagement.tsx
+│   └── DomainProfile.tsx
+├── registry/               # Contract registry
+│   ├── ContractRegistry.tsx
+│   ├── DAORegistry.tsx
+│   ├── ENSContractsRegistry.tsx
+│   └── IntegrationRegistry.tsx
+├── metadata/               # Metadata editing
+│   ├── MetadataEditor.tsx
+│   ├── MetadataTools.tsx
+│   ├── SchemaPreviewEditor.tsx
+│   └── SchemaPreviewView.tsx
+├── security/               # Security &amp; monitoring
+│   ├── SecurityMonitor.tsx
+│   ├── AuditLog.tsx
+│   └── AuditLogTray.tsx
+├── governance/             # Governance
+│   └── GovernancePanel.tsx
+└── reference/              # Documentation/reference
+    ├── ProtocolReference.tsx
+    ├── ProtocolSection.tsx
+    ├── BestPractices.tsx
+    ├── BestPracticesView.tsx
+    └── NamingToolkit.tsx</code></pre>
+
+<h3 id="library-by-feature-domain">Library by Feature Domain</h3>
+
+<h3 id="from-usage-policymd">From USAGE-POLICY.md</h3>
+
+<h1>Usage Policy</h1>
+
+<h2 id="overview">Overview</h2>
+
+This document outlines acceptable use policies for ENS Tools platform.
+
+<h2 id="acceptable-use">Acceptable Use</h2>
+
+<h3 id="permitted-uses">Permitted Uses</h3>
+<li>Legitimate domain management</li>
+<li>Legal business activities</li>
+<li>Personal domain management</li>
+<li>Educational purposes</li>
+<li>Development and testing</li>
+
+<h3 id="from-user-agreementsmd">From USER-AGREEMENTS.md</h3>
+
+<h1>User Agreements</h1>
+
+<h2 id="terms-of-service">Terms of Service</h2>
+
+<h3 id="acceptance">Acceptance</h3>
+By using ENS Tools, you agree to these terms of service.
+
+<h3 id="eligibility">Eligibility</h3>
+<li>Must be 18 years or older</li>
+<li>Must have legal capacity to enter contracts</li>
+<li>Must comply with applicable laws</li>
+<li>Must not be prohibited from using services</li>
+
+<h3 id="account-responsibility">Account Responsibility</h3>
+<li>You are responsible for account security</li>
+<li>You must protect wallet credentials</li>
+<li>You are liable for account activities</li>
+<li>You must report unauthorized access</li>
+
+<h3 id="from-web3-provider-disclosuremd">From WEB3-PROVIDER-DISCLOSURE.md</h3>
+
+<h1>Web3 Provider Disclosure</h1>
+
+<h2 id="overview">Overview</h2>
+
+ENS Tools integrates with various Web3 providers to enable blockchain interactions. This document discloses important information about Web3 provider usage.
+
+<h2 id="supported-providers">Supported Providers</h2>
+
+<h3 id="metamask">MetaMask</h3>
+<li>Browser extension wallet</li>
+<li>Mobile app available</li>
+<li>EIP-1193 compatible</li>
+<li>Most widely used</li>
+
+
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

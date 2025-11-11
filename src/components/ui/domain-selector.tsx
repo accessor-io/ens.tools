@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { fetchENSNames, type ENSDomain } from '../../lib/ens/ens-utils';
 import {
   Select,

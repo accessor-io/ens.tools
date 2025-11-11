@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contracts List - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="active">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#custom-smart-contracts">Custom Smart Contracts</a></li>
+  <li><a href="#feecollectionsol">FeeCollection.sol</a></li>
+<li><a href="#ens-protocol-contracts">ENS Protocol Contracts</a></li>
+  <li><a href="#ethereum-mainnet-chain-id-1">Ethereum Mainnet (Chain ID: 1)</a></li>
+  <li><a href="#optimism-chain-id-10">Optimism (Chain ID: 10)</a></li>
+  <li><a href="#base-chain-id-8453">Base (Chain ID: 8453)</a></li>
+  <li><a href="#arbitrum-chain-id-42161">Arbitrum (Chain ID: 42161)</a></li>
+  <li><a href="#sepolia-testnet-chain-id-11155111">Sepolia Testnet (Chain ID: 11155111)</a></li>
+<li><a href="#seaport-protocol-contracts">Seaport Protocol Contracts</a></li>
+  <li><a href="#supported-chains">Supported Chains</a></li>
+<li><a href="#contract-abis">Contract ABIs</a></li>
+  <li><a href="#ens-contract-abis">ENS Contract ABIs</a></li>
+  <li><a href="#seaport-contract-abi">Seaport Contract ABI</a></li>
+<li><a href="#contract-usage-by-feature">Contract Usage by Feature</a></li>
+  <li><a href="#domain-registration">Domain Registration</a></li>
+  <li><a href="#domain-management">Domain Management</a></li>
+  <li><a href="#marketplace-operations">Marketplace Operations</a></li>
+  <li><a href="#fee-collection">Fee Collection</a></li>
+  <li><a href="#batch-operations">Batch Operations</a></li>
+<li><a href="#contract-interaction-patterns">Contract Interaction Patterns</a></li>
+  <li><a href="#ownable-pattern">Ownable Pattern</a></li>
+  <li><a href="#ens-control-patterns">ENS Control Patterns</a></li>
+<li><a href="#custom-contracts-summary">Custom Contracts Summary</a></li>
+  <li><a href="#currently-implemented">Currently Implemented</a></li>
+  <li><a href="#granular-permission-system-contracts">Granular Permission System Contracts</a></li>
+  <li><a href="#implemented-ready-for-deployment">Implemented (Ready for Deployment)</a></li>
+  <li><a href="#required-but-not-yet-deployed">Required But Not Yet Deployed</a></li>
+  <li><a href="#optional-future-contracts-potential">Optional Future Contracts (Potential)</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+
+        <h1>Contracts List</h1>
+<p>This document lists all smart contracts used in the ens.tools application.</p>
+<h2 id="custom-smart-contracts">Custom Smart Contracts</h2>
+<h3 id="feecollectionsol">FeeCollection.sol</h3>
+<li><strong>Location</strong>: <code>contracts/FeeCollection.sol</code></li>
+<li><strong>Solidity Version</strong>: ^0.8.20</li>
+<li><strong>License</strong>: MIT</li>
+<li><strong>Status</strong>: Not yet deployed (placeholder address: <code>0x0000000000000000000000000000000000000000</code>)</li>
+<li><strong>Service Integration</strong>: <code>src/lib/services/fee-collection-service.ts</code></li>
+<h4 id="purpose">Purpose</h4>
+<p>Collects fees for contract registrations, ENS name registrations, subdomain creation, domain transfers, and marketplace transactions. Allows admin-controlled fee withdrawal and fee rate management.</p>
+<h4 id="key-features">Key Features</h4>
+<li>Registration fee collection for contract registrations</li>
+<li>Name registration fee collection for ENS name registrations</li>
+<li>Subdomain creation fee collection</li>
+<li>Transfer fee collection for domain transfers</li>
+<li>Marketplace fee collection (configurable basis points, max 10%)</li>
+<li>Admin-controlled fee withdrawal</li>
+<li>Fee rate management (admin can update fees)</li>
+<li>Separate tracking for each fee type</li>
+<li>Event emission for all fee transactions</li>
+<h4 id="functions">Functions</h4>
+<strong>Public/External Functions:</strong>
+<li><code>payRegistrationFee(address registrant, address contractAddress, string ensName)</code> - Pay fee for contract registration</li>
+<li><code>payNameRegistrationFee(address registrant, string ensName)</code> - Pay fee for ENS name registration</li>
+<li><code>paySubdomainCreationFee(address creator, string parentName, string subdomainLabel)</code> - Pay fee for subdomain creation</li>
+<li><code>payTransferFee(address from, address to, string ensName)</code> - Pay fee for domain transfer</li>
+<li><code>payMarketplaceFee(address seller, address buyer, address tokenAddress, uint256 tokenId, uint256 salePrice)</code> - Record marketplace fee payment</li>
+<li><code>calculateMarketplaceFee(uint256 salePrice)</code> - Calculate marketplace fee from sale price</li>
+<li><code>getTotalFees()</code> - Get total fees collected across all types</li>
+<li><code>getAvailableBalance()</code> - Get available balance for withdrawal</li>
+<li><code>getRegistrationFees()</code> - Get total registration fees collected</li>
+<li><code>getNameRegistrationFees()</code> - Get total name registration fees collected</li>
+<li><code>getSubdomainCreationFees()</code> - Get total subdomain creation fees collected</li>
+<li><code>getTransferFees()</code> - Get total transfer fees collected</li>
+<li><code>getMarketplaceFees()</code> - Get total marketplace fees collected</li>
+<strong>Admin-Only Functions:</strong>
+<li><code>withdrawFees(uint256 amount, address recipient)</code> - Withdraw collected fees</li>
+<li><code>setRegistrationFee(uint256 newFee)</code> - Update registration fee</li>
+<li><code>setNameRegistrationFee(uint256 newFee)</code> - Update name registration fee</li>
+<li><code>setSubdomainCreationFee(uint256 newFee)</code> - Update subdomain creation fee</li>
+<li><code>setTransferFee(uint256 newFee)</code> - Update transfer fee</li>
+<li><code>setMarketplaceFee(uint256 newFeeBps)</code> - Update marketplace fee rate (max 1000 = 10%)</li>
+<li><code>transferAdmin(address newAdmin)</code> - Transfer admin role</li>
+<h4 id="state-variables">State Variables</h4>
+<li><code>admin</code> - Admin address (set in constructor)</li>
+<li><code>registrationFee</code> - Fee for contract registration</li>
+<li><code>nameRegistrationFee</code> - Fee for ENS name registration</li>
+<li><code>subdomainCreationFee</code> - Fee for subdomain creation</li>
+<li><code>transferFee</code> - Fee for domain transfer</li>
+<li><code>marketplaceFeeBps</code> - Marketplace fee in basis points (e.g., 250 = 2.5%)</li>
+<li><code>totalFeesCollected</code> - Total fees collected across all types</li>
+<li><code>registrationFeesCollected</code> - Total registration fees</li>
+<li><code>nameRegistrationFeesCollected</code> - Total name registration fees</li>
+<li><code>subdomainCreationFeesCollected</code> - Total subdomain creation fees</li>
+<li><code>transferFeesCollected</code> - Total transfer fees</li>
+<li><code>marketplaceFeesCollected</code> - Total marketplace fees</li>
+<h4 id="events">Events</h4>
+<li><code>RegistrationFeePaid(address indexed registrant, address indexed contractAddress, string ensName, uint256 amount)</code></li>
+<li><code>NameRegistrationFeePaid(address indexed registrant, string ensName, uint256 amount)</code></li>
+<li><code>SubdomainCreationFeePaid(address indexed creator, string parentName, string subdomainLabel, string fullName, uint256 amount)</code></li>
+<li><code>TransferFeePaid(address indexed from, address indexed to, string ensName, uint256 amount)</code></li>
+<li><code>MarketplaceFeePaid(address indexed seller, address indexed buyer, address indexed tokenAddress, uint256 tokenId, uint256 salePrice, uint256 feeAmount)</code></li>
+<li><code>FeesWithdrawn(address indexed recipient, uint256 amount)</code></li>
+<li><code>RegistrationFeeUpdated(uint256 oldFee, uint256 newFee)</code></li>
+<li><code>MarketplaceFeeUpdated(uint256 oldFeeBps, uint256 newFeeBps)</code></li>
+<h4 id="default-fees-in-service-configuration">Default Fees (in service configuration)</h4>
+<li>Registration Fee: 0.01 ETH</li>
+<li>Name Registration Fee: 0.005 ETH</li>
+<li>Subdomain Creation Fee: 0.003 ETH</li>
+<li>Transfer Fee: 0.002 ETH</li>
+<li>Marketplace Fee: 250 basis points (2.5%)</li>
+<h4 id="integration-points">Integration Points</h4>
+<li><code>src/lib/services/fee-collection-service.ts</code> - Main service for interacting with contract</li>
+<li><code>src/components/admin/FeeManagement.tsx</code> - Admin UI for fee management</li>
+<li><code>src/components/workflows/ContractRegistration.tsx</code> - Uses fee service during registration</li>
+<li><code>src/lib/ens/register-name.ts</code> - Uses fee service for name registration</li>
+<li><code>src/lib/ens/ens-write-operations.ts</code> - Uses fee service for subdomain creation</li>
+<li><code>src/lib/ens/transfer-domain.ts</code> - Uses fee service for domain transfers</li>
+<li><code>src/lib/services/ens-marketplace-service.ts</code> - Uses fee service for marketplace fees</li>
+<li><code>src/components/fees/FeePreview.tsx</code> - Fee estimation UI</li>
+<li><code>src/components/fees/FeeHistory.tsx</code> - Fee history display</li>
+<h4 id="deployment-notes">Deployment Notes</h4>
+<li>Contract address must be configured in <code>feeCollectionService</code> instance</li>
+<li>Admin address must be set during deployment</li>
+<li>All fees are set in constructor but can be updated by admin</li>
+<li>Marketplace fee is capped at 10% (1000 basis points)</li>
+<li>Contract accepts ETH via <code>receive()</code> fallback function</li>
+<h2 id="ens-protocol-contracts">ENS Protocol Contracts</h2>
+<h3 id="ethereum-mainnet-chain-id-1">Ethereum Mainnet (Chain ID: 1)</h3>
+<li><strong>ENS Registry</strong>: <code>0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e</code></li>
+<li><strong>Public Resolver</strong>: <code>0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63</code></li>
+<li><strong>Name Wrapper</strong>: <code>0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401</code></li>
+<li><strong>ETH Registrar Controller</strong>: <code>0x253553366Da8546fC250F225fe3d25d0C782303b</code></li>
+<li><strong>Reverse Registrar</strong>: <code>0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb</code></li>
+<li><strong>Multicall3</strong>: <code>0xcA11bde05977b3631167028862bE2a173976CA11</code></li>
+<h3 id="optimism-chain-id-10">Optimism (Chain ID: 10)</h3>
+<li><strong>ENS Registry</strong>: <code>0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e</code></li>
+<li><strong>Public Resolver</strong>: <code>0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63</code></li>
+<li><strong>Name Wrapper</strong>: <code>0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401</code></li>
+<li><strong>ETH Registrar Controller</strong>: <code>0x253553366Da8546fC250F225fe3d25d0C782303b</code></li>
+<li><strong>Reverse Registrar</strong>: <code>0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb</code></li>
+<li><strong>Multicall3</strong>: <code>0xcA11bde05977b3631167028862bE2a173976CA11</code></li>
+<h3 id="base-chain-id-8453">Base (Chain ID: 8453)</h3>
+<li><strong>ENS Registry</strong>: <code>0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e</code></li>
+<li><strong>Public Resolver</strong>: <code>0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63</code></li>
+<li><strong>Name Wrapper</strong>: <code>0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401</code></li>
+<li><strong>ETH Registrar Controller</strong>: <code>0x253553366Da8546fC250F225fe3d25d0C782303b</code></li>
+<li><strong>Reverse Registrar</strong>: <code>0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb</code></li>
+<li><strong>Multicall3</strong>: <code>0xcA11bde05977b3631167028862bE2a173976CA11</code></li>
+<h3 id="arbitrum-chain-id-42161">Arbitrum (Chain ID: 42161)</h3>
+<li><strong>ENS Registry</strong>: <code>0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e</code></li>
+<li><strong>Public Resolver</strong>: <code>0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63</code></li>
+<li><strong>Name Wrapper</strong>: <code>0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401</code></li>
+<li><strong>ETH Registrar Controller</strong>: <code>0x253553366Da8546fC250F225fe3d25d0C782303b</code></li>
+<li><strong>Reverse Registrar</strong>: <code>0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb</code></li>
+<li><strong>Multicall3</strong>: <code>0xcA11bde05977b3631167028862bE2a173976CA11</code></li>
+<h3 id="sepolia-testnet-chain-id-11155111">Sepolia Testnet (Chain ID: 11155111)</h3>
+<li><strong>ENS Registry</strong>: <code>0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e</code></li>
+<li><strong>Public Resolver</strong>: <code>0x19c2d5D0f035563344dBB7bE5fD2cD33F3668B52e</code></li>
+<li><strong>Name Wrapper</strong>: <code>0x0635513f179D50A207757E05759CbD106d7dFcE8</code></li>
+<li><strong>ETH Registrar Controller</strong>: <code>0xFED6a969AaA60E4961FCD3EBF1A2e8913ac65B72</code></li>
+<li><strong>Reverse Registrar</strong>: <code>0xA0a1AbcDAe2794bC68b6f8e0bEf06d312206EE9A</code></li>
+<li><strong>Multicall3</strong>: <code>0xcA11bde05977b3631167028862bE2a173976CA11</code></li>
+<h2 id="seaport-protocol-contracts">Seaport Protocol Contracts</h2>
+<p>Seaport v1.5 is used for NFT marketplace operations. The same contract address is used across all supported chains:</p>
+<li><strong>Seaport v1.5</strong>: <code>0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC</code></li>
+<h3 id="supported-chains">Supported Chains</h3>
+<li>Ethereum Mainnet (Chain ID: 1)</li>
+<li>Sepolia Testnet (Chain ID: 11155111)</li>
+<li>Optimism (Chain ID: 10)</li>
+<li>Base (Chain ID: 8453)</li>
+<li>Arbitrum (Chain ID: 42161)</li>
+<h2 id="contract-abis">Contract ABIs</h2>
+<h3 id="ens-contract-abis">ENS Contract ABIs</h3>
+<p>Located in <code>src/lib/ens/ens-contracts.ts</code>:</p>
+<li><code>ENS_REGISTRY_ABI</code> - Core ENS registry functions</li>
+<li><code>PUBLIC_RESOLVER_ABI</code> - Resolver functions (setAddr, setText, contenthash, etc.)</li>
+<li><code>NAME_WRAPPER_ABI</code> - NameWrapper functions (wrap, unwrap, setFuses, etc.)</li>
+<li><code>ETH_REGISTRAR_CONTROLLER_ABI</code> - Registration controller functions</li>
+<li><code>REVERSE_REGISTRAR_ABI</code> - Reverse resolution functions</li>
+<li><code>MULTICALL3_ABI</code> - Batch call operations</li>
+<h3 id="seaport-contract-abi">Seaport Contract ABI</h3>
+<p>Located in <code>src/lib/services/seaport-service.ts</code>:</p>
+<li><code>SEAPORT_V15_ABI</code> - Complete Seaport v1.5 ABI including:</li>
+<p>- <code>fulfillBasicOrder()</code> - Execute simple buy/sell orders - <code>fulfillOrder()</code> - Execute complex orders - <code>getOrderStatus()</code> - Check order validation - <code>matchOrders()</code> - Match multiple orders - <code>cancel()</code> - Cancel orders - <code>validate()</code> - Validate orders - <code>getCounter()</code> - Get order counter - <code>getOrderHash()</code> - Get order hash</p>
+<h2 id="contract-usage-by-feature">Contract Usage by Feature</h2>
+<h3 id="domain-registration">Domain Registration</h3>
+<li>ETH Registrar Controller</li>
+<li>ENS Registry</li>
+<li>Public Resolver</li>
+<li>Name Wrapper (optional)</li>
+<h3 id="domain-management">Domain Management</h3>
+<li>ENS Registry</li>
+<li>Public Resolver</li>
+<li>Name Wrapper</li>
+<li>Reverse Registrar</li>
+<h3 id="marketplace-operations">Marketplace Operations</h3>
+<li>Seaport v1.5</li>
+<li>ERC721 contracts (ENS domains)</li>
+<li>ERC20 contracts (payment tokens)</li>
+<h3 id="fee-collection">Fee Collection</h3>
+<li>FeeCollection (custom contract)</li>
+<h3 id="batch-operations">Batch Operations</h3>
+<li>Multicall3</li>
+<h2 id="contract-interaction-patterns">Contract Interaction Patterns</h2>
+<h3 id="ownable-pattern">Ownable Pattern</h3>
+<p>Contracts checked for ownership patterns:</p>
+<li><code>owner()</code> function detection</li>
+<li>AccessControl pattern detection</li>
+<li>Gnosis Safe multisig detection</li>
+<li>EIP-1967 proxy storage slots</li>
+<h3 id="ens-control-patterns">ENS Control Patterns</h3>
+<li>Registry ownership</li>
+<li>NameWrapper ownership</li>
+<li>Resolver authorization</li>
+<h2 id="custom-contracts-summary">Custom Contracts Summary</h2>
+<h3 id="currently-implemented">Currently Implemented</h3>
+<ol><li><strong>FeeCollection</strong> - Fee collection and management contract</li>
+<p>- Status: Code complete, not yet deployed - Location: <code>contracts/FeeCollection.sol</code> - Service: <code>src/lib/services/fee-collection-service.ts</code></p>
+<h3 id="granular-permission-system-contracts">Granular Permission System Contracts</h3>
+<p>The granular permission system enables fine-grained, time-bound delegation of ENS domain operations. This system implements the ENSIP GNA (Granular Name Assignment) specification.</p>
+<strong>Core Contracts:</strong>
+<li><strong>ENSNamingDelegateGranular</strong> - Central policy repository for delegation rules</li>
+<li><strong>GranularResolver</strong> - ENS resolver that enforces granular permissions</li>
+<strong>Interface Contracts:</strong>
+<li><code>IENSRegistry.sol</code> - ENS Registry interface</li>
+<li><code>INameWrapper.sol</code> - NameWrapper interface</li>
+<li><code>IENSResolver.sol</code> - ENS Resolver interface</li>
+<li><code>IGranularAssignmentController.sol</code> - GNA controller interface</li>
+<h3 id="implemented-ready-for-deployment">Implemented (Ready for Deployment)</h3>
+<li><strong>ENSNamingDelegateGranular</strong> - Granular permission delegation contract</li>
+<p>- Status: Code complete, ready to deploy - Location: <code>contracts/ENSNamingDelegateGranular.sol</code> - Purpose: Fine-grained, time-bound permission delegation for ENS domains - Key Features: - 11 granular permission types (bitmask-based) - Time-bound delegations with expiration - Whitelist/blacklist support - Emergency pause and revoke functions - Lock/unlock delegates - Maximum delegation duration limits - Permission Types: - <code>MANAGE_SUBDOMAINS</code> (1) - Create and manage subdomains - <code>SET_ADDR_RECORD</code> (2) - Set address records - <code>SET_TEXT_RECORD</code> (4) - Set text records - <code>SET_CONTENT_HASH</code> (8) - Set content hash - <code>SET_PUBKEY</code> (16) - Set public key - <code>SET_ABI</code> (32) - Set ABI data - <code>SET_ZONEHASH</code> (64) - Set zone hash - <code>SET_TTL</code> (128) - Set TTL - <code>SET_RESOLVER</code> (256) - Set resolver - <code>SET_OWNER</code> (512) - Set owner (Registry operations) - <code>SET_FUSES</code> (1024) - Set fuses (NameWrapper operations) - Integration: Hardcoded mainnet ENS Registry and NameWrapper addresses - Security: ReentrancyGuard, Pausable, comprehensive access controls</p>
+<li><strong>GranularResolver</strong> - ENS Resolver with granular permission enforcement</li>
+<p>- Status: Code complete, ready to deploy - Location: <code>contracts/GranularResolver.sol</code> - Purpose: ENS resolver that enforces granular permissions from ENSNamingDelegateGranular - Key Features: - Full ENS resolver interface compliance (EIP-137, EIP-165, EIP-205, etc.) - Permission enforcement for all resolver operations - Owner override toggle (optional bypass) - Integration with ENSNamingDelegateGranular for authorization - Deployment: Requires ENSNamingDelegateGranular address in constructor - Compatibility: Full EIP compliance for all ENS resolver functions</p>
+<h3 id="required-but-not-yet-deployed">Required But Not Yet Deployed</h3>
+<li><strong>BaseMetadataRegistry</strong> - Metadata storage contract for cross-chain resolution</li></ol>
+<p>- Status: ABI defined, contract not yet written/deployed - Location: ABI in <code>src/lib/services/base-metadata-service.ts</code> (lines 13-76) - Purpose: Store contract metadata on Base chain for cross-chain access - Required Functions: - <code>setMetadata(bytes32 nameHash, string canonicalId, string metadataJson)</code> - <code>getMetadata(bytes32 nameHash)</code> returns <code>(string canonicalId, string metadataJson)</code> - <code>setCrossChainPointer(bytes32 nameHash, uint256 chainId, address contractAddress)</code> - <code>getCrossChainPointer(bytes32 nameHash, uint256 chainId)</code> returns <code>address</code> - Events: - <code>MetadataStored(bytes32 indexed nameHash, string canonicalId, string metadataHash)</code> - <code>CrossChainPointerSet(bytes32 indexed nameHash, uint256 chainId, address contractAddress)</code> - Deployment: Must be deployed on Base (chainId: 8453) - Current Status: Placeholder address <code>0x0000000000000000000000000000000000000000</code> - Impact: Base metadata storage features will fail until deployed</p>
+<h3 id="optional-future-contracts-potential">Optional Future Contracts (Potential)</h3>
+<p>Based on codebase architecture, potential future contracts may include:</p>
+<li>Enhanced metadata registry with versioning</li>
+<li>Cross-chain bridge integration contracts</li>
+<li>Additional fee management contracts</li>
+<li>Batch operation coordinator contract</li>
+<li>Factory contracts for deploying granular permission contracts</li>
+<h2 id="notes">Notes</h2>
+<li>All ENS contracts on L2s (Optimism, Base, Arbitrum) use the same addresses as mainnet for cross-chain resolution</li>
+<li>Seaport v1.5 uses the same address across all supported chains</li>
+<li>Testnet (Sepolia) has different contract addresses for ENS components</li>
+<li>Multicall3 uses the same address across all chains</li>
+<li><strong>FeeCollection contract is not yet deployed</strong> - update <code>feeCollectionService</code> configuration with deployed address before use</li>
+<li><strong>ENSNamingDelegateGranular and GranularResolver are ready for deployment</strong> - these contracts implement the ENSIP GNA specification for granular permission management</li>
+<li><strong>BaseMetadataRegistry contract is required but not yet implemented</strong> - the ABI is defined in <code>base-metadata-service.ts</code> but the Solidity contract needs to be written and deployed on Base chain (chainId: 8453). Until deployed, Base metadata storage features will use ENS-only storage with IPFS fallback.</li>
+<li><strong>Granular permission contracts use hardcoded mainnet ENS addresses</strong> - ensure these match your deployment network or update before deployment</li>
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

@@ -70,7 +70,7 @@ import {
   Copy,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { historyCacheService } from '../../lib/services';
 import { 
   fetchENSNames, 

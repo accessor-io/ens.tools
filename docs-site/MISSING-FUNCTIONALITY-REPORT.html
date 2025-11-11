@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missing Functionality Report - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="active">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#ens-tools-current-status">ENS Tools - Current Status</a></li>
+<li><a href="#executive-summary">Executive Summary</a></li>
+<li><a href="#1-domain-management-missing-actions-buttons">1. Domain Management - Missing Actions &amp; Buttons</a></li>
+  <li><a href="#subdomain-management">Subdomain Management</a></li>
+  <li><a href="#resolver-configuration">Resolver Configuration</a></li>
+  <li><a href="#reverse-records">Reverse Records</a></li>
+  <li><a href="#name-wrapper-operations">Name Wrapper Operations</a></li>
+  <li><a href="#contenthash">Contenthash</a></li>
+  <li><a href="#multi-coin-address-support">Multi-Coin Address Support</a></li>
+<li><a href="#2-marketplace-missing-actions">2. Marketplace - Missing Actions</a></li>
+  <li><a href="#buysell-operations">Buy/Sell Operations</a></li>
+  <li><a href="#offer-management">Offer Management</a></li>
+  <li><a href="#listing-management">Listing Management</a></li>
+<li><a href="#3-metadata-tools-non-functional-features">3. Metadata Tools - Non-Functional Features</a></li>
+  <li><a href="#bulk-operations">Bulk Operations</a></li>
+  <li><a href="#importexport">Import/Export</a></li>
+  <li><a href="#verification">Verification</a></li>
+  <li><a href="#history">History</a></li>
+<li><a href="#4-domain-management-page-missing-actions">4. Domain Management Page - Missing Actions</a></li>
+  <li><a href="#quick-actions-on-domain-list">Quick Actions on Domain List</a></li>
+  <li><a href="#group-management">Group Management</a></li>
+  <li><a href="#filters-sorting">Filters &amp; Sorting</a></li>
+<li><a href="#5-blockchain-write-operations-not-wired-to-ui">5. Blockchain Write Operations - Not Wired to UI</a></li>
+  <li><a href="#address-records">Address Records</a></li>
+  <li><a href="#text-records">Text Records</a></li>
+  <li><a href="#transfer-operations">Transfer Operations</a></li>
+  <li><a href="#delegation-permissions">Delegation &amp; Permissions</a></li>
+<li><a href="#6-metadata-editor-incomplete-features">6. Metadata Editor - Incomplete Features</a></li>
+  <li><a href="#schema-editor">Schema Editor</a></li>
+  <li><a href="#abi-management">ABI Management</a></li>
+  <li><a href="#content-hash-tab">Content Hash Tab</a></li>
+<li><a href="#7-advanced-features-missing-completely">7. Advanced Features - Missing Completely</a></li>
+  <li><a href="#multi-wallet-support">Multi-Wallet Support</a></li>
+  <li><a href="#real-time-updates">Real-Time Updates</a></li>
+  <li><a href="#batch-operations-ui">Batch Operations UI</a></li>
+  <li><a href="#transaction-history">Transaction History</a></li>
+  <li><a href="#analytics-reporting">Analytics &amp; Reporting</a></li>
+  <li><a href="#governance-panel">Governance Panel</a></li>
+<li><a href="#8-settings-configuration">8. Settings &amp; Configuration</a></li>
+  <li><a href="#user-settings-persistence">User Settings Persistence</a></li>
+  <li><a href="#notification-preferences">Notification Preferences</a></li>
+  <li><a href="#gas-price-configuration">Gas Price Configuration</a></li>
+<li><a href="#9-workflow-components-status-unknown">9. Workflow Components - Status Unknown</a></li>
+  <li><a href="#preflight-checker">Preflight Checker</a></li>
+  <li><a href="#contract-registration">Contract Registration</a></li>
+  <li><a href="#ensip19-registration">ENSIP19 Registration</a></li>
+<li><a href="#10-uiux-missing-features">10. UI/UX Missing Features</a></li>
+  <li><a href="#loading-states">Loading States</a></li>
+  <li><a href="#error-handling">Error Handling</a></li>
+  <li><a href="#transaction-status">Transaction Status</a></li>
+  <li><a href="#confirmation-dialogs">Confirmation Dialogs</a></li>
+  <li><a href="#search-discovery">Search &amp; Discovery</a></li>
+  <li><a href="#exportbackup">Export/Backup</a></li>
+<li><a href="#priority-recommendations">Priority Recommendations</a></li>
+  <li><a href="#high-priority-core-functionality">High Priority (Core Functionality)</a></li>
+  <li><a href="#medium-priority-enhanced-features">Medium Priority (Enhanced Features)</a></li>
+  <li><a href="#low-priority-nice-to-have">Low Priority (Nice to Have)</a></li>
+<li><a href="#technical-notes">Technical Notes</a></li>
+  <li><a href="#whats-working">What&#039;s Working</a></li>
+  <li><a href="#what-needs-work">What Needs Work</a></li>
+  <li><a href="#architecture-strengths">Architecture Strengths</a></li>
+  <li><a href="#architecture-gaps">Architecture Gaps</a></li>
+</ul>
+</div>
+
+        <h1>Missing Functionality Report</h1>
+<h2 id="ens-tools-current-status">ENS Tools - Current Status</h2>
+<strong>Generated</strong>: 2025-01-27
+<strong>Status</strong>: Production-ready infrastructure, partial UI implementation
+<hr>
+<h2 id="executive-summary">Executive Summary</h2>
+<p>The application has a solid foundation with backend services, database schema, and blockchain integration libraries. However, many UI features are either stubbed out, showing "coming soon" messages, or have incomplete implementations. The core infrastructure exists but needs to be wired to the UI components.</p>
+<hr>
+<h2 id="1-domain-management-missing-actions-buttons">1. Domain Management - Missing Actions & Buttons</h2>
+<h3 id="subdomain-management">Subdomain Management</h3>
+<li><strong>Location</strong>: <code>DomainProfile.tsx</code> - Subdomains tab</li>
+<li><strong>Status</strong>: UI exists, but:</li>
+<p>- ❌ "Create Subdomain" button shows dialog but doesn't execute transaction - ❌ "Manage" button on subdomain list items has no action - ❌ Subdomain deletion not implemented - ❌ Subdomain ownership transfer not implemented - <strong>Backend Ready</strong>: <code>createSubdomain()</code> exists in <code>ens-write-operations.ts</code> but not wired</p>
+<h3 id="resolver-configuration">Resolver Configuration</h3>
+<li><strong>Location</strong>: <code>DomainProfile.tsx</code> - Resolver tab</li>
+<li><strong>Status</strong>: Shows toast "Resolver change functionality coming soon"</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Set resolver button doesn't execute - ❌ Resolver migration helper/wizard - ❌ Resolver comparison/preview - <strong>Backend Ready</strong>: Resolver address can be read but write not connected</p>
+<h3 id="reverse-records">Reverse Records</h3>
+<li><strong>Location</strong>: <code>DomainProfile.tsx</code> - Reverse tab</li>
+<li><strong>Status</strong>: Shows toast "Reverse record functionality coming soon"</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Set reverse name functionality - ❌ Clear reverse record - ❌ Reverse record status check</p>
+<h3 id="name-wrapper-operations">Name Wrapper Operations</h3>
+<li><strong>Location</strong>: <code>DomainProfile.tsx</code> - Wrapper tab</li>
+<li><strong>Status</strong>: Shows toast "Wrap/Unwrap functionality coming soon"</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Wrap name button execution - ❌ Unwrap name button execution - ❌ Fuse management UI (CANNOT_UNWRAP, CANNOT_SET_RESOLVER, etc.) - ❌ Fuse status display - <strong>Backend Ready</strong>: Wrap/unwrap functions exist but not connected</p>
+<h3 id="contenthash">Contenthash</h3>
+<li><strong>Location</strong>: <code>DomainProfile.tsx</code> - Records tab</li>
+<li><strong>Status</strong>: Disabled input with "Contenthash configuration coming soon"</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ IPFS hash setting - ❌ Arweave hash setting - ❌ Contenthash format validation - ❌ Contenthash preview/resolve</p>
+<h3 id="multi-coin-address-support">Multi-Coin Address Support</h3>
+<li><strong>Location</strong>: <code>DomainProfile.tsx</code> - Records tab, "Add Coin" button</li>
+<li><strong>Status</strong>: Button exists but no action</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Add BTC address - ❌ Add SOL address - ❌ Add other chain addresses (Polygon, Arbitrum, etc.) - ❌ Remove coin addresses - ❌ Address validation per coin type</p>
+<hr>
+<h2 id="2-marketplace-missing-actions">2. Marketplace - Missing Actions</h2>
+<h3 id="buysell-operations">Buy/Sell Operations</h3>
+<li><strong>Location</strong>: <code>ENSMarketplace.tsx</code></li>
+<li><strong>Status</strong>: Partial implementation</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ <code>handleBuyDomain()</code> is stubbed - shows toast but doesn't fulfill Seaport order - ❌ Accept offer functionality - ❌ Cancel listing button/functionality - ❌ Cancel offer button/functionality - ❌ Order status tracking - ❌ Transaction receipt display - <strong>Backend Ready</strong>: Seaport service has <code>matchOrders()</code> but not connected to UI</p>
+<h3 id="offer-management">Offer Management</h3>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ View offer details in expanded listing - ❌ Accept offer from offers list - ❌ Reject/counter-offer functionality - ❌ Offer expiration tracking and warnings</p>
+<h3 id="listing-management">Listing Management</h3>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Edit listing price/duration - ❌ Pause/resume listings - ❌ View listing analytics (views, offers) - ❌ Bulk listing operations</p>
+<hr>
+<h2 id="3-metadata-tools-non-functional-features">3. Metadata Tools - Non-Functional Features</h2>
+<h3 id="bulk-operations">Bulk Operations</h3>
+<li><strong>Location</strong>: <code>MetadataTools.tsx</code> - Bulk Operations tab</li>
+<li><strong>Status</strong>: UI exists but completely non-functional</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Domain selection doesn't load actual user domains - ❌ Bulk operation execution (Add/Update/Remove/Verify) - ❌ Batch transaction creation - ❌ Progress tracking for bulk operations - ❌ Error handling and rollback</p>
+<h3 id="importexport">Import/Export</h3>
+<li><strong>Status</strong>: Buttons exist but <code>handleBulkImport()</code> and <code>handleBulkExport()</code> not implemented</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ JSON file upload and parsing - ❌ CSV import - ❌ YAML import - ❌ Export to JSON/CSV/YAML - ❌ Template download - ❌ Validation on import</p>
+<h3 id="verification">Verification</h3>
+<li><strong>Status</strong>: "Verify All Fields" button has no implementation</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Field verification logic (e.g., Twitter handle format, URL validation) - ❌ On-chain verification checks - ❌ Verification status persistence - ❌ Verification badge display</p>
+<h3 id="history">History</h3>
+<li><strong>Status</strong>: Shows mock data</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Load actual metadata change history from blockchain - ❌ Filter by date range - ❌ Filter by field/action - ❌ Link to transaction on Etherscan</p>
+<hr>
+<h2 id="4-domain-management-page-missing-actions">4. Domain Management Page - Missing Actions</h2>
+<h3 id="quick-actions-on-domain-list">Quick Actions on Domain List</h3>
+<li><strong>Location</strong>: <code>DomainManagement.tsx</code></li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ "Wrap" button execution (exists in UI) - ❌ "Unwrap" button execution - ❌ "Set Resolver" from quick actions - ❌ "Delete Subdomain" option - ❌ Bulk domain selection and actions - ❌ Bulk metadata update from list view</p>
+<h3 id="group-management">Group Management</h3>
+<li><strong>Status</strong>: UI for creating groups exists</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Group creation doesn't save - ❌ Domain assignment to groups not functional - ❌ Group-based filtering - ❌ Group-based bulk operations</p>
+<h3 id="filters-sorting">Filters & Sorting</h3>
+<li><strong>Status</strong>: Basic filters exist</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Advanced filter dialog - ❌ Custom sort options - ❌ Saved filter presets - ❌ Export filtered results</p>
+<hr>
+<h2 id="5-blockchain-write-operations-not-wired-to-ui">5. Blockchain Write Operations - Not Wired to UI</h2>
+<h3 id="address-records">Address Records</h3>
+<li><strong>Backend</strong>: <code>setAddressRecord()</code> exists</li>
+<li><strong>Frontend</strong>: Metadata editor has inputs but save button doesn't call blockchain</li>
+<li><strong>Missing</strong>: Actual transaction execution and confirmation</li>
+<h3 id="text-records">Text Records</h3>
+<li><strong>Backend</strong>: <code>setTextRecord()</code> exists</li>
+<li><strong>Frontend</strong>: Can edit in UI but save is toast-only</li>
+<li><strong>Missing</strong>: Batch text record updates, transaction status</li>
+<h3 id="transfer-operations">Transfer Operations</h3>
+<li><strong>Backend</strong>: <code>transferDomain()</code>, <code>transferDomainViaRegistry()</code>, <code>transferWrappedName()</code> exist</li>
+<li><strong>Frontend</strong>: Transfer tab in DomainProfile has form but button shows toast</li>
+<li><strong>Missing</strong>: Ownership verification, confirmation dialog, transaction tracking</li>
+<h3 id="delegation-permissions">Delegation & Permissions</h3>
+<li><strong>Backend</strong>: <code>DelegationPlanner</code>, <code>executeDelegationPlan()</code>, <code>setApprovalForAll()</code> exist</li>
+<li><strong>Frontend</strong>: No UI for delegation planning or execution</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Delegation setup wizard - ❌ Permission management dashboard - ❌ Safe transaction bundler UI - ❌ Delegation plan preview and approval</p>
+<hr>
+<h2 id="6-metadata-editor-incomplete-features">6. Metadata Editor - Incomplete Features</h2>
+<h3 id="schema-editor">Schema Editor</h3>
+<li><strong>Status</strong>: Can select schema but:</li>
+<p>- ❌ Schema fields don't save to blockchain - ❌ Save button is toast-only - ❌ No validation feedback before save - ❌ No transaction confirmation</p>
+<h3 id="abi-management">ABI Management</h3>
+<li><strong>Location</strong>: <code>MetadataEditor.tsx</code> - ABI tab</li>
+<li><strong>Status</strong>: Textarea exists but disabled</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ ABI upload and parsing - ❌ ABI validation - ❌ ABI storage on resolver - ❌ ABI viewer/formatting</p>
+<h3 id="content-hash-tab">Content Hash Tab</h3>
+<li><strong>Status</strong>: Completely disabled</li>
+<li><strong>Missing</strong>: Full content hash management</li>
+<hr>
+<h2 id="7-advanced-features-missing-completely">7. Advanced Features - Missing Completely</h2>
+<h3 id="multi-wallet-support">Multi-Wallet Support</h3>
+<li><strong>Status</strong>: Only MetaMask</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ WalletConnect integration - ❌ Coinbase Wallet - ❌ Other wallet connectors - ❌ Wallet switching UI</p>
+<h3 id="real-time-updates">Real-Time Updates</h3>
+<li><strong>Status</strong>: Polling-based</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ WebSocket connections for real-time updates - ❌ Push notifications for domain events - ❌ Live transaction status updates</p>
+<h3 id="batch-operations-ui">Batch Operations UI</h3>
+<li><strong>Backend</strong>: <code>executeDelegationPlan()</code> supports batching</li>
+<li><strong>Frontend</strong>: No UI for creating batch transactions</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Batch transaction builder - ❌ Gas estimation for batches - ❌ Batch execution with progress - ❌ Batch preview and review</p>
+<h3 id="transaction-history">Transaction History</h3>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ User transaction history page - ❌ Transaction status tracking - ❌ Failed transaction retry - ❌ Transaction receipts storage</p>
+<h3 id="analytics-reporting">Analytics & Reporting</h3>
+<li><strong>Location</strong>: <code>AnalyticsDashboard.tsx</code> exists</li>
+<li><strong>Status</strong>: Unknown implementation status</li>
+<li><strong>Missing</strong>: Need to verify what's implemented vs. stubbed</li>
+<h3 id="governance-panel">Governance Panel</h3>
+<li><strong>Location</strong>: <code>GovernancePanel.tsx</code> exists</li>
+<li><strong>Status</strong>: Unknown implementation status</li>
+<li><strong>Missing</strong>: Need to verify ENS governance features</li>
+<hr>
+<h2 id="8-settings-configuration">8. Settings & Configuration</h2>
+<h3 id="user-settings-persistence">User Settings Persistence</h3>
+<li><strong>Status</strong>: Settings UI exists</li>
+<li><strong>Missing</strong>: Verify if settings actually save to backend/user config</li>
+<h3 id="notification-preferences">Notification Preferences</h3>
+<li><strong>Status</strong>: UI exists for Slack/webhook configuration</li>
+<li><strong>Missing</strong>: Verify if notifications actually work</li>
+<h3 id="gas-price-configuration">Gas Price Configuration</h3>
+<li><strong>Status</strong>: Settings UI exists</li>
+<li><strong>Missing</strong>: Verify if gas settings affect transactions</li>
+<hr>
+<h2 id="9-workflow-components-status-unknown">9. Workflow Components - Status Unknown</h2>
+<h3 id="preflight-checker">Preflight Checker</h3>
+<li><strong>Location</strong>: <code>PreflightChecker.tsx</code></li>
+<li><strong>Status</strong>: Need to verify if it actually checks or just shows UI</li>
+<h3 id="contract-registration">Contract Registration</h3>
+<li><strong>Location</strong>: <code>ContractRegistration.tsx</code>, <code>UnifiedContractRegistration.tsx</code></li>
+<li><strong>Status</strong>: Need to verify if registration actually writes to registry</li>
+<li><strong>Missing</strong>: Verify end-to-end workflow</li>
+<h3 id="ensip19-registration">ENSIP19 Registration</h3>
+<li><strong>Location</strong>: <code>ENSIPXRegistration.tsx</code></li>
+<li><strong>Status</strong>: Need to verify if metadata is actually stored</li>
+<hr>
+<h2 id="10-uiux-missing-features">10. UI/UX Missing Features</h2>
+<h3 id="loading-states">Loading States</h3>
+<li><strong>Missing</strong>: Proper loading indicators during blockchain transactions</li>
+<li><strong>Missing</strong>: Skeleton loaders for async data</li>
+<h3 id="error-handling">Error Handling</h3>
+<li><strong>Status</strong>: Basic error toasts exist</li>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Error recovery suggestions - ❌ Retry mechanisms - ❌ Error logging to backend - ❌ User-friendly error messages</p>
+<h3 id="transaction-status">Transaction Status</h3>
+<li><strong>Missing</strong>:</li>
+<p>- ❌ Transaction pending indicators - ❌ Transaction success confirmation modals - ❌ Transaction failure details - ❌ Etherscan link generation</p>
+<h3 id="confirmation-dialogs">Confirmation Dialogs</h3>
+<li><strong>Missing</strong>: Critical action confirmations (transfer, wrap, delete)</li>
+<h3 id="search-discovery">Search & Discovery</h3>
+<li><strong>Missing</strong>: Advanced domain search (by metadata, owner, expiration)</li>
+<h3 id="exportbackup">Export/Backup</h3>
+<li><strong>Missing</strong>: Export domain list, settings, metadata</li>
+<hr>
+<h2 id="priority-recommendations">Priority Recommendations</h2>
+<h3 id="high-priority-core-functionality">High Priority (Core Functionality)</h3>
+<ol><li>Wire domain transfer to actual blockchain calls</li>
+<li>Implement subdomain creation transaction execution</li>
+<li>Wire metadata save buttons to blockchain</li>
+<li>Implement marketplace buy/fulfill orders</li>
+<li>Add transaction status tracking and confirmation</li>
+<h3 id="medium-priority-enhanced-features">Medium Priority (Enhanced Features)</h3>
+<li>Implement bulk operations execution</li>
+<li>Add wrap/unwrap functionality</li>
+<li>Wire resolver change functionality</li>
+<li>Implement reverse record setting</li>
+<li>Add batch transaction builder UI</li>
+<h3 id="low-priority-nice-to-have">Low Priority (Nice to Have)</h3>
+<li>Multi-wallet support</li>
+<li>WebSocket real-time updates</li>
+<li>Advanced analytics</li>
+<li>Import/export functionality</li>
+<li>Delegation UI wizard</li></ol>
+<hr>
+<h2 id="technical-notes">Technical Notes</h2>
+<h3 id="whats-working">What's Working</h3>
+<li>✅ Backend API infrastructure</li>
+<li>✅ Database schema and persistence</li>
+<li>✅ Web3 wallet connection</li>
+<li>✅ ENS read operations</li>
+<li>✅ Service layer architecture</li>
+<li>✅ UI component library (shadcn/ui)</li>
+<h3 id="what-needs-work">What Needs Work</h3>
+<li>❌ Connecting UI buttons to blockchain write operations</li>
+<li>❌ Transaction status management</li>
+<li>❌ Error handling and user feedback</li>
+<li>❌ Real-time data updates</li>
+<li>❌ Batch operation execution</li>
+<h3 id="architecture-strengths">Architecture Strengths</h3>
+<li>Clean separation between services and UI</li>
+<li>Reusable ENS operation functions</li>
+<li>Proper TypeScript typing</li>
+<li>Modern React patterns</li>
+<h3 id="architecture-gaps">Architecture Gaps</h3>
+<li>No transaction manager/queue system</li>
+<li>No unified error handling service</li>
+<li>Missing loading state management</li>
+<li>No offline support</li>
+<hr>
+<strong>Organization</strong>: ENS Tools  
+<strong>Domain</strong>: https://ens.tools  
+<strong>Status</strong>: Infrastructure Ready, UI Implementation Partial  
+<strong>Version</strong>: 2.0  
+<strong>Last Updated</strong>: 2025-01-27
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

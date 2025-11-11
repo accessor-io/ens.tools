@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDomainContext } from '../../lib/contexts/DomainContext';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { useTransactionManager } from '../../lib/hooks/useTransactionManager';
 import { fetchENSNames, getAllTextRecords, resolveENSName, type ENSDomain } from '../../lib/ens/ens-utils';
 import { setTextRecord, setAddressRecord } from '../../lib/ens/ens-write-operations';

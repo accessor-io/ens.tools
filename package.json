@@ -30,6 +30,8 @@
             "@radix-ui/react-toggle": "^1.1.2",
             "@radix-ui/react-toggle-group": "^1.1.2",
             "@radix-ui/react-tooltip": "^1.1.8",
+            "@rainbow-me/rainbowkit": "^2.2.9",
+            "@tanstack/react-query": "^5.90.7",
             "ajv": "^8.17.1",
             "ajv-formats": "^2.1.1",
             "class-variance-authority": "^0.7.1",
@@ -50,18 +52,41 @@
             "sonner": "^2.0.3",
             "tailwind-merge": "*",
             "vaul": "^1.1.2",
-            "viem": "*"
+            "viem": "*",
+            "wagmi": "^2.19.3"
       },
       "devDependencies": {
+            "@testing-library/jest-dom": "^6.1.5",
+            "@testing-library/react": "^14.1.2",
             "@types/crypto-js": "^4.2.2",
             "@types/node": "^20.19.23",
             "@types/react": "^19.2.2",
             "@types/react-dom": "^19.2.2",
             "@vitejs/plugin-react-swc": "^3.10.2",
-            "vite": "6.3.5"
+            "jsdom": "^23.0.1",
+            "vite": "6.3.5",
+            "vitest": "^1.1.0"
       },
       "scripts": {
             "dev": "vite",
-            "build": "vite build"
+            "build": "vite build",
+            "test": "vitest",
+            "test:ui": "vitest --ui",
+            "docs:generate": "node scripts/generate-documentation.js",
+            "docs:populate": "node scripts/populate-documentation.js",
+            "docs:compile": "node scripts/compile-documentation.js",
+            "docs:cleanup": "node scripts/cleanup-documentation.js",
+            "docs:cleanup:dry-run": "node scripts/cleanup-documentation.js --dry-run",
+            "docs:consolidate": "node scripts/consolidate-documentation.js",
+            "docs:consolidate:dry-run": "node scripts/consolidate-documentation.js --dry-run",
+            "docs:build": "node scripts/build-documentation-site.js",
+            "cicd:generate": "node scripts/generate-cicd.js",
+            "organize": "node scripts/organize-project.js",
+            "organize:check": "node scripts/organize-project.js --check-only",
+            "organize:dry-run": "node scripts/organize-project.js --dry-run",
+            "organize:fix": "node scripts/organize-project.js --fix-errors",
+            "refactor:organize": "node scripts/refactor-organize.js",
+            "refactor:check": "node scripts/refactor-organize.js --check-only",
+            "refactor:dry-run": "node scripts/refactor-organize.js --dry-run"
       }
 }

@@ -1,0 +1,287 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ENS Contract Metadata - ENSIP-X",
+  "type": "object",
+  "required": [
+    "id",
+    "org",
+    "protocol",
+    "category",
+    "role",
+    "version",
+    "chainId",
+    "addresses",
+    "metadataHash"
+  ],
+  "properties": {
+    "displayName": {
+      "type": "string",
+      "description": "Human-readable contract name without .eth or subdomain separators"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9.-]+$",
+      "description": "Canonical identifier following ENSIP-X grammar"
+    },
+    "org": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Organization identifier (lowercase, hyphen-separated)"
+    },
+    "protocol": {
+      "type": "string",
+      "pattern": "^[a-z0-9.-]+$",
+      "description": "Protocol identifier (lowercase, hyphen-separated)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "defi",
+        "dao",
+        "l2",
+        "infra",
+        "token",
+        "nft",
+        "gaming",
+        "social",
+        "identity",
+        "privacy",
+        "security",
+        "wallet",
+        "analytics",
+        "rwa",
+        "supply",
+        "health",
+        "finance",
+        "dev",
+        "art"
+      ],
+      "description": "Primary category classification"
+    },
+    "subcategory": {
+      "type": "string",
+      "description": "Subcategory within the primary category"
+    },
+    "role": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Contract role/function (lowercase, descriptive)"
+    },
+    "variant": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Optional protocol variant identifier"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^v[0-9]+(-[0-9]+)?(-[0-9]+)?$",
+      "description": "Version format: v{num}, v{num}-{num}, or v{num}-{num}-{num}"
+    },
+    "chainId": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Target blockchain network ID"
+    },
+    "metadataHash": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{64}$",
+      "description": "SHA-256 hash of the complete metadata artifact for unique identification and ENS text record reference"
+    },
+    "ensRoot": {
+      "type": "string",
+      "pattern": "^[a-z0-9.-]+\\.cns\\.eth$",
+      "description": "ENS subdomain root (e.g., uniswap.defi.cns.eth)"
+    },
+    "addresses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["chainId", "address"],
+        "properties": {
+          "chainId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Blockchain chain ID (1 for Ethereum mainnet)"
+          },
+          "address": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$",
+            "description": "Ethereum address (checksummed)"
+          },
+          "deployedBlock": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Block number where contract was deployed"
+          },
+          "bytecodeHash": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{64}$",
+            "description": "Keccak256 hash of contract bytecode"
+          },
+          "implementation": {
+            "type": ["string", "null"],
+            "pattern": "^0x[a-fA-F0-9]{40}$",
+            "description": "Implementation contract address (for proxies)"
+          },
+          "implementationSlot": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{64}$",
+            "description": "Storage slot for implementation address (ERC-1967)"
+          }
+        }
+      }
+    },
+    "standards": {
+      "type": "object",
+      "properties": {
+        "ercs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "interfaces": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "abiHash": { "type": "string" },
+        "sourceUri": { "type": "string" },
+        "license": { "type": "string" }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["planning", "development", "testing", "deployed", "deprecated", "discontinued"]
+        },
+        "since": { "type": "string", "format": "date-time" },
+        "replacedBy": { "type": "string" }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "audits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["firm", "date", "report"],
+            "properties": {
+              "firm": { "type": "string" },
+              "date": { "type": "string", "format": "date" },
+              "report": { "type": "string", "format": "uri" },
+              "findings": { "type": "string" }
+            }
+          }
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$"
+          }
+        },
+        "upgradeability": {
+          "type": "string",
+          "enum": ["immutable", "transparent", "uups", "diamond", "beacon", "minimal"]
+        },
+        "permissions": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "attestation": {
+          "type": "object",
+          "required": ["reference", "schema"],
+          "properties": {
+            "reference": {
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{64}$",
+              "description": "Attestation reference hash or transaction hash"
+            },
+            "schema": {
+              "type": "string",
+              "description": "URI to attestation schema definition"
+            },
+            "attester": {
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$",
+              "description": "Address of the attestation issuer"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Attestation creation timestamp"
+            },
+            "expiry": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Attestation expiry timestamp (optional)"
+            },
+            "revocable": {
+              "type": "boolean",
+              "description": "Whether the attestation can be revoked"
+            },
+            "revocationStatus": {
+              "type": "string",
+              "enum": ["active", "revoked", "expired"],
+              "description": "Current status of the attestation"
+            }
+          }
+        }
+      }
+    },
+    "proxy": {
+      "type": "object",
+      "properties": {
+        "proxyType": {
+          "type": "string",
+          "enum": ["transparent", "uups", "beacon", "diamond", "minimal", "immutable"]
+        },
+        "implementationAddress": {
+          "type": "string",
+          "pattern": "^0x[a-fA-F0-9]{40}$"
+        },
+        "implementationSlot": { "type": "string" },
+        "proxyAdmin": {
+          "type": "string",
+          "pattern": "^0x[a-fA-F0-9]{40}$"
+        },
+        "proxyVersion": { "type": "string" }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "subdomains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label", "owner"],
+        "properties": {
+          "label": { "type": "string" },
+          "owner": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$"
+          },
+          "controller": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$"
+          },
+          "resolver": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$"
+          },
+          "records": { "type": "object" }
+        }
+      }
+    }
+  }
+}
+

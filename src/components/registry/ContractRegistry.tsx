@@ -53,7 +53,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { getAllTextRecords, formatAddress } from '../../lib/ens/ens-utils';
 import { granularPermissionService, parsePermissions } from '../../lib/services/granular-permission-service';
 import { namehash } from '../../lib/ens/ens-helpers';

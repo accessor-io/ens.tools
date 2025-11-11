@@ -1,0 +1,29 @@
+# Complete Domain Setup Template
+# This template sets up a domain with resolver, address, metadata, and content hash
+
+# Wrap domain (optional - only if you want to use NameWrapper features)
++wrap: [{{domain}}]@domain = [{{owner}}]@owner
+
+# Set resolver
+setResolver: [{{domain}}]@domain = [0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63]@resolver
+
+# Set address record
+setAddr: [{{domain}}]@domain = [{{address}}]@address
+
+# Add metadata
+setText: [{{domain}}]@domain@[description]@key = [{{description}}]@value
+setText: [{{domain}}]@domain@[url]@key = [{{url}}]@value
+setText: [{{domain}}]@domain@[avatar]@key = [{{avatar}}]@value
+setText: [{{domain}}]@domain@[com.twitter]@key = [{{twitter}}]@value
+setText: [{{domain}}]@domain@[com.github]@key = [{{github}}]@value
+setText: [{{domain}}]@domain@[com.discord]@key = [{{discord}}]@value
+
+# Set content hash (optional)
+# setContentHash: [{{domain}}]@domain = [{{contentHash}}]@contentHash
+
+
+
+
+
+
+

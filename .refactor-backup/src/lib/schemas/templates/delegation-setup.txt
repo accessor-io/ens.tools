@@ -1,0 +1,23 @@
+# Delegation Setup Template
+# Sets up granular permissions for a delegate
+
+# Option 1: Using permission bitmask
++delegateTo: [{{domain}}]@domain = [{{delegate}}]@delegate@[{{permissions}}]@permissions@[{{expiresAt}}]@expiresAt
+
+# Option 2: Using permission keys (recommended)
+# delegateAuthSelect: [{{domain}}]@domain@[{{delegate}}]@delegate = [MANAGE_SUBDOMAINS,SET_TEXT_RECORD,SET_ADDR_RECORD]@permissionKeys@[{{expiresAt}}]@expiresAt
+
+# Available permission keys:
+# MANAGE_SUBDOMAINS - Create and manage subdomains
+# SET_ADDR_RECORD - Set address records
+# SET_TEXT_RECORD - Set text records
+# SET_CONTENT_HASH - Set content hash
+# SET_PUBKEY - Set public key
+# SET_ABI - Set ABI
+# SET_ZONEHASH - Set zone hash
+# SET_TTL - Set TTL
+# SET_RESOLVER - Set resolver
+# SET_OWNER - Set owner
+# SET_FUSES - Set fuses
+
+

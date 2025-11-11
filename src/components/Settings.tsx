@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 import { notificationService, NotificationConfig } from '../lib/services/notification-service';
 import { addressDisplayService, AddressDisplayConfig, AddressDisplayFormat } from '../lib/services/address-display-service';
 import { userConfigService, UserConfig } from '../lib/services/user-config-service';
-import { useWeb3 } from '../lib/services/web3-provider';
+import { useWeb3 } from '../lib/services';
 import { auditLogService } from '../lib/security';
 
 // Custom Toggle Button Component
@@ -706,6 +706,363 @@ export function Settings() {
                   onChange={(e) => updateDisplayOptions({ refreshInterval: Number(e.target.value) })}
                 />
                 <p className="text-slate-600">How often to automatically refresh data (default: 30000ms = 30 seconds)</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle>Console Colors</CardTitle>
+              <CardDescription>Customize the color scheme for the developer console</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="console-bg">Background Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-bg"
+                      type="color"
+                      value={userConfig?.consoleColors?.background || '#1e293b'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              background: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.background || '#1e293b'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              background: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#1e293b"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="console-header-bg">Header Background</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-header-bg"
+                      type="color"
+                      value={userConfig?.consoleColors?.headerBackground || '#334155'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              headerBackground: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.headerBackground || '#334155'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              headerBackground: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#334155"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="console-border">Border Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-border"
+                      type="color"
+                      value={userConfig?.consoleColors?.border || '#475569'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              border: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.border || '#475569'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              border: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#475569"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="console-text">Text Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-text"
+                      type="color"
+                      value={userConfig?.consoleColors?.text || '#ffffff'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              text: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.text || '#ffffff'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              text: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="console-text-secondary">Secondary Text</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-text-secondary"
+                      type="color"
+                      value={userConfig?.consoleColors?.textSecondary || '#cbd5e1'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              textSecondary: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.textSecondary || '#cbd5e1'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              textSecondary: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#cbd5e1"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="console-active-tab">Active Tab Background</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-active-tab"
+                      type="color"
+                      value={userConfig?.consoleColors?.activeTab || '#1e293b'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              activeTab: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.activeTab || '#1e293b'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              activeTab: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#1e293b"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="console-input-bg">Input Background</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-input-bg"
+                      type="color"
+                      value={userConfig?.consoleColors?.inputBackground || '#0f172a'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              inputBackground: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.inputBackground || '#0f172a'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              inputBackground: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#0f172a"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="console-input-border">Input Border</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="console-input-border"
+                      type="color"
+                      value={userConfig?.consoleColors?.inputBorder || '#475569'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              inputBorder: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="h-10 w-20"
+                    />
+                    <Input
+                      type="text"
+                      value={userConfig?.consoleColors?.inputBorder || '#475569'}
+                      onChange={(e) => {
+                        if (userConfig) {
+                          setUserConfig({
+                            ...userConfig,
+                            consoleColors: {
+                              ...userConfig.consoleColors,
+                              inputBorder: e.target.value,
+                            } as UserConfig['consoleColors'],
+                          });
+                        }
+                      }}
+                      className="flex-1 font-mono text-sm"
+                      placeholder="#475569"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (userConfig) {
+                      setUserConfig({
+                        ...userConfig,
+                        consoleColors: {
+                          background: '#1e293b',
+                          headerBackground: '#334155',
+                          border: '#475569',
+                          text: '#ffffff',
+                          textSecondary: '#cbd5e1',
+                          activeTab: '#1e293b',
+                          inactiveTab: '#475569',
+                          inputBackground: '#0f172a',
+                          inputBorder: '#475569',
+                        },
+                      });
+                    }
+                  }}
+                >
+                  Reset to Default
+                </Button>
               </div>
             </CardContent>
           </Card>

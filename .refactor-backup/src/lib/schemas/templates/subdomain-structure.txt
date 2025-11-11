@@ -1,0 +1,27 @@
+# Subdomain Structure Template
+# Creates a standard subdomain hierarchy for a project
+
+# Main application
++mintSubdomain: [app]@subname@[{{parent}}]@parent = [{{owner}}]@owner
+
+# API endpoint
++mintSubdomain: [api]@subname@[{{parent}}]@parent = [{{owner}}]@owner
+
+# Website
++mintSubdomain: [www]@subname@[{{parent}}]@parent = [{{owner}}]@owner
+
+# Governance/DAO
++mintSubdomain: [dao]@subname@[{{parent}}]@parent = [{{owner}}]@owner
+
+# Vault/Treasury
++mintSubdomain: [vault]@subname@[{{parent}}]@parent = [{{owner}}]@owner
+
+# Registry
++mintSubdomain: [registry]@subname@[{{parent}}]@parent = [{{owner}}]@owner
+
+# Optional: Configure subdomain metadata
+# setText: [app.{{parent}}]@domain@[description]@key = [Main application]@value
+# setText: [api.{{parent}}]@domain@[description]@key = [API endpoint]@value
+# setText: [dao.{{parent}}]@domain@[description]@key = [Governance contract]@value
+
+

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useWeb3 } from '../lib/services/web3-provider';
+import { useWeb3 } from '../lib/services';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';

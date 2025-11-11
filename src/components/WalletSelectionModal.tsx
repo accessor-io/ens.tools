@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Wallet, ExternalLink, AlertCircle, Smartphone, Shield, Loader2 } from 'lucide-react';
@@ -146,63 +146,7 @@ export function WalletSelectionModal({ open, onOpenChange, onWalletSelect }: Wal
   const [detectedWallets, setDetectedWallets] = useState<WalletInfo[]>([]);
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      // Reset state when modal opens
-      setIsConnecting(null);
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        detectWallets();
-      }, 100);
-      return () => clearTimeout(timer);
-    } else {
-      // Reset when modal closes
-      setIsConnecting(null);
-    }
-  }, [open]);
-
-  // Set up EIP-6963 listener on mount (not just when modal opens)
-  useEffect(() => {
-    const handleProviderAnnounce = (event: CustomEvent) => {
-      const detail = event.detail;
-      const provider = detail.provider || detail;
-      const info = detail.info || {};
-      
-      const walletId = info.uuid || info.name?.toLowerCase().replace(/\s+/g, '') || `provider-${Date.now()}`;
-      const walletName = info.name || 'Unknown Wallet';
-      const walletIcon = info.icon;
-
-      // Update detected wallets state
-      setDetectedWallets(prev => {
-        // Check if already added
-        if (prev.some(w => w.id === walletId)) {
-          return prev;
-        }
-        
-        return [...prev, {
-          id: walletId,
-          name: walletName,
-          icon: walletIcon,
-          provider: provider,
-          isInstalled: true,
-        }];
-      });
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('eip6963:announceProvider', handleProviderAnnounce as EventListener);
-      // Request wallet providers announce themselves
-      window.dispatchEvent(new Event('eip6963:requestProvider'));
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('eip6963:announceProvider', handleProviderAnnounce as EventListener);
-      }
-    };
-  }, []);
-
-  const detectWallets = () => {
+  const detectWallets = useCallback(() => {
     const wallets: WalletInfo[] = [];
     const detectedIds = new Set<string>();
 
@@ -233,6 +177,12 @@ export function WalletSelectionModal({ open, onOpenChange, onWalletSelect }: Wal
     if (ethereum?.providers && Array.isArray(ethereum.providers)) {
       console.log(`Found ${ethereum.providers.length} providers in ethereum.providers`);
       ethereum.providers.forEach((provider: any, index: number) => {
+        // Only process providers that have a request method
+        if (!provider || typeof provider.request !== 'function') {
+          console.log(`Skipping provider ${index} - no request method`);
+          return;
+        }
+
         let walletId = `provider-${index}`;
         let walletName = `Wallet ${index + 1}`;
         let walletIcon = undefined;
@@ -281,8 +231,9 @@ export function WalletSelectionModal({ open, onOpenChange, onWalletSelect }: Wal
     }
 
     // Check for direct window.ethereum (single provider)
-    // Only check if we haven't found any wallets yet, or if ethereum.providers doesn't exist
-    if (ethereum && (!ethereum.providers || !Array.isArray(ethereum.providers) || ethereum.providers.length === 0)) {
+    // Always check this as some wallets inject directly into window.ethereum
+    // We'll skip if we already detected it in the providers array
+    if (ethereum && typeof ethereum.request === 'function') {
       let walletId = 'ethereum';
       let walletName = 'Ethereum Provider';
       let walletIcon = undefined;
@@ -319,8 +270,11 @@ export function WalletSelectionModal({ open, onOpenChange, onWalletSelect }: Wal
         console.log('Detected Brave Wallet (direct)');
       }
 
-      // Only add if we haven't already added this provider
-      if (!detectedIds.has(walletId)) {
+      // If we have a valid provider with request method, always add it as installed
+      // Even if we can't identify which specific wallet it is
+      // Check if we already added this provider from the providers array
+      const alreadyAdded = wallets.some(w => w.provider === ethereum);
+      if (!alreadyAdded && !detectedIds.has(walletId)) {
         wallets.push({
           id: walletId,
           name: walletName,
@@ -366,10 +320,96 @@ export function WalletSelectionModal({ open, onOpenChange, onWalletSelect }: Wal
     });
 
     setDetectedWallets(wallets);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      // Reset state when modal opens
+      setIsConnecting(null);
+      // Run detection immediately and then again after delays to catch async wallets
+      detectWallets();
+      const timer1 = setTimeout(() => {
+        detectWallets();
+      }, 100);
+      const timer2 = setTimeout(() => {
+        detectWallets();
+      }, 500);
+      const timer3 = setTimeout(() => {
+        detectWallets();
+      }, 1000);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
+    } else {
+      // Reset when modal closes
+      setIsConnecting(null);
+    }
+  }, [open, detectWallets]);
+
+  // Set up EIP-6963 listener on mount (not just when modal opens)
+  useEffect(() => {
+    const handleProviderAnnounce = (event: CustomEvent) => {
+      const detail = event.detail;
+      const provider = detail.provider || detail;
+      const info = detail.info || {};
+      
+      const walletId = info.uuid || info.name?.toLowerCase().replace(/\s+/g, '') || `provider-${Date.now()}`;
+      const walletName = info.name || 'Unknown Wallet';
+      const walletIcon = info.icon;
+
+      // Update detected wallets state
+      setDetectedWallets(prev => {
+        // Check if already added
+        if (prev.some(w => w.id === walletId)) {
+          return prev;
+        }
+        
+        return [...prev, {
+          id: walletId,
+          name: walletName,
+          icon: walletIcon,
+          provider: provider,
+          isInstalled: true,
+        }];
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('eip6963:announceProvider', handleProviderAnnounce as EventListener);
+      // Request wallet providers announce themselves
+      window.dispatchEvent(new Event('eip6963:requestProvider'));
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('eip6963:announceProvider', handleProviderAnnounce as EventListener);
+      }
+    };
+  }, []);
 
   const handleWalletClick = async (wallet: WalletInfo) => {
+    // If wallet is not marked as installed, check if window.ethereum exists as fallback
     if (!wallet.isInstalled) {
+      const ethereum = typeof window !== 'undefined' ? (window as any).ethereum : null;
+      
+      // If window.ethereum exists and has request method, try to connect with it
+      if (ethereum && typeof ethereum.request === 'function') {
+        console.log(`Attempting to connect with ${wallet.name} using window.ethereum`);
+        setIsConnecting(wallet.id);
+        try {
+          await onWalletSelect(ethereum, wallet.id);
+          return;
+        } catch (error: any) {
+          console.error('Error connecting wallet:', error);
+          // Don't show error here - parent component handles it
+        } finally {
+          setIsConnecting(null);
+        }
+      }
+      
+      // If no provider available, show download link
       if (wallet.downloadUrl) {
         window.open(wallet.downloadUrl, '_blank');
         toast.info(`Opening ${wallet.name} download page...`);
@@ -378,6 +418,21 @@ export function WalletSelectionModal({ open, onOpenChange, onWalletSelect }: Wal
     }
 
     if (!wallet.provider || !wallet.provider.request) {
+      // Try window.ethereum as fallback
+      const ethereum = typeof window !== 'undefined' ? (window as any).ethereum : null;
+      if (ethereum && typeof ethereum.request === 'function') {
+        console.log(`Provider not available, trying window.ethereum for ${wallet.name}`);
+        setIsConnecting(wallet.id);
+        try {
+          await onWalletSelect(ethereum, wallet.id);
+          return;
+        } catch (error: any) {
+          console.error('Error connecting wallet:', error);
+        } finally {
+          setIsConnecting(null);
+        }
+      }
+      
       toast.error(`Cannot connect to ${wallet.name}`, {
         description: 'Wallet provider is not available',
       });

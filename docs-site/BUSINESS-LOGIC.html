@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Logic - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="active">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#domain-registration">Domain Registration</a></li>
+  <li><a href="#pricing-logic">Pricing Logic</a></li>
+  <li><a href="#registration-rules">Registration Rules</a></li>
+  <li><a href="#ownership-rules">Ownership Rules</a></li>
+<li><a href="#delegation-system">Delegation System</a></li>
+  <li><a href="#permission-model">Permission Model</a></li>
+  <li><a href="#delegation-rules">Delegation Rules</a></li>
+  <li><a href="#permission-calculation">Permission Calculation</a></li>
+<li><a href="#fee-collection">Fee Collection</a></li>
+  <li><a href="#fee-structure">Fee Structure</a></li>
+  <li><a href="#fee-calculation">Fee Calculation</a></li>
+  <li><a href="#payment-processing">Payment Processing</a></li>
+<li><a href="#marketplace">Marketplace</a></li>
+  <li><a href="#listing-rules">Listing Rules</a></li>
+  <li><a href="#order-fulfillment">Order Fulfillment</a></li>
+  <li><a href="#offer-management">Offer Management</a></li>
+<li><a href="#metadata-management">Metadata Management</a></li>
+  <li><a href="#metadata-validation">Metadata Validation</a></li>
+  <li><a href="#metadata-storage">Metadata Storage</a></li>
+<li><a href="#transaction-processing">Transaction Processing</a></li>
+  <li><a href="#transaction-validation">Transaction Validation</a></li>
+  <li><a href="#transaction-execution">Transaction Execution</a></li>
+  <li><a href="#batch-processing">Batch Processing</a></li>
+<li><a href="#access-control">Access Control</a></li>
+  <li><a href="#authentication">Authentication</a></li>
+  <li><a href="#authorization">Authorization</a></li>
+<li><a href="#audit-and-compliance">Audit and Compliance</a></li>
+  <li><a href="#audit-logging">Audit Logging</a></li>
+  <li><a href="#compliance-rules">Compliance Rules</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+  <li><a href="#error-classification">Error Classification</a></li>
+  <li><a href="#error-recovery">Error Recovery</a></li>
+<li><a href="#business-rules-summary">Business Rules Summary</a></li>
+  <li><a href="#domain-operations">Domain Operations</a></li>
+  <li><a href="#financial-operations">Financial Operations</a></li>
+  <li><a href="#marketplace-operations">Marketplace Operations</a></li>
+<li><a href="#additional-business-rules">Additional Business Rules</a></li>
+  <li><a href="#from-implementation-summarymd">From IMPLEMENTATION-SUMMARY.md</a></li>
+<li><a href="#what-was-accomplished">What Was Accomplished</a></li>
+  <li><a href="#-core-refactoring-complete">✅ Core Refactoring Complete</a></li>
+  <li><a href="#from-improvements-implementedmd">From IMPROVEMENTS-IMPLEMENTED.md</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#completed-improvements">Completed Improvements</a></li>
+  <li><a href="#1-type-safety-organization-">1. Type Safety &amp; Organization ✅</a></li>
+  <li><a href="#from-refactoring-completemd">From REFACTORING-COMPLETE.md</a></li>
+<li><a href="#summary">Summary</a></li>
+  <li><a href="#from-business-logicmd">From BUSINESS-LOGIC.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#domain-registration">Domain Registration</a></li>
+  <li><a href="#pricing-logic">Pricing Logic</a></li>
+  <li><a href="#from-conditions-and-resultsmd">From CONDITIONS-AND-RESULTS.md</a></li>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#domain-operations">Domain Operations</a></li>
+  <li><a href="#domain-registration">Domain Registration</a></li>
+</ul>
+</div>
+
+        <h1>Business Logic</h1>
+<h2 id="overview">Overview</h2>
+<p>This document describes the business rules, logic, and decision-making processes within ENS Tools.</p>
+<h2 id="domain-registration">Domain Registration</h2>
+<h3 id="pricing-logic">Pricing Logic</h3>
+<ul><li>Base registration fee determined by ENS protocol</li>
+<li>Premium pricing for short or desirable names</li>
+<li>Renewal fees may differ from initial registration</li>
+<li>Pricing updates based on market conditions</li>
+<h3 id="registration-rules">Registration Rules</h3>
+<li>Minimum registration period: 1 year</li>
+<li>Maximum registration period: Varies by TLD</li>
+<li>Grace period after expiration</li>
+<li>Auction process for expired domains</li>
+<h3 id="ownership-rules">Ownership Rules</h3>
+<li>First-come-first-served for available domains</li>
+<li>Ownership transfer requires explicit transaction</li>
+<li>Wrapped domains have additional restrictions</li>
+<li>Subdomain ownership inherits from parent</li>
+<h2 id="delegation-system">Delegation System</h2>
+<h3 id="permission-model">Permission Model</h3>
+<li>Granular permission system</li>
+<li>Permissions represented as bitmasks</li>
+<li>Base permissions required for operations</li>
+<li>Permission inheritance rules</li>
+<h3 id="delegation-rules">Delegation Rules</h3>
+<li>Owner can delegate to any address</li>
+<li>Delegates can have limited permissions</li>
+<li>Delegation can be revoked by owner</li>
+<li>Delegation does not transfer ownership</li>
+<h3 id="permission-calculation">Permission Calculation</h3>
+<li>Permissions combined using bitwise OR</li>
+<li>Specific permissions checked using bitwise AND</li>
+<li>Permission validation before operations</li>
+<li>Permission inheritance from parent domains</li>
+<h2 id="fee-collection">Fee Collection</h2>
+<h3 id="fee-structure">Fee Structure</h3>
+<li>Transaction fees for operations</li>
+<li>Marketplace fees for sales</li>
+<li>Premium service fees (if applicable)</li>
+<li>Gas costs passed to user</li>
+<h3 id="fee-calculation">Fee Calculation</h3>
+<li>Base fee + percentage for marketplace</li>
+<li>Gas estimation for transactions</li>
+<li>Fee collection before operation</li>
+<li>Refund logic for failed operations</li>
+<h3 id="payment-processing">Payment Processing</h3>
+<li>ETH payments for fees</li>
+<li>USDC payments (if supported)</li>
+<li>Payment verification</li>
+<li>Receipt generation</li>
+<h2 id="marketplace">Marketplace</h2>
+<h3 id="listing-rules">Listing Rules</h3>
+<li>Owner must approve listing</li>
+<li>Minimum listing duration</li>
+<li>Maximum listing duration</li>
+<li>Price validation rules</li>
+<h3 id="order-fulfillment">Order Fulfillment</h3>
+<li>Order validation before fulfillment</li>
+<li>Payment verification</li>
+<li>Domain transfer on fulfillment</li>
+<li>Fee distribution</li>
+<h3 id="offer-management">Offer Management</h3>
+<li>Offer expiration rules</li>
+<li>Counter-offer logic</li>
+<li>Offer acceptance rules</li>
+<li>Offer cancellation rules</li>
+<h2 id="metadata-management">Metadata Management</h2>
+<h3 id="metadata-validation">Metadata Validation</h3>
+<li>Schema validation required</li>
+<li>Required fields enforcement</li>
+<li>Optional fields handling</li>
+<li>Version compatibility</li>
+<h3 id="metadata-storage">Metadata Storage</h3>
+<li>On-chain storage for critical data</li>
+<li>Off-chain storage for large data</li>
+<li>IPFS integration</li>
+<li>Synchronization rules</li>
+<h2 id="transaction-processing">Transaction Processing</h2>
+<h3 id="transaction-validation">Transaction Validation</h3>
+<li>Signature verification</li>
+<li>Nonce validation</li>
+<li>Gas estimation</li>
+<li>Balance verification</li>
+<h3 id="transaction-execution">Transaction Execution</h3>
+<li>Sequential execution for dependencies</li>
+<li>Parallel execution when possible</li>
+<li>Failure handling</li>
+<li>Rollback logic</li>
+<h3 id="batch-processing">Batch Processing</h3>
+<li>Operation grouping</li>
+<li>Gas optimization</li>
+<li>Dependency resolution</li>
+<li>Error handling</li>
+<h2 id="access-control">Access Control</h2>
+<h3 id="authentication">Authentication</h3>
+<li>Wallet-based authentication</li>
+<li>Signature verification</li>
+<li>Session management</li>
+<li>Token expiration</li>
+<h3 id="authorization">Authorization</h3>
+<li>Ownership verification</li>
+<li>Permission checking</li>
+<li>Delegate validation</li>
+<li>Role-based access</li>
+<h2 id="audit-and-compliance">Audit and Compliance</h2>
+<h3 id="audit-logging">Audit Logging</h3>
+<li>All operations logged</li>
+<li>User identification</li>
+<li>Timestamp recording</li>
+<li>Operation details</li>
+<h3 id="compliance-rules">Compliance Rules</h3>
+<li>KYC requirements (if applicable)</li>
+<li>AML checks (if applicable)</li>
+<li>Regulatory compliance</li>
+<li>Data retention policies</li>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="error-classification">Error Classification</h3>
+<li>Validation errors</li>
+<li>Authorization errors</li>
+<li>Network errors</li>
+<li>Business logic errors</li>
+<h3 id="error-recovery">Error Recovery</h3>
+<li>Retry logic</li>
+<li>Fallback mechanisms</li>
+<li>User notification</li>
+<li>Error logging</li>
+<h2 id="business-rules-summary">Business Rules Summary</h2>
+<h3 id="domain-operations">Domain Operations</h3>
+<li>Owner has full control</li>
+<li>Delegates have limited control based on permissions</li>
+<li>Operations require appropriate authorization</li>
+<li>All operations are logged</li>
+<h3 id="financial-operations">Financial Operations</h3>
+<li>Fees collected before operations</li>
+<li>Refunds for failed operations</li>
+<li>Payment verification required</li>
+<li>Receipts generated</li>
+<h3 id="marketplace-operations">Marketplace Operations</h3>
+<li>Owner approval required</li>
+<li>Payment verification required</li>
+<li>Domain transfer on fulfillment</li>
+<li>Fees distributed appropriately</li>
+<hr>
+<h2 id="additional-business-rules">Additional Business Rules</h2>
+<h3 id="from-implementation-summarymd">From IMPLEMENTATION-SUMMARY.md</h3>
+<h1>Implementation Summary - ENS Tools Improvements</h1>
+<h2 id="what-was-accomplished">What Was Accomplished</h2>
+<h3 id="-core-refactoring-complete">✅ Core Refactoring Complete</h3>
+<strong>Problem</strong>: ENSConsole.tsx was a monolithic 2,985-line file that was difficult to maintain, test, and extend.
+<strong>Solution</strong>: Refactored into a modular architecture with:
+<li><strong>4 Custom Hooks</strong> for business logic</li>
+<li><strong>4 Tab Components</strong> for UI</li>
+<li><strong>1 Error Boundary</strong> for resilience</li>
+<li><strong>Centralized Type Definitions</strong></li>
+<li><strong>Testing Infrastructure</strong></li>
+<h3 id="from-improvements-implementedmd">From IMPROVEMENTS-IMPLEMENTED.md</h3>
+<h1>Improvements Implemented</h1>
+<h2 id="summary">Summary</h2>
+<p>This document outlines the improvements that have been implemented to refactor and improve the ENS tools application, specifically focusing on breaking down the massive 2,985-line <code>ENSConsole.tsx</code> component.</p>
+<h2 id="completed-improvements">Completed Improvements</h2>
+<h3 id="1-type-safety-organization-">1. Type Safety & Organization ✅</h3>
+<li>Created centralized type definitions in <code>src/components/devtools/types.ts</code></li>
+<li>All interfaces extracted and properly typed</li>
+<li>Eliminated <code>any</code> types where possible</li>
+<h3 id="from-refactoring-completemd">From REFACTORING-COMPLETE.md</h3>
+<h1>ENSConsole Refactoring - Complete Implementation Guide</h1>
+<h2 id="summary">Summary</h2>
+<p>The ENSConsole component has been successfully refactored from a monolithic 2,985-line file into a modular, maintainable architecture with:</p>
+<li><strong>4 Custom Hooks</strong> (~700 lines total)</li>
+<li><strong>4 Tab Components</strong> (~600 lines total)  </li>
+<li><strong>1 Error Boundary</strong> (~60 lines)</li>
+<li><strong>Type Definitions</strong> (~80 lines)</li>
+<li><strong>Example Refactored Component</strong> (~400 lines)</li>
+<strong>Total reduction: ~60% code reduction in main component</strong>
+<h3 id="from-business-logicmd">From BUSINESS-LOGIC.md</h3>
+<h1>Business Logic</h1>
+<h2 id="overview">Overview</h2>
+<p>This document describes the business rules, logic, and decision-making processes within ENS Tools.</p>
+<h2 id="domain-registration">Domain Registration</h2>
+<h3 id="pricing-logic">Pricing Logic</h3>
+<li>Base registration fee determined by ENS protocol</li>
+<li>Premium pricing for short or desirable names</li>
+<li>Renewal fees may differ from initial registration</li>
+<li>Pricing updates based on market conditions</li></ul>
+<h3 id="from-conditions-and-resultsmd">From CONDITIONS-AND-RESULTS.md</h3>
+<h1>Conditions and Results</h1>
+<h2 id="overview">Overview</h2>
+<p>This document describes conditions, edge cases, validation rules, and expected results for all operations.</p>
+<h2 id="domain-operations">Domain Operations</h2>
+<h3 id="domain-registration">Domain Registration</h3>
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

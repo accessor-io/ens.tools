@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENS Marketplace Documentation - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="active">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#features">Features</a></li>
+  <li><a href="#core-features">Core Features</a></li>
+  <li><a href="#ens-specific-features">ENS-Specific Features</a></li>
+<li><a href="#architecture">Architecture</a></li>
+  <li><a href="#service-layer">Service Layer</a></li>
+  <li><a href="#component-layer">Component Layer</a></li>
+<li><a href="#usage">Usage</a></li>
+  <li><a href="#creating-a-domain-listing">Creating a Domain Listing</a></li>
+  <li><a href="#making-an-offer">Making an Offer</a></li>
+  <li><a href="#buying-a-domain">Buying a Domain</a></li>
+<li><a href="#seaport-integration">Seaport Integration</a></li>
+<li><a href="#ens-name-wrapper">ENS Name Wrapper</a></li>
+<li><a href="#domain-trading-flow">Domain Trading Flow</a></li>
+  <li><a href="#listing-flow">Listing Flow</a></li>
+  <li><a href="#purchase-flow">Purchase Flow</a></li>
+  <li><a href="#offer-flow">Offer Flow</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#security">Security</a></li>
+  <li><a href="#order-security">Order Security</a></li>
+  <li><a href="#transaction-security">Transaction Security</a></li>
+<li><a href="#api-integration">API Integration</a></li>
+  <li><a href="#data-sources">Data Sources</a></li>
+<li><a href="#multi-chain-support">Multi-Chain Support</a></li>
+<li><a href="#testing">Testing</a></li>
+  <li><a href="#what-youll-see">What You&#039;ll See</a></li>
+<li><a href="#future-enhancements">Future Enhancements</a></li>
+<li><a href="#references">References</a></li>
+<li><a href="#files-created">Files Created</a></li>
+<li><a href="#summary">Summary</a></li>
+</ul>
+</div>
+
+        <h1>ENS Marketplace Documentation</h1>
+<h2 id="overview">Overview</h2>
+<p>The ENS Marketplace is a specialized marketplace focused exclusively on ENS domain trading using OpenSea's Seaport protocol. This marketplace allows users to buy, sell, and make offers on ENS domains.</p>
+<h2 id="features">Features</h2>
+<h3 id="core-features">Core Features</h3>
+<ol><ul><li><strong>Domain Listings</strong></li>
+<p>- Browse ENS domains available for purchase - View domain details including expiration dates - Filter and search domains by name - View seller information</p>
+<li><strong>Domain Offers</strong></li>
+<p>- Make offers on ENS domains - View active offers from other buyers - Track offer status</p>
+<li><strong>Domain Trading</strong></li>
+<p>- Buy domains directly from listings - List your own domains for sale - Complete transactions via Seaport</p>
+<li><strong>Statistics</strong></li>
+<p>- Total domains registered - Currently listed domains - Floor price - Total trading volume - Average price - Total sales - Active offers</p>
+<h3 id="ens-specific-features">ENS-Specific Features</h3>
+<li><strong>Domain Information</strong></li>
+<p>- Domain name display - Expiration date tracking - Registration date - Wrapped status - Fuses information - Resolver address - Resolved Ethereum address</p>
+<li><strong>Domain Management</strong></li>
+<p>- Domain availability checking - Domain ownership verification - Domain transfer handling</p>
+<h2 id="architecture">Architecture</h2>
+<h3 id="service-layer">Service Layer</h3>
+<pre><code class="language-text">src/lib/services/
+├── ens-marketplace-service.ts    # ENS-specific marketplace operations
+├── seaport-service.ts             # Core Seaport protocol implementation
+├── seaport-signer.ts              # Order signing utilities
+├── seaport-advanced.ts            # Advanced features
+└── seaport-error-handler.ts       # Error handling</code></pre>
+
+<h3 id="component-layer">Component Layer</h3>
+
+<pre><code class="language-text">src/components/marketplace/
+├── ENSMarketplace.tsx             # Main ENS marketplace UI
+├── Marketplace.tsx                 # General marketplace (legacy)
+└── index.ts                        # Component exports</code></pre>
+
+<h2 id="usage">Usage</h2>
+
+<h3 id="creating-a-domain-listing">Creating a Domain Listing</h3>
+
+<li>Click "List Domain" button</li>
+<li>Enter domain name (e.g., "example.eth")</li>
+<li>Enter price in ETH</li>
+<li>Click "Create Listing"</li>
+<li>Confirm transaction in wallet</li>
+
+<h3 id="making-an-offer">Making an Offer</h3>
+
+<li>Click "Make Offer" button</li>
+<li>Enter domain name</li>
+<li>Enter offer price in ETH</li>
+<li>Click "Make Offer"</li>
+<li>Confirm transaction in wallet</li>
+
+<h3 id="buying-a-domain">Buying a Domain</h3>
+
+<li>Browse listings</li>
+<li>Click "Buy" on desired domain</li>
+<li>Approve marketplace if needed</li>
+<li>Confirm purchase transaction</li>
+<li>Domain transfers to your wallet</li>
+
+<h2 id="seaport-integration">Seaport Integration</h2>
+
+The marketplace uses Seaport v1.5 for all domain trading operations:
+
+<li><strong>Contract Address</strong>: <code>0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC</code></li>
+<li><strong>Supported Chains</strong>: Ethereum Mainnet, Sepolia, Optimism, Base, Arbitrum</li>
+<li><strong>Order Types</strong>: ERC721 listings and offers</li>
+<li><strong>Token Contract</strong>: ENS Name Wrapper</li>
+
+<h2 id="ens-name-wrapper">ENS Name Wrapper</h2>
+
+All ENS domains are traded as ERC721 tokens through the ENS Name Wrapper:
+
+<li><strong>Mainnet</strong>: <code>0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401</code></li>
+<li><strong>Sepolia</strong>: <code>0x0635513f179D50A207757E05759CbD106d7dFcE8</code></li>
+
+<h2 id="domain-trading-flow">Domain Trading Flow</h2>
+
+<h3 id="listing-flow">Listing Flow</h3>
+
+<li>User owns an ENS domain</li>
+<li>User creates a listing order with domain and price</li>
+<li>Order is signed with EIP-712</li>
+<li>Order is posted to marketplace</li>
+<li>Order appears in listings</li>
+
+<h3 id="purchase-flow">Purchase Flow</h3>
+
+<li>Buyer browses listings</li>
+<li>Buyer selects a domain</li>
+<li>Buyer approves marketplace if needed</li>
+<li>Buyer fulfills the listing order</li>
+<li>Domain transfers to buyer</li>
+<li>Payment transfers to seller</li>
+
+<h3 id="offer-flow">Offer Flow</h3>
+
+<li>Buyer creates an offer order with domain and price</li>
+<li>Order is signed with EIP-712</li>
+<li>Order is posted to marketplace</li>
+<li>Seller accepts the offer</li>
+<li>Domain transfers to buyer</li>
+<li>Payment transfers to seller</li>
+
+<h2 id="error-handling">Error Handling</h2>
+
+The marketplace includes error handling for:
+
+<li>Insufficient balance</li>
+<li>Order expired</li>
+<li>Order already fulfilled</li>
+<li>Order cancelled</li>
+<li>Insufficient approval</li>
+<li>Network errors</li>
+<li>Transaction failures</li>
+
+All errors provide user-friendly messages and recovery suggestions.
+
+<h2 id="security">Security</h2>
+
+<h3 id="order-security">Order Security</h3>
+
+<li>EIP-712 signature verification</li>
+<li>Nonce management prevents replay attacks</li>
+<li>Time validation ensures orders are valid</li>
+<li>On-chain order validation</li>
+
+<h3 id="transaction-security">Transaction Security</h3>
+
+<li>Balance checks before transactions</li>
+<li>Approval verification</li>
+<li>Gas estimation</li>
+<li>Transaction retry logic</li>
+<li>Error recovery</li>
+
+<h2 id="api-integration">API Integration</h2>
+
+The marketplace integrates with:
+
+<li><strong>OpenSea API v2</strong>: For listing and offer data (primary source)</li>
+<li><strong>The Graph Subgraph</strong>: For ENS domain data (fallback)</li>
+<li><strong>ENS Contracts</strong>: For domain ownership and registration</li>
+
+<h3 id="data-sources">Data Sources</h3>
+
+<li><strong>OpenSea API</strong>: Primary source for listings, offers, and statistics</li>
+   - Ensures real-time marketplace data
+   - Includes actual listing prices
+   - Shows active offers
+   - Provides collection statistics
+
+<li><strong>The Graph Subgraph</strong>: Fallback for ENS domain data</li>
+   - Fetches actual registered ENS domains
+   - Shows domain ownership information
+   - Displays expiration dates
+   - Shows registration dates
+   - Displays resolved addresses
+
+<li><strong>No Mock Data</strong>: All placeholder data has been removed</li>
+   - All listings are from OpenSea or The Graph
+   - All domain names are real ENS domains
+   - Statistics are from actual marketplace data
+
+<h2 id="multi-chain-support">Multi-Chain Support</h2>
+
+The marketplace supports:
+
+<li>Ethereum Mainnet (Primary)</li>
+<li>Sepolia Testnet</li>
+<li>Optimism</li>
+<li>Base</li>
+<li>Arbitrum</li>
+
+Each chain uses its own ENS Name Wrapper address and Seaport contract.
+
+<h2 id="testing">Testing</h2>
+
+To test the ENS marketplace:
+
+<li>Start the development server: <code>npm run dev</code></li>
+<li>Navigate to the Marketplace view</li>
+<li>Connect a wallet (MetaMask recommended)</li>
+<li>Search for domains or browse listings</li>
+<li>View actual ENS domains from The Graph</li>
+<li>Make offers on domains</li>
+<li>Create listings for your own domains</li>
+
+<h3 id="what-youll-see">What You'll See</h3>
+
+<li><strong>Real ENS Domains</strong>: All domains shown are actual registered ENS names</li>
+<li><strong>Actual Data</strong>: Expiration dates, registration dates, owners, and resolved addresses are real</li>
+<li><strong>OpenSea Listings</strong>: Domains with prices are actual listings from OpenSea</li>
+<li><strong>Available Domains</strong>: Domains without prices are registered but not listed for sale</li>
+<li><strong>Live Statistics</strong>: Market statistics come from OpenSea API</li>
+
+<h2 id="future-enhancements">Future Enhancements</h2>
+
+Potential additions:
+
+<li>Domain expiration tracking</li>
+<li>Domain renewal reminders</li>
+<li>Bulk domain operations</li>
+<li>Domain analytics</li>
+<li>Historical price charts</li>
+<li>Domain transfer history</li>
+<li>Integration with ENS registrars</li>
+<li>Custom domain configurations</li></ol>
+
+<h2 id="references">References</h2>
+
+<li><a href="https://docs.ens.domains/">ENS Documentation</a></li>
+<li><a href="https://docs.opensea.io/reference/seaport-overview">Seaport Documentation</a></li>
+<li><a href="https://docs.opensea.io/reference/overview">OpenSea API v2</a></li>
+<li><a href="https://docs.ens.domains/contract-api-reference/name-wrapper">ENS Name Wrapper</a></li>
+
+<h2 id="files-created">Files Created</h2>
+
+<li><code>src/lib/services/ens-marketplace-service.ts</code> - ENS marketplace service</li>
+<li><code>src/components/marketplace/ENSMarketplace.tsx</code> - ENS marketplace UI</li>
+<li><code>ENS-MARKETPLACE-DOCUMENTATION.md</code> - This documentation</li></ul>
+
+<h2 id="summary">Summary</h2>
+
+The ENS Marketplace provides a specialized trading platform exclusively for ENS domains. It leverages Seaport protocol for secure, decentralized trading while focusing on the unique needs of ENS domain owners and buyers.
+
+<hr>
+
+Organization: ENS Tools
+
+Domain: https://ens.tools
+
+ENS Marketplace Documentation
+
+Status: PRODUCTION READY
+
+Last Updated: 2025-10-22
+
+Version: 2.0
+
+Compliance: ENS Protocol + accessor-io/naming-convention-toolkit
+
+Author: CORY L. THORBECK
+
+ENS: ACCESSOR.ETH
+
+
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

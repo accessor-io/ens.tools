@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Estimate for ens.tools - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="active">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#fee-structure">Fee Structure</a></li>
+  <li><a href="#fixed-fees-in-eth">Fixed Fees (in ETH)</a></li>
+  <li><a href="#variable-fees">Variable Fees</a></li>
+<li><a href="#market-context">Market Context</a></li>
+<li><a href="#revenue-projections">Revenue Projections</a></li>
+  <li><a href="#scenario-1-conservative-low-adoption">Scenario 1: Conservative (Low Adoption)</a></li>
+  <li><a href="#scenario-2-moderate-medium-adoption">Scenario 2: Moderate (Medium Adoption)</a></li>
+  <li><a href="#scenario-3-optimistic-high-adoption">Scenario 3: Optimistic (High Adoption)</a></li>
+  <li><a href="#scenario-4-premium-name-focus-high-value-sales">Scenario 4: Premium Name Focus (High-Value Sales)</a></li>
+<li><a href="#key-revenue-drivers">Key Revenue Drivers</a></li>
+  <li><a href="#1-marketplace-fees-primary-driver">1. Marketplace Fees (Primary Driver)</a></li>
+  <li><a href="#2-premium-name-sales-high-value-opportunity">2. Premium Name Sales (High-Value Opportunity)</a></li>
+  <li><a href="#3-fixed-fees-steady-income">3. Fixed Fees (Steady Income)</a></li>
+<li><a href="#market-share-assumptions">Market Share Assumptions</a></li>
+<li><a href="#revenue-breakdown-by-source">Revenue Breakdown by Source</a></li>
+  <li><a href="#year-1-projections-moderate-scenario">Year 1 Projections (Moderate Scenario)</a></li>
+  <li><a href="#year-2-3-projections-growth-scenario">Year 2-3 Projections (Growth Scenario)</a></li>
+<li><a href="#premium-name-revenue-potential">Premium Name Revenue Potential</a></li>
+<li><a href="#risk-factors">Risk Factors</a></li>
+<li><a href="#growth-opportunities">Growth Opportunities</a></li>
+<li><a href="#recommended-estimate">Recommended Estimate</a></li>
+<li><a href="#notes">Notes</a></li>
+</ul>
+</div>
+
+        <h1>Revenue Estimate for ens.tools</h1>
+<h2 id="fee-structure">Fee Structure</h2>
+<h3 id="fixed-fees-in-eth">Fixed Fees (in ETH)</h3>
+<li><strong>Contract Registration</strong>: 0.01 ETH (~$25-30)</li>
+<li><strong>ENS Name Registration</strong>: 0.005 ETH (~$12-15)</li>
+<li><strong>Subdomain Creation</strong>: 0.003 ETH (~$7-9)</li>
+<li><strong>Domain Transfer</strong>: 0.002 ETH (~$5-6)</li>
+<h3 id="variable-fees">Variable Fees</h3>
+<li><strong>Marketplace Fee</strong>: 2.5% of sale price (250 basis points)</li>
+<p>- Applied to all marketplace sales - For premium names: Full sale proceeds go to ENS DAO, you keep 2.5% fee - For regular names: Seller gets proceeds minus 2.5% fee, you get 2.5% fee</p>
+<h2 id="market-context">Market Context</h2>
+<p>Based on ENS protocol revenue data:</p>
+<li><strong>Q1 2025</strong>: $4.94M total ENS revenue</li>
+<li><strong>Q3 2024</strong>: $6.28M total ENS revenue</li>
+<li><strong>2023</strong>: $18.9M total revenue</li>
+<li><strong>2022</strong>: $50.2M total revenue (peak year)</li>
+<p>ENS marketplace activity (OpenSea):</p>
+<li>Average ENS domain price: ~0.1-1 ETH</li>
+<li>Premium names: Can sell for 10-100+ ETH</li>
+<li>Monthly sales volume: Varies significantly</li>
+<h2 id="revenue-projections">Revenue Projections</h2>
+<h3 id="scenario-1-conservative-low-adoption">Scenario 1: Conservative (Low Adoption)</h3>
+<strong>Assumptions:</strong>
+<li>10 contract registrations/month</li>
+<li>50 ENS name registrations/month</li>
+<li>100 subdomain creations/month</li>
+<li>20 domain transfers/month</li>
+<li>$10,000/month marketplace volume (regular names)</li>
+<li>$5,000/month premium name sales</li>
+<strong>Monthly Revenue:</strong>
+<li>Fixed fees: ~0.8 ETH (~$2,000-2,400)</li>
+<li>Marketplace fees (regular): $250 (2.5% of $10k)</li>
+<li>Marketplace fees (premium): $125 (2.5% of $5k)</li>
+<li><strong>Total: ~$2,375-2,775/month</strong></li>
+<li><strong>Annual: ~$28,500-33,300</strong></li>
+<h3 id="scenario-2-moderate-medium-adoption">Scenario 2: Moderate (Medium Adoption)</h3>
+<strong>Assumptions:</strong>
+<li>50 contract registrations/month</li>
+<li>200 ENS name registrations/month</li>
+<li>500 subdomain creations/month</li>
+<li>100 domain transfers/month</li>
+<li>$50,000/month marketplace volume (regular names)</li>
+<li>$25,000/month premium name sales</li>
+<strong>Monthly Revenue:</strong>
+<li>Fixed fees: ~3.5 ETH (~$8,750-10,500)</li>
+<li>Marketplace fees (regular): $1,250 (2.5% of $50k)</li>
+<li>Marketplace fees (premium): $625 (2.5% of $25k)</li>
+<li><strong>Total: ~$10,625-12,375/month</strong></li>
+<li><strong>Annual: ~$127,500-148,500</strong></li>
+<h3 id="scenario-3-optimistic-high-adoption">Scenario 3: Optimistic (High Adoption)</h3>
+<strong>Assumptions:</strong>
+<li>200 contract registrations/month</li>
+<li>1,000 ENS name registrations/month</li>
+<li>2,000 subdomain creations/month</li>
+<li>500 domain transfers/month</li>
+<li>$200,000/month marketplace volume (regular names)</li>
+<li>$100,000/month premium name sales</li>
+<strong>Monthly Revenue:</strong>
+<li>Fixed fees: ~14 ETH (~$35,000-42,000)</li>
+<li>Marketplace fees (regular): $5,000 (2.5% of $200k)</li>
+<li>Marketplace fees (premium): $2,500 (2.5% of $100k)</li>
+<li><strong>Total: ~$42,500-49,500/month</strong></li>
+<li><strong>Annual: ~$510,000-594,000</strong></li>
+<h3 id="scenario-4-premium-name-focus-high-value-sales">Scenario 4: Premium Name Focus (High-Value Sales)</h3>
+<strong>Assumptions:</strong>
+<li>20 contract registrations/month</li>
+<li>100 ENS name registrations/month</li>
+<li>200 subdomain creations/month</li>
+<li>50 domain transfers/month</li>
+<li>$20,000/month marketplace volume (regular names)</li>
+<li>$200,000/month premium name sales (high-value premium names)</li>
+<strong>Monthly Revenue:</strong>
+<li>Fixed fees: ~1.5 ETH (~$3,750-4,500)</li>
+<li>Marketplace fees (regular): $500 (2.5% of $20k)</li>
+<li>Marketplace fees (premium): $5,000 (2.5% of $200k) ⭐</li>
+<li><strong>Total: ~$9,250-10,000/month</strong></li>
+<li><strong>Annual: ~$111,000-120,000</strong></li>
+<h2 id="key-revenue-drivers">Key Revenue Drivers</h2>
+<h3 id="1-marketplace-fees-primary-driver">1. Marketplace Fees (Primary Driver)</h3>
+<li><strong>Regular names</strong>: 2.5% of all sales</li>
+<li><strong>Premium names</strong>: 2.5% of all sales (proceeds go to ENS DAO, you keep fee)</li>
+<li><strong>Potential</strong>: Highest revenue source as volume grows</li>
+<li><strong>Example</strong>: $1M monthly volume = $25,000/month in fees</li>
+<h3 id="2-premium-name-sales-high-value-opportunity">2. Premium Name Sales (High-Value Opportunity)</h3>
+<li>Premium names can sell for 10-100+ ETH</li>
+<li>Your 2.5% fee on a 50 ETH premium sale = 1.25 ETH (~$3,125)</li>
+<li>Even 1-2 premium sales/month can significantly boost revenue</li>
+<h3 id="3-fixed-fees-steady-income">3. Fixed Fees (Steady Income)</h3>
+<li>Predictable revenue from operations</li>
+<li>Scales with platform adoption</li>
+<li>Lower per-transaction value but consistent</li>
+<h2 id="market-share-assumptions">Market Share Assumptions</h2>
+<strong>Conservative</strong>: 0.1-0.5% of ENS marketplace volume
+<li>Based on new platform, limited adoption</li>
+<li>Focus on niche/enterprise users</li>
+<strong>Moderate</strong>: 1-2% of ENS marketplace volume
+<li>Established platform with good UX</li>
+<li>Growing user base</li>
+<li>Some enterprise adoption</li>
+<strong>Optimistic</strong>: 5-10% of ENS marketplace volume
+<li>Leading ENS management platform</li>
+<li>Strong brand recognition</li>
+<li>Enterprise partnerships</li>
+<h2 id="revenue-breakdown-by-source">Revenue Breakdown by Source</h2>
+<h3 id="year-1-projections-moderate-scenario">Year 1 Projections (Moderate Scenario)</h3>
+<strong>Fixed Fees</strong>: $105,000-126,000/year
+<li>Contract registrations: $15,000-18,000</li>
+<li>Name registrations: $14,400-18,000</li>
+<li>Subdomain creations: $18,000-21,600</li>
+<li>Transfers: $2,400-3,000</li>
+<strong>Marketplace Fees</strong>: $22,500/year
+<li>Regular name sales: $15,000</li>
+<li>Premium name sales: $7,500</li>
+<strong>Total Year 1</strong>: ~$127,500-148,500
+<h3 id="year-2-3-projections-growth-scenario">Year 2-3 Projections (Growth Scenario)</h3>
+<p>Assuming 2-3x growth in adoption:</p>
+<li><strong>Year 2</strong>: $250,000-300,000</li>
+<li><strong>Year 3</strong>: $400,000-500,000</li>
+<h2 id="premium-name-revenue-potential">Premium Name Revenue Potential</h2>
+<p>Premium names represent the highest-value opportunity:</p>
+<strong>Example Premium Sales:</strong>
+<li>3-letter name: 50-200 ETH</li>
+<li>4-letter name: 10-50 ETH</li>
+<li>Common word: 20-100 ETH</li>
+<strong>Your Fee (2.5%):</strong>
+<li>50 ETH sale = 1.25 ETH (~$3,125)</li>
+<li>100 ETH sale = 2.5 ETH (~$6,250)</li>
+<li>200 ETH sale = 5 ETH (~$12,500)</li>
+<strong>Monthly Premium Sales Scenarios:</strong>
+<li>1 premium sale/month (avg 50 ETH): $3,125/month = $37,500/year</li>
+<li>3 premium sales/month (avg 50 ETH): $9,375/month = $112,500/year</li>
+<li>5 premium sales/month (avg 50 ETH): $15,625/month = $187,500/year</li>
+<h2 id="risk-factors">Risk Factors</h2>
+<ol><li><strong>Market Volatility</strong>: ENS marketplace volume fluctuates</li>
+<li><strong>Competition</strong>: Other platforms may offer lower fees</li>
+<li><strong>Adoption</strong>: Revenue depends on user adoption</li>
+<li><strong>Premium Name Availability</strong>: Limited supply of premium names</li>
+<li><strong>ETH Price</strong>: Revenue in USD varies with ETH price</li>
+<h2 id="growth-opportunities">Growth Opportunities</h2>
+<li><strong>Enterprise Partnerships</strong>: Bulk registrations, custom pricing</li>
+<li><strong>API Access</strong>: Charge for API usage</li>
+<li><strong>Premium Features</strong>: Subscription tiers for advanced features</li>
+<li><strong>White-Label Solutions</strong>: License platform to other organizations</li>
+<li><strong>Cross-Chain Expansion</strong>: Support more L2s increases addressable market</li></ol>
+<h2 id="recommended-estimate">Recommended Estimate</h2>
+<strong>Year 1 (Moderate Scenario)</strong>: $100,000-150,000
+<li>Conservative: $30,000-50,000</li>
+<li>Moderate: $100,000-150,000</li>
+<li>Optimistic: $300,000-500,000</li>
+<strong>Key Assumptions:</strong>
+<li>1-2% market share of ENS operations</li>
+<li>$50k-75k monthly marketplace volume</li>
+<li>2-5 premium name sales per month</li>
+<li>Steady growth in fixed fee operations</li>
+<strong>Primary Revenue Driver</strong>: Marketplace fees (especially premium name sales)
+<h2 id="notes">Notes</h2>
+<li>All estimates assume ETH price of $2,500</li>
+<li>Premium name sales have highest revenue potential per transaction</li>
+<li>Fixed fees provide steady, predictable income</li>
+<li>Marketplace fees scale with volume (primary growth driver)</li>
+<li>Revenue estimates are pre-tax and pre-operating costs</li>
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

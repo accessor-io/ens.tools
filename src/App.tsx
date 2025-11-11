@@ -15,18 +15,24 @@ import { DNSSECConfig } from './components/dnssec';
 import { FeeManagement } from './components/admin/FeeManagement';
 import { MasterDatabaseView } from './components/admin/MasterDatabaseView';
 import { AdminPanel } from './components/admin/AdminPanel';
-import { WalletConnect } from './components/WalletConnect';
-import { Web3Provider } from './lib/services';
+import { WalletConnectRainbow } from './components/WalletConnectRainbow';
+import { RainbowKitWrapper } from './lib/providers/RainbowKitProvider';
+import { Web3ProviderCompat } from './lib/services/Web3ProviderCompat';
 import { DomainProvider } from './lib/contexts/DomainContext';
 import { Toaster } from './components/ui/sonner';
 import { JazzCupBackground } from './components/JazzCupBackground';
 import { TransactionStatusPanel } from './components/TransactionStatusPanel';
-import { Network } from 'lucide-react';
+import { DevTools } from './components/devtools';
+import { ENSConsole } from './components/devtools/ENSConsole';
+import { Network, Terminal, Layout } from 'lucide-react';
 
 export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel';
 
+type ViewMode = 'normal' | 'console';
+
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [viewMode, setViewMode] = useState<ViewMode>('console');
 
   const renderView = () => {
     switch (currentView) {
@@ -82,8 +88,9 @@ export default function App() {
   };
 
   return (
-    <Web3Provider>
-      <DomainProvider>
+    <RainbowKitWrapper>
+      <Web3ProviderCompat>
+        <DomainProvider>
         <div className="flex min-h-screen w-full relative">
         <JazzCupBackground />
         <div className="flex-1 relative z-10 flex flex-col">
@@ -97,19 +104,53 @@ export default function App() {
                 <p className="text-slate-500 text-xs leading-tight font-medium">ENS management and marketplace</p>
               </div>
             </div>
-            <WalletConnect />
-          </div>
-          <main className="flex-1 overflow-y-auto relative" style={{ marginTop: '64px', marginLeft: '72px', height: 'calc(100vh - 64px)', paddingBottom: '120px' }}>
-            <div className="p-6 max-w-7xl mx-auto w-full" style={{ minHeight: '100%' }}>
-              {renderView()}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setViewMode(viewMode === 'normal' ? 'console' : 'normal')}
+                className="h-8 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 flex items-center gap-2 text-sm text-slate-700 transition-colors"
+                title={viewMode === 'normal' ? 'Switch to Console View' : 'Switch to Normal View'}
+              >
+                {viewMode === 'normal' ? (
+                  <>
+                    <Terminal className="h-4 w-4" />
+                    <span>Console View</span>
+                  </>
+                ) : (
+                  <>
+                    <Layout className="h-4 w-4" />
+                    <span>Normal View</span>
+                  </>
+                )}
+              </button>
+              <WalletConnectRainbow />
             </div>
-          </main>
+          </div>
+          {viewMode === 'normal' && (
+            <main 
+              className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth" 
+              style={{ 
+                marginTop: '64px', 
+                marginLeft: '72px', 
+                marginRight: '600px', 
+                height: 'calc(100vh - 64px)', 
+                paddingBottom: '120px',
+                WebkitOverflowScrolling: 'touch',
+                scrollBehavior: 'smooth'
+              }}
+            >
+              <div className="p-6 max-w-7xl mx-auto w-full" style={{ minHeight: '100%' }}>
+                {renderView()}
+              </div>
+            </main>
+          )}
         </div>
-        <BottomToolbar currentView={currentView} onViewChange={setCurrentView} />
-        <TransactionStatusPanel />
+        {viewMode === 'normal' && <BottomToolbar currentView={currentView} onViewChange={setCurrentView} />}
+        {viewMode === 'normal' && <TransactionStatusPanel />}
+        <ENSConsole isFullScreen={viewMode === 'console'} />
         <Toaster />
       </div>
       </DomainProvider>
-    </Web3Provider>
+        </Web3ProviderCompat>
+      </RainbowKitWrapper>
   );
 }

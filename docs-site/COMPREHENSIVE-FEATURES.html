@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive ens.tools Features - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="active">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#complete-implementation-guide">Complete Implementation Guide</a></li>
+<li><a href="#1-contract-registration-system">1. Contract Registration System</a></li>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#location">Location</a></li>
+  <li><a href="#features">Features</a></li>
+  <li><a href="#metadata-fields-contract-schema-example">Metadata Fields (Contract Schema Example)</a></li>
+  <li><a href="#transaction-flow">Transaction Flow</a></li>
+<li><a href="#2-domain-profile-management">2. Domain Profile &amp; Management</a></li>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#location">Location</a></li>
+  <li><a href="#features">Features</a></li>
+  <li><a href="#technical-implementation">Technical Implementation</a></li>
+<li><a href="#3-metadata-schema-system">3. Metadata Schema System</a></li>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#location">Location</a></li>
+  <li><a href="#standard-text-record-keys">Standard Text Record Keys</a></li>
+  <li><a href="#schema-validation">Schema Validation</a></li>
+  <li><a href="#auto-recommendation">Auto-Recommendation</a></li>
+<li><a href="#4-ens-write-operations">4. ENS Write Operations</a></li>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#location">Location</a></li>
+  <li><a href="#available-operations">Available Operations</a></li>
+  <li><a href="#fuse-management">Fuse Management</a></li>
+<li><a href="#5-complete-domain-management">5. Complete Domain Management</a></li>
+  <li><a href="#enhanced-features">Enhanced Features</a></li>
+<li><a href="#6-comprehensive-hierarchy-management">6. Comprehensive Hierarchy Management</a></li>
+  <li><a href="#standard-subdomain-patterns">Standard Subdomain Patterns</a></li>
+<li><a href="#7-permissions-fuses">7. Permissions &amp; Fuses</a></li>
+  <li><a href="#namewrapper-fuse-system">NameWrapper Fuse System</a></li>
+  <li><a href="#use-cases">Use Cases</a></li>
+<li><a href="#8-template-system">8. Template System</a></li>
+  <li><a href="#naming-templates">Naming Templates</a></li>
+<li><a href="#complete-user-workflows">Complete User Workflows</a></li>
+  <li><a href="#workflow-1-register-new-contract">Workflow 1: Register New Contract</a></li>
+  <li><a href="#workflow-2-manage-existing-domain">Workflow 2: Manage Existing Domain</a></li>
+  <li><a href="#workflow-3-create-subdomain">Workflow 3: Create Subdomain</a></li>
+  <li><a href="#workflow-4-set-metadata-schema">Workflow 4: Set Metadata Schema</a></li>
+<li><a href="#technical-architecture">Technical Architecture</a></li>
+  <li><a href="#state-management">State Management</a></li>
+  <li><a href="#data-flow">Data Flow</a></li>
+  <li><a href="#error-handling">Error Handling</a></li>
+  <li><a href="#security">Security</a></li>
+<li><a href="#production-checklist">Production Checklist</a></li>
+<li><a href="#standards-compliance">Standards Compliance</a></li>
+  <li><a href="#ens-protocol">ENS Protocol</a></li>
+  <li><a href="#naming-conventions">Naming Conventions</a></li>
+  <li><a href="#metadata-standards">Metadata Standards</a></li>
+<li><a href="#next-steps-enhancements">Next Steps &amp; Enhancements</a></li>
+  <li><a href="#planned-features">Planned Features</a></li>
+  <li><a href="#integration-opportunities">Integration Opportunities</a></li>
+<li><a href="#user-guide">User Guide</a></li>
+  <li><a href="#for-developers">For Developers</a></li>
+  <li><a href="#for-daos">For DAOs</a></li>
+  <li><a href="#for-protocols">For Protocols</a></li>
+</ul>
+</div>
+
+        <h1>Comprehensive ens.tools Features</h1>
+<h2 id="complete-implementation-guide">Complete Implementation Guide</h2>
+<p>This document details all the production-ready features now available in ens.tools, following standards from github.com/accessor-io/naming-convention-toolkit and official ENS specifications.</p>
+<hr>
+<h2 id="1-contract-registration-system">1. Contract Registration System</h2>
+<h3 id="overview">Overview</h3>
+<p>Full-featured contract registration workflow that creates ENS subdomains and assigns comprehensive metadata following industry standards.</p>
+<h3 id="location">Location</h3>
+<li><strong>Component</strong>: <code>/components/ContractRegistration.tsx</code></li>
+<li><strong>Navigation</strong>: Sidebar → "Register Contract"</li>
+<h3 id="features">Features</h3>
+<h4 id="step-1-contract-information"><strong>Step 1: Contract Information</strong></h4>
+<li>Enter contract address (proxy or implementation)</li>
+<li>Specify contract type (ERC20, ERC721, Governor, Vault, etc.)</li>
+<li>Mark as upgradeable/proxy contract</li>
+<li>Add implementation address for proxy contracts</li>
+<h4 id="step-2-ens-naming"><strong>Step 2: ENS Naming</strong></h4>
+<li>Select parent domain (must be owned by connected wallet)</li>
+<li>Choose from standard naming templates:</li>
+<p>- <code>app.*</code> - Main application contracts - <code>dao.*</code> - Governance contracts - <code>vault.*</code> - Treasury/vault contracts - <code>token.*</code> - Token contracts - <code>nft.*</code> - NFT collection contracts - <code>staking.*</code> - Staking contracts - <code>oracle.*</code> - Price oracle contracts - <code>registry.*</code> - Registry contracts - Custom subdomain option</p>
+<li>Preview full ENS name before creation</li>
+<h4 id="step-3-metadata-schema"><strong>Step 3: Metadata Schema</strong></h4>
+<li>Auto-selects recommended schema based on naming template</li>
+<li>Available schemas:</li>
+<p>- <strong>Smart Contract Standard</strong> - General contract metadata - <strong>DAO Governance</strong> - DAO-specific fields - <strong>Infrastructure Services</strong> - API/RPC/Oracle metadata - <strong>Application Contract</strong> - dApp metadata</p>
+<li>Required and optional fields per schema</li>
+<li>Field validation</li>
+<h4 id="step-4-review-register"><strong>Step 4: Review & Register</strong></h4>
+<li>Review all information</li>
+<li>Confirm transaction</li>
+<li>Creates subdomain with proper fuses</li>
+<li>Sets contract address record</li>
+<li>Applies all metadata records</li>
+<h3 id="metadata-fields-contract-schema-example">Metadata Fields (Contract Schema Example)</h3>
+<li><strong>Contract Address</strong> (required)</li>
+<li><strong>Description</strong> (required)</li>
+<li><strong>Contract Type</strong> (GovernorBravo, ERC20, etc.)</li>
+<li><strong>Version</strong></li>
+<li><strong>Implementation Address</strong> (for proxies)</li>
+<li><strong>Documentation URL</strong></li>
+<li><strong>GitHub Repository</strong></li>
+<li><strong>Audit Report URL</strong></li>
+<h3 id="transaction-flow">Transaction Flow</h3>
+<pre><code class="language-text">1. Create Subdomain (with fuses)
+   ↓
+<ol><li>Set Contract Address Record</li>
+   ↓
+<li>Set All Metadata Records</li>
+   ↓
+<li>Set Contract-Specific Metadata</li>
+   ↓
+<li>Success - Name Resolves to Contract</code></pre></li>
+
+<hr>
+
+<h2 id="2-domain-profile-management">2. Domain Profile & Management</h2>
+
+<h3 id="overview">Overview</h3>
+Comprehensive domain profile view with complete editing capabilities, subdomain management, security configuration, and transfer options.
+
+<h3 id="location">Location</h3>
+<li><strong>Component</strong>: <code>/components/DomainProfile.tsx</code></li>
+<li><strong>Access</strong>: Click "View" on any domain in Domain Management</li>
+
+<h3 id="features">Features</h3>
+
+<h4 id="overview-tab"><strong>Overview Tab</strong></h4>
+<li>Complete domain information display</li>
+<li>Owner address with copy/view on Etherscan</li>
+<li>Resolved address (ETH record)</li>
+<li>Domain type (Wrapped/Standard)</li>
+<li>Expiration date</li>
+<li>Resolver address</li>
+<li>Quick action buttons to all tabs</li>
+
+<h4 id="metadata-tab"><strong>Metadata Tab</strong></h4>
+<li><strong>Schema Selection</strong></li>
+  - Choose from 4 standard schemas
+  - Auto-recommended based on domain pattern
+  - Schema-specific field validation
+
+<li><strong>Metadata Editor</strong></li>
+  - Edit/add text records
+  - Structured form based on schema
+  - Field descriptions and placeholders
+  - Required field validation
+  - Save all records with one transaction
+
+<li><strong>Supported Record Types</strong></li>
+  - Contract addresses
+  - Text records (description, docs, etc.)
+  - Social media links
+  - URLs and API endpoints
+  - Custom fields
+
+<h4 id="subdomains-tab"><strong>Subdomains Tab</strong></h4>
+<li><strong>View All Subdomains</strong></li>
+  - List of all subdomains under parent
+  - Status and configuration per subdomain
+  - Quick management actions
+
+<li><strong>Create Subdomain</strong></li>
+  - Specify subdomain label
+  - Set owner address
+  - Configure fuses/permissions
+  - Inherit expiration from parent
+  - Apply security restrictions
+
+<li><strong>Recommended Hierarchy</strong></li>
+  - Standard subdomain patterns
+  - Best practices for organization
+  - Quick-create suggestions
+
+<h4 id="security-tab"><strong>Security Tab</strong></h4>
+<li><strong>Fuse Management</strong> (for wrapped names)</li>
+  - View available fuses
+  - Configure permissions:
+    - CANNOT_UNWRAP - Prevent unwrapping
+    - CANNOT_BURN_FUSES - Lock fuses permanently
+    - CANNOT_TRANSFER - Prevent transfers
+    - CANNOT_SET_RESOLVER - Lock resolver
+    - CANNOT_SET_TTL - Lock TTL
+    - CANNOT_CREATE_SUBDOMAIN - Prevent subdomain creation
+    - PARENT_CANNOT_CONTROL - Emancipate from parent
+    - CAN_EXTEND_EXPIRY - Allow expiry extension
+  - Apply multiple fuses atomically
+
+<li><strong>Wrap Status</strong></li>
+  - Indication if name is wrapped
+  - Benefits of wrapping
+  - Wrap name option (coming soon)
+
+<h4 id="transfer-tab"><strong>Transfer Tab</strong></h4>
+<li>Transfer ownership to new address</li>
+<li>Warning alerts</li>
+<li>Confirmation dialog</li>
+<li>Irreversible action safeguards</li>
+
+<h3 id="technical-implementation">Technical Implementation</h3>
+<li>Uses production ENS write operations</li>
+<li>Integrates with NameWrapper for fuses</li>
+<li>Real-time validation</li>
+<li>Gas-efficient batch operations</li>
+<li>Error handling with user-friendly messages</li>
+
+<hr>
+
+<h2 id="3-metadata-schema-system">3. Metadata Schema System</h2>
+
+<h3 id="overview">Overview</h3>
+Industry-standard metadata schemas following accessor-io/naming-convention-toolkit conventions.
+
+<h3 id="location">Location</h3>
+<li><strong>Library</strong>: <code>/lib/metadata-schemas.ts</code></li>
+<li><strong>Used In</strong>: Contract Registration, Domain Profile, Metadata Editor</li>
+
+<h3 id="standard-text-record-keys">Standard Text Record Keys</h3>
+
+<h4 id="identity">Identity</h4>
+<li><code>avatar</code> - Profile picture (IPFS/HTTP URL)</li>
+<li><code>description</code> - Description text</li>
+<li><code>display</code> - Display name</li>
+<li><code>email</code> - Contact email</li>
+<li><code>keywords</code> - Search keywords</li>
+<li><code>name</code> - Canonical name</li>
+
+<h4 id="contract-specific">Contract-Specific</h4>
+<li><code>eth.contract.address</code> - Contract address</li>
+<li><code>eth.contract.abi</code> - ABI (JSON)</li>
+<li><code>eth.contract.version</code> - Version string</li>
+<li><code>eth.contract.type</code> - Contract type</li>
+<li><code>eth.contract.implementation</code> - Implementation address</li>
+<li><code>eth.contract.proxy.type</code> - Proxy pattern type</li>
+
+<h4 id="links">Links</h4>
+<li><code>url</code> - Website URL</li>
+<li><code>notice</code> - Important notice</li>
+<li><code>docs.url</code> - Documentation URL</li>
+<li><code>api.url</code> - API endpoint</li>
+<li><code>changelog.url</code> - Changelog URL</li>
+
+<h4 id="social">Social</h4>
+<li><code>com.github</code> - GitHub org/repo</li>
+<li><code>com.twitter</code> - Twitter handle</li>
+<li><code>com.discord</code> - Discord server</li>
+<li><code>org.telegram</code> - Telegram handle</li>
+
+<h4 id="daogovernance">DAO/Governance</h4>
+<li><code>dao.governance.type</code> - Governance mechanism</li>
+<li><code>dao.voting.power</code> - Voting power formula</li>
+<li><code>dao.proposal.threshold</code> - Proposal threshold</li>
+<li><code>dao.snapshot.space</code> - Snapshot space</li>
+
+<h4 id="security">Security</h4>
+<li><code>security.audit.url</code> - Audit report URL</li>
+<li><code>security.bounty.url</code> - Bug bounty URL</li>
+<li><code>security.multisig.address</code> - Multisig address</li>
+
+<h4 id="deployment">Deployment</h4>
+<li><code>deployment.timestamp</code> - Deployment timestamp</li>
+<li><code>deployment.deployer</code> - Deployer address</li>
+<li><code>deployment.chainId</code> - Chain ID</li>
+<li><code>deployment.network</code> - Network name</li>
+
+<h3 id="schema-validation">Schema Validation</h3>
+<pre><code class="language-typescript">validateMetadata(metadata, schema)
+// Returns: { valid: boolean, errors: string[] }</code></pre>
+
+<h3 id="auto-recommendation">Auto-Recommendation</h3>
+<pre><code class="language-typescript">getRecommendedSchema(&#039;dao.example.eth&#039;)
+// Returns: DAO_SCHEMA
+
+getRecommendedSchema(&#039;app.example.eth&#039;)
+// Returns: APPLICATION_SCHEMA</code></pre>
+
+<hr>
+
+<h2 id="4-ens-write-operations">4. ENS Write Operations</h2>
+
+<h3 id="overview">Overview</h3>
+Production-ready write operations for ENS management using viem.
+
+<h3 id="location">Location</h3>
+<li><strong>Library</strong>: <code>/lib/ens-write-operations.ts</code></li>
+
+<h3 id="available-operations">Available Operations</h3>
+
+<h4 id="set-text-record"><strong>Set Text Record</strong></h4>
+<pre><code class="language-typescript">setTextRecord(walletClient, publicClient, {
+  name: &#039;app.example.eth&#039;,
+  recordType: &#039;text&#039;,
+  key: &#039;description&#039;,
+  value: &#039;Main application contract&#039;
+})</code></pre>
+
+<h4 id="create-subdomain"><strong>Create Subdomain</strong></h4>
+<pre><code class="language-typescript">createSubdomain(walletClient, {
+  parentName: &#039;example.eth&#039;,
+  label: &#039;app&#039;,
+  owner: &#039;0x...&#039;,
+  resolver: &#039;0x...&#039;,
+  fuses: 0,
+  expiry: BigInt(...)
+})</code></pre>
+
+<h4 id="transfer-domain"><strong>Transfer Domain</strong></h4>
+<pre><code class="language-typescript">transferDomain(walletClient, {
+  name: &#039;app.example.eth&#039;,
+  newOwner: &#039;0x...&#039;
+})</code></pre>
+
+<h4 id="set-fuses"><strong>Set Fuses</strong></h4>
+<pre><code class="language-typescript">setFuses(walletClient, {
+  name: &#039;app.example.eth&#039;,
+  fuses: combineFuses([&#039;CANNOT_UNWRAP&#039;, &#039;CANNOT_TRANSFER&#039;])
+})</code></pre>
+
+<h4 id="wrap-name"><strong>Wrap Name</strong></h4>
+<pre><code class="language-typescript">wrapName(walletClient, {
+  name: &#039;example.eth&#039;,
+  owner: &#039;0x...&#039;,
+  fuses: 0,
+  expiry: BigInt(...)
+})</code></pre>
+
+<h3 id="fuse-management">Fuse Management</h3>
+<pre><code class="language-typescript">// Combine multiple fuses
+const fuses = combineFuses([
+  &#039;CANNOT_UNWRAP&#039;,
+  &#039;CANNOT_TRANSFER&#039;,
+  &#039;PARENT_CANNOT_CONTROL&#039;
+]);
+
+// Get active fuses from number
+const active = getActiveFuses(fusesNumber);
+// Returns: [&#039;CANNOT_UNWRAP&#039;, &#039;CANNOT_TRANSFER&#039;]</code></pre>
+
+<hr>
+
+<h2 id="5-complete-domain-management">5. Complete Domain Management</h2>
+
+<h3 id="enhanced-features">Enhanced Features</h3>
+
+<h4 id="real-data-loading"><strong>Real Data Loading</strong></h4>
+<li>Fetches user's owned domains from The Graph</li>
+<li>Displays all root-level registered/owned names</li>
+<li>Auto-loads when wallet connects</li>
+<li>Refresh functionality</li>
+
+<h4 id="search-filter"><strong>Search & Filter</strong></h4>
+<li>Search by domain name</li>
+<li>Filter tabs:</li>
+  - <strong>All Names</strong> - Complete portfolio
+  - <strong>Wrapped</strong> - Names with NameWrapper
+  - <strong>Expiring Soon</strong> - Names expiring in <90 days
+
+<h4 id="detailed-information"><strong>Detailed Information</strong></h4>
+<li>Click any domain to view complete profile</li>
+<li>Full editing capabilities</li>
+<li>Subdomain management</li>
+<li>Transfer options</li>
+
+<h4 id="expiration-monitoring"><strong>Expiration Monitoring</strong></h4>
+<li>Real-time expiration status</li>
+<li>Days until expiry calculation</li>
+<li>Color-coded status indicators:</li>
+  - Active (>90 days)
+  - Expiring Soon (<90 days)
+  - Expired
+
+<h4 id="resolver-status"><strong>Resolver Status</strong></h4>
+<li>Indicates if resolver is set</li>
+<li>Shows resolver address</li>
+<li>Warning if no resolver configured</li>
+
+<hr>
+
+<h2 id="6-comprehensive-hierarchy-management">6. Comprehensive Hierarchy Management</h2>
+
+<h3 id="standard-subdomain-patterns">Standard Subdomain Patterns</h3>
+
+Following accessor-io/naming-convention-toolkit:
+
+<h4 id="governance"><strong>Governance</strong></h4>
+<li><code>dao.*.eth</code> - DAO governance contracts</li>
+<li><code>gov.*.eth</code> - Governor contracts  </li>
+<li><code>multisig.*.eth</code> - Multisig wallets</li>
+<li><code>timelock.*.eth</code> - Timelock contracts</li>
+
+<h4 id="infrastructure"><strong>Infrastructure</strong></h4>
+<li><code>api.*.eth</code> - API endpoints</li>
+<li><code>rpc.*.eth</code> - RPC endpoints</li>
+<li><code>oracle.*.eth</code> - Price oracles</li>
+<li><code>registry.*.eth</code> - Registry contracts</li>
+
+<h4 id="finance"><strong>Finance</strong></h4>
+<li><code>vault.*.eth</code> - Treasury vaults</li>
+<li><code>treasury.*.eth</code> - Treasury contracts</li>
+<li><code>staking.*.eth</code> - Staking contracts</li>
+<li><code>rewards.*.eth</code> - Rewards distributors</li>
+
+<h4 id="tokens"><strong>Tokens</strong></h4>
+<li><code>token.*.eth</code> - Token contracts</li>
+<li><code>nft.*.eth</code> - NFT collections</li>
+<li><code>dao-token.*.eth</code> - Governance tokens</li>
+
+<h4 id="applications"><strong>Applications</strong></h4>
+<li><code>app.*.eth</code> - Main application</li>
+<li><code>dapp.*.eth</code> - Decentralized app</li>
+<li><code>swap.*.eth</code> - DEX contracts</li>
+<li><code>lending.*.eth</code> - Lending protocols</li>
+
+<h4 id="development"><strong>Development</strong></h4>
+<li><code>dev.*.eth</code> - Development deployments</li>
+<li><code>test.*.eth</code> - Test contracts</li>
+<li><code>staging.*.eth</code> - Staging environment</li>
+
+<hr>
+
+<h2 id="7-permissions-fuses">7. Permissions & Fuses</h2>
+
+<h3 id="namewrapper-fuse-system">NameWrapper Fuse System</h3>
+
+<h4 id="owner-controlled-fuses">Owner-Controlled Fuses</h4>
+<li><strong>CANNOT_UNWRAP</strong> (1) - Name cannot be unwrapped</li>
+<li><strong>CANNOT_BURN_FUSES</strong> (2) - Fuses cannot be burned (made permanent)</li>
+<li><strong>CANNOT_TRANSFER</strong> (4) - Name cannot be transferred</li>
+<li><strong>CANNOT_SET_RESOLVER</strong> (8) - Resolver cannot be changed</li>
+<li><strong>CANNOT_SET_TTL</strong> (16) - TTL cannot be modified</li>
+<li><strong>CANNOT_CREATE_SUBDOMAIN</strong> (32) - Subdomains cannot be created</li>
+<li><strong>CANNOT_APPROVE</strong> (64) - Approvals cannot be set</li>
+
+<h4 id="parent-controlled-fuses">Parent-Controlled Fuses</h4>
+<li><strong>PARENT_CANNOT_CONTROL</strong> (65536) - Parent loses control (emancipation)</li>
+<li><strong>CAN_EXTEND_EXPIRY</strong> (131072) - Parent can extend expiry</li>
+
+<h3 id="use-cases">Use Cases</h3>
+
+<h4 id="immutable-contract-names"><strong>Immutable Contract Names</strong></h4>
+<pre><code class="language-typescript">fuses: [
+  &#039;CANNOT_UNWRAP&#039;,
+  &#039;CANNOT_TRANSFER&#039;,
+  &#039;CANNOT_SET_RESOLVER&#039;,
+  &#039;PARENT_CANNOT_CONTROL&#039;
+]</code></pre>
+
+<h4 id="dao-controlled-names"><strong>DAO-Controlled Names</strong></h4>
+<pre><code class="language-typescript">fuses: [
+  &#039;CANNOT_UNWRAP&#039;,
+  &#039;CANNOT_BURN_FUSES&#039;,
+  &#039;PARENT_CANNOT_CONTROL&#039;
+]
+// Allows DAO to modify while preventing unwrapping</code></pre>
+
+<h4 id="temporary-subdomains"><strong>Temporary Subdomains</strong></h4>
+<pre><code class="language-typescript">fuses: [
+  &#039;PARENT_CANNOT_CONTROL&#039;,
+  &#039;CAN_EXTEND_EXPIRY&#039;
+]
+// Owner controls, parent can extend if needed</code></pre>
+
+<hr>
+
+<h2 id="8-template-system">8. Template System</h2>
+
+<h3 id="naming-templates">Naming Templates</h3>
+
+<h4 id="pre-configured-templates"><strong>Pre-Configured Templates</strong></h4>
+<li>Load instantly from template selector</li>
+<li>Auto-populate subdomain label</li>
+<li>Auto-select appropriate metadata schema</li>
+<li>Best practices baked in</li>
+
+<h4 id="template-categories"><strong>Template Categories</strong></h4>
+<li><strong>Application</strong> - app, dapp</li>
+<li><strong>Governance</strong> - dao, gov</li>
+<li><strong>Finance</strong> - vault, treasury, token</li>
+<li><strong>Infrastructure</strong> - api, rpc, oracle</li>
+<li><strong>Development</strong> - dev, test, staging</li>
+
+<h4 id="custom-templates"><strong>Custom Templates</strong></h4>
+<li>Create your own naming patterns</li>
+<li>Save for reuse</li>
+<li>Share across organization</li>
+
+<hr>
+
+<h2 id="complete-user-workflows">Complete User Workflows</h2>
+
+<h3 id="workflow-1-register-new-contract">Workflow 1: Register New Contract</h3>
+
+<li><strong>Navigate</strong> to "Register Contract"</li>
+<li><strong>Enter</strong> contract address and type</li>
+<li><strong>Select</strong> parent domain you own</li>
+<li><strong>Choose</strong> naming template or create custom</li>
+<li><strong>Fill</strong> metadata schema fields</li>
+<li><strong>Review</strong> all information</li>
+<li><strong>Confirm</strong> and sign transaction</li>
+<li><strong>Done</strong> - Name now resolves to contract!</li>
+
+<h3 id="workflow-2-manage-existing-domain">Workflow 2: Manage Existing Domain</h3>
+
+<li><strong>Navigate</strong> to "Domain Management"</li>
+<li><strong>Find</strong> your domain (search or filter)</li>
+<li><strong>Click</strong> "View" to open profile</li>
+<li><strong>Tabs Available</strong>:</li>
+   - Overview - See all info
+   - Metadata - Edit records
+   - Subdomains - Create/manage
+   - Security - Set fuses
+   - Transfer - Change ownership
+<li><strong>Make Changes</strong> as needed</li>
+<li><strong>Save</strong> - Transactions signed and confirmed</li>
+
+<h3 id="workflow-3-create-subdomain">Workflow 3: Create Subdomain</h3>
+
+<li><strong>Open</strong> domain profile</li>
+<li><strong>Navigate</strong> to Subdomains tab</li>
+<li><strong>Click</strong> "Create Subdomain"</li>
+<li><strong>Enter</strong> subdomain label</li>
+<li><strong>Set</strong> owner address</li>
+<li><strong>Select</strong> fuses/permissions</li>
+<li><strong>Create</strong> - Subdomain is live!</li>
+
+<h3 id="workflow-4-set-metadata-schema">Workflow 4: Set Metadata Schema</h3>
+
+<li><strong>Open</strong> domain profile</li>
+<li><strong>Navigate</strong> to Metadata tab</li>
+<li><strong>Select</strong> appropriate schema</li>
+<li><strong>Fill</strong> required fields</li>
+<li><strong>Add</strong> optional fields</li>
+<li><strong>Save</strong> - All records set at once!</li></ol>
+
+<hr>
+
+<h2 id="technical-architecture">Technical Architecture</h2>
+
+<h3 id="state-management">State Management</h3>
+<li>React hooks for local state</li>
+<li>Web3Provider context for wallet</li>
+<li>Real-time data from The Graph</li>
+<li>On-chain calls for write operations</li>
+
+<h3 id="data-flow">Data Flow</h3>
+<pre><code class="language-text">User Action
+    ↓
+Validation
+    ↓
+Wallet Sign Transaction
+    ↓
+Smart Contract Call
+    ↓
+Confirmation
+    ↓
+UI Update</code></pre>
+
+<h3 id="error-handling">Error Handling</h3>
+<li>User-friendly error messages</li>
+<li>Transaction failure recovery</li>
+<li>Input validation</li>
+<li>Network error handling</li>
+
+<h3 id="security">Security</h3>
+<li>No private key exposure</li>
+<li>User confirms all transactions</li>
+<li>Read-only by default</li>
+<li>Explicit user action for writes</li>
+
+<hr>
+
+<h2 id="production-checklist">Production Checklist</h2>
+
+<li>[x] Wallet connection with MetaMask</li>
+<li>[x] Real ENS data loading from The Graph</li>
+<li>[x] Domain profile with full editing</li>
+<li>[x] Contract registration workflow</li>
+<li>[x] Metadata schema system</li>
+<li>[x] Subdomain creation</li>
+<li>[x] Fuse management</li>
+<li>[x] Transfer functionality</li>
+<li>[x] Template system</li>
+<li>[x] Hierarchy standards</li>
+<li>[x] Validation and error handling</li>
+<li>[x] Responsive design</li>
+<li>[x] Documentation</li>
+
+<hr>
+
+<h2 id="standards-compliance">Standards Compliance</h2>
+
+<h3 id="ens-protocol">ENS Protocol</h3>
+<li>Compatible with ENS Registry</li>
+<li>Uses NameWrapper for advanced features</li>
+<li>Follows ENS text record standards</li>
+<li>Integrates with Public Resolver</li>
+
+<h3 id="naming-conventions">Naming Conventions</h3>
+<li>Based on accessor-io/naming-convention-toolkit</li>
+<li>Industry-standard subdomain patterns</li>
+<li>Hierarchical organization</li>
+<li>Semantic naming</li>
+
+<h3 id="metadata-standards">Metadata Standards</h3>
+<li>Comprehensive schema system</li>
+<li>Standard text record keys</li>
+<li>Contract-specific fields</li>
+<li>Validation and completeness</li>
+
+<hr>
+
+<h2 id="next-steps-enhancements">Next Steps & Enhancements</h2>
+
+<h3 id="planned-features">Planned Features</h3>
+<li>[ ] Batch operations (multiple domains at once)</li>
+<li>[ ] CSV import/export</li>
+<li>[ ] Advanced filtering and search</li>
+<li>[ ] Multi-chain support (L2s)</li>
+<li>[ ] Custom schema builder</li>
+<li>[ ] Automated renewals</li>
+<li>[ ] Notification system</li>
+<li>[ ] Team collaboration features</li>
+
+<h3 id="integration-opportunities">Integration Opportunities</h3>
+<li>[ ] Snapshot.org integration</li>
+<li>[ ] Safe (Gnosis) multisig integration</li>
+<li>[ ] Governor contract integration</li>
+<li>[ ] IPFS content hash management</li>
+<li>[ ] Automated ABI fetching from Etherscan</li>
+
+<hr>
+
+<h2 id="user-guide">User Guide</h2>
+
+<h3 id="for-developers">For Developers</h3>
+Use this system to:
+<li>Register all your project's contracts to ENS</li>
+<li>Apply standardized metadata</li>
+<li>Organize contracts hierarchically</li>
+<li>Document contract purposes</li>
+<li>Make contracts discoverable</li>
+
+<h3 id="for-daos">For DAOs</h3>
+Use this system to:
+<li>Register governance contracts</li>
+<li>Document DAO structure</li>
+<li>Manage treasury addresses</li>
+<li>Create clear hierarchy</li>
+<li>Enable community discovery</li>
+
+<h3 id="for-protocols">For Protocols</h3>
+Use this system to:
+<li>Register entire protocol suite</li>
+<li>Document all components</li>
+<li>Create intuitive naming</li>
+<li>Enable integrations</li>
+<li>Improve UX</li>
+
+<hr>
+
+Organization: ENS Tools
+
+Domain: https://ens.tools
+
+Status: PRODUCTION READY
+
+Last Updated: 2025-10-22
+
+Version: 2.0
+
+Compliance: ENS Protocol + accessor-io/naming-convention-toolkit
+
+Author: CORY L. THORBECK
+
+ENS: ACCESSOR.ETH
+
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

@@ -9,7 +9,7 @@ import { nameBrowserService } from '../../lib/services/name-browser-service';
 import { nameWatchingService } from '../../lib/services/name-watching-service';
 import { premiumPriceService, PremiumPriceInfo } from '../../lib/services/premium-price-service';
 import { ENSDomain, fetchDomainHistory, DomainHistoryEvent, generateBasicHistory } from '../../lib/ens/ens-utils';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Textarea } from '../ui/textarea';
 import { Loader2, Search, Clock, AlertCircle, XCircle, Sparkles, ArrowUpDown, Filter, X, ArrowUp, ArrowDown, ArrowDownWideNarrow, Zap, Eye, Bell, FileText, Copy, Check, ChevronDown, ChevronRight, History, RefreshCw, Wallet, Globe, ArrowRightLeft, Plus, Lock, Users, Key, FileEdit, Settings as SettingsIcon, Coins, ExternalLink, Link as LinkIcon } from 'lucide-react';

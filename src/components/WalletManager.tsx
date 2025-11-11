@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useWeb3 } from '../lib/services/web3-provider';
+import { useWeb3 } from '../lib/services';
 import { ManagedWallet } from '../lib/services/multi-wallet-manager';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -300,6 +300,7 @@ export function WalletManager() {
     </Card>
   );
 }
+
 
 
 

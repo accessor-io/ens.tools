@@ -21,7 +21,7 @@ import {
   Zap,
   Link as LinkIcon,
 } from 'lucide-react';
-import { useWeb3 } from '../lib/services/web3-provider';
+import { useWeb3 } from '../lib/services';
 import { fetchENSNames, getExpirationStatus, getDaysUntilExpiration, ENSDomain } from '../lib/ens';
 import { wrapName, unwrapName, FUSES } from '../lib/ens';
 import { toast } from 'sonner';

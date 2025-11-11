@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useDomainContext } from '../../lib/contexts/DomainContext';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { fetchENSNames, type ENSDomain } from '../../lib/ens/ens-utils';
 import { useEffect, useState } from 'react';
 

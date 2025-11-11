@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -49,10 +49,23 @@ import {
   Plus,
   X,
   Clock,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
 import { marketplaceService, type Listing, type Offer, type CollectionStats } from '../../lib/services/opensea-marketplace-service';
+import {
+  formatPrice,
+  sortListings,
+  filterListings,
+  debounce,
+  truncateAddress,
+  paginate,
+  type SortOption,
+  type FilterOption,
+} from '../../lib/utils/marketplace-utils';
 
 export function Marketplace() {
   const { address, isConnected, publicClient, walletClient, chainId } = useWeb3();
@@ -80,18 +93,13 @@ export function Marketplace() {
     price: '',
   });
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-
-  useEffect(() => {
-    if (tokenAddress) {
-      loadMarketplaceData();
-    }
-  }, [tokenAddress, activeTab]);
-
-  useEffect(() => {
-    if (activeTab === 'ens') {
-      loadENSListings();
-    }
-  }, [activeTab]);
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [filters, setFilters] = useState<FilterOption>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [showFilters, setShowFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   const loadMarketplaceData = async () => {
     if (!tokenAddress) return;
@@ -128,6 +136,18 @@ export function Marketplace() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (tokenAddress) {
+      loadMarketplaceData();
+    }
+  }, [tokenAddress, activeTab, chainId]);
+
+  useEffect(() => {
+    if (activeTab === 'ens') {
+      loadENSListings();
+    }
+  }, [activeTab, chainId]);
 
   const handleSearch = () => {
     if (!searchQuery) {
@@ -250,17 +270,55 @@ export function Marketplace() {
     }
   };
 
-  const filteredListings = listings.filter(listing =>
-    listing.tokenName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Apply filters and sorting
+  const processedListings = useMemo(() => {
+    let filtered = listings.filter(listing =>
+      listing.tokenName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    filtered = filterListings(filtered, filters);
+    filtered = sortListings(filtered, sortBy);
+    return filtered;
+  }, [listings, searchQuery, filters, sortBy]);
 
-  const filteredOffers = offers.filter(offer =>
-    offer.tokenName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const processedOffers = useMemo(() => {
+    let filtered = offers.filter(offer =>
+      offer.tokenName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    filtered = filterListings(filtered, filters);
+    filtered = sortListings(filtered, sortBy);
+    return filtered;
+  }, [offers, searchQuery, filters, sortBy]);
 
-  const filteredENSListings = ensListings.filter(listing =>
-    listing.ensName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const processedENSListings = useMemo(() => {
+    let filtered = ensListings.filter(listing =>
+      listing.ensName?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    filtered = filterListings(filtered, filters);
+    filtered = sortListings(filtered, sortBy);
+    return filtered;
+  }, [ensListings, searchQuery, filters, sortBy]);
+
+  // Pagination
+  const paginatedListings = useMemo(() => {
+    return paginate(processedListings, currentPage, pageSize);
+  }, [processedListings, currentPage, pageSize]);
+
+  const paginatedOffers = useMemo(() => {
+    return paginate(processedOffers, currentPage, pageSize);
+  }, [processedOffers, currentPage, pageSize]);
+
+  const paginatedENSListings = useMemo(() => {
+    return paginate(processedENSListings, currentPage, pageSize);
+  }, [processedENSListings, currentPage, pageSize]);
+
+  // Update filters
+  useEffect(() => {
+    const newFilters: FilterOption = {};
+    if (minPrice) newFilters.minPrice = minPrice;
+    if (maxPrice) newFilters.maxPrice = maxPrice;
+    setFilters(newFilters);
+    setCurrentPage(1);
+  }, [minPrice, maxPrice]);
 
   return (
     <div className="space-y-6">
@@ -433,17 +491,35 @@ export function Marketplace() {
         <TabsContent value="listings" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Active Listings</CardTitle>
-              <CardDescription>
-                {filteredListings.length} active listings found
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Active Listings</CardTitle>
+                  <CardDescription>
+                    {paginatedListings.totalItems} active listings found
+                  </CardDescription>
+                </div>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                  <SelectTrigger className="w-[180px]">
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                    <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                    <SelectItem value="date-desc">Newest First</SelectItem>
+                    <SelectItem value="date-asc">Oldest First</SelectItem>
+                    <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                    <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                 </div>
-              ) : filteredListings.length === 0 ? (
+              ) : paginatedListings.items.length === 0 ? (
                 <div className="text-center py-8 text-slate-500">
                   No listings found. Search for a token contract address.
                 </div>
@@ -460,7 +536,7 @@ export function Marketplace() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredListings.map((listing) => (
+                    {paginatedListings.items.map((listing) => (
                       <TableRow key={listing.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -481,12 +557,12 @@ export function Marketplace() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm font-mono">
-                            {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
+                            {truncateAddress(listing.seller)}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="font-semibold text-green-600">
-                            {listing.price} {listing.currency}
+                            {formatPrice(listing.price, listing.currency)}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -531,6 +607,36 @@ export function Marketplace() {
                     ))}
                   </TableBody>
                 </Table>
+              )}
+              {paginatedListings.totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="text-sm text-slate-600">
+                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, paginatedListings.totalItems)} of {paginatedListings.totalItems} listings
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <div className="text-sm text-slate-600">
+                      Page {currentPage} of {paginatedListings.totalPages}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(paginatedListings.totalPages, p + 1))}
+                      disabled={currentPage === paginatedListings.totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

@@ -36,7 +36,7 @@ import {
   LogOut,
   RefreshCw,
 } from 'lucide-react';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { signMessage } from 'viem';
 import { toast } from 'sonner';
 

@@ -52,6 +52,17 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      cssCodeSplit: true,
+      cssMinify: true,
+    },
+    css: {
+      devSourcemap: false,
+      postcss: {
+        plugins: [],
+      },
+    },
+    optimizeDeps: {
+      include: [],
     },
     server: {
       port: 3000,

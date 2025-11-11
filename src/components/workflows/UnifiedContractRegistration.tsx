@@ -24,7 +24,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWeb3 } from '../../lib/services/web3-provider';
+import { useWeb3 } from '../../lib/services';
 import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens/ens-write-operations';
 import { DomainSelector } from '../ui/domain-selector';
 import {

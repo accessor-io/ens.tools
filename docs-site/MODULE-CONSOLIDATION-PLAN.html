@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Consolidation Plan - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="active">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#-consolidation-opportunities">🎯 Consolidation Opportunities</a></li>
+  <li><a href="#1-seaport-services-high-priority">1. **Seaport Services** ⚠️ HIGH PRIORITY</a></li>
+  <li><a href="#2-marketplace-services-medium-priority">2. **Marketplace Services** ⚠️ MEDIUM PRIORITY</a></li>
+  <li><a href="#3-transaction-tracking-medium-priority">3. **Transaction Tracking** ⚠️ MEDIUM PRIORITY</a></li>
+  <li><a href="#4-event-tracking-low-priority">4. **Event Tracking** ⚠️ LOW PRIORITY</a></li>
+  <li><a href="#5-registry-services-low-priority">5. **Registry Services** ⚠️ LOW PRIORITY</a></li>
+<li><a href="#-recommended-consolidations">📋 Recommended Consolidations</a></li>
+  <li><a href="#priority-1-seaport-services-high-impact-low-risk">Priority 1: Seaport Services (High Impact, Low Risk)</a></li>
+  <li><a href="#priority-2-transaction-services-medium-impact-medium-risk">Priority 2: Transaction Services (Medium Impact, Medium Risk)</a></li>
+  <li><a href="#priority-3-event-tracking-low-priority">Priority 3: Event Tracking (Low Priority)</a></li>
+<li><a href="#-do-not-consolidate">🚫 Do NOT Consolidate</a></li>
+  <li><a href="#keep-separate">Keep Separate:</a></li>
+<li><a href="#-impact-analysis">📊 Impact Analysis</a></li>
+  <li><a href="#before-consolidation">Before Consolidation:</a></li>
+  <li><a href="#after-consolidation">After Consolidation:</a></li>
+  <li><a href="#benefits">Benefits:</a></li>
+  <li><a href="#risks">Risks:</a></li>
+<li><a href="#-implementation-steps">🔧 Implementation Steps</a></li>
+  <li><a href="#step-1-seaport-consolidation">Step 1: Seaport Consolidation</a></li>
+  <li><a href="#step-2-transaction-consolidation">Step 2: Transaction Consolidation</a></li>
+  <li><a href="#step-3-cleanup">Step 3: Cleanup</a></li>
+<li><a href="#-notes">📝 Notes</a></li>
+<li><a href="#-next-steps">✅ Next Steps</a></li>
+</ul>
+</div>
+
+        <h1>Module Consolidation Plan</h1>
+<strong>Generated</strong>: 2025-01-27  
+<strong>Status</strong>: Analysis Complete, Recommendations Ready
+<hr>
+<h2 id="-consolidation-opportunities">🎯 Consolidation Opportunities</h2>
+<h3 id="1-seaport-services-high-priority">1. <strong>Seaport Services</strong> ⚠️ HIGH PRIORITY</h3>
+<strong>Current State</strong>: 4 separate files
+<li><code>seaport-service.ts</code> - Core Seaport operations</li>
+<li><code>seaport-advanced.ts</code> - Advanced features (collection offers, bundles)</li>
+<li><code>seaport-signer.ts</code> - Order signing utilities</li>
+<li><code>seaport-error-handler.ts</code> - Error handling</li>
+<strong>Problem</strong>: 
+<li>Fragmented functionality</li>
+<li><code>seaport-advanced.ts</code> wraps <code>seaport-service.ts</code></li>
+<li>Error handling is separate utility</li>
+<li>Signing is separate utility</li>
+<strong>Recommendation</strong>: Consolidate into single <code>seaport-service.ts</code>
+<strong>New Structure</strong>:
+<pre><code class="language-typescript">// src/lib/services/seaport-service.ts
+export class SeaportService {
+  // Core operations (from seaport-service.ts)
+  // Advanced features (from seaport-advanced.ts)
+  // Signing utilities (from seaport-signer.ts)
+  // Error handling (from seaport-error-handler.ts)
+}
+
+// Keep separate exports for utilities if needed
+export { SeaportErrorHandler, SeaportErrorType } from &#039;./seaport-service&#039;;</code></pre>
+
+<strong>Benefits</strong>:
+<li>Single source of truth for Seaport operations</li>
+<li>Easier to maintain</li>
+<li>Better code organization</li>
+<li>Reduced import complexity</li>
+
+<strong>Files to Merge</strong>:
+<li><code>seaport-advanced.ts</code> → merge into <code>seaport-service.ts</code></li>
+<li><code>seaport-signer.ts</code> → merge into <code>seaport-service.ts</code> (or keep as utility exports)</li>
+<li><code>seaport-error-handler.ts</code> → merge into <code>seaport-service.ts</code> (or keep as utility class)</li>
+
+<hr>
+
+<h3 id="2-marketplace-services-medium-priority">2. <strong>Marketplace Services</strong> ⚠️ MEDIUM PRIORITY</h3>
+
+<strong>Current State</strong>: 2 separate services
+<li><code>ens-marketplace-service.ts</code> - ENS-specific marketplace operations</li>
+<li><code>opensea-marketplace-service.ts</code> - General OpenSea integration</li>
+
+<strong>Analysis</strong>:
+<li>Both use <code>SeaportService</code></li>
+<li><code>ens-marketplace-service.ts</code> focuses on ENS domains</li>
+<li><code>opensea-marketplace-service.ts</code> is more general (NFTs + ENS)</li>
+<li>Some overlap in functionality</li>
+
+<strong>Recommendation</strong>: Keep separate but clarify boundaries
+
+<strong>Option A</strong>: Keep separate (Recommended)
+<li><code>ens-marketplace-service.ts</code> - ENS domain-specific operations</li>
+<li><code>opensea-marketplace-service.ts</code> - General NFT marketplace operations</li>
+<li>Clear separation of concerns</li>
+
+<strong>Option B</strong>: Consolidate with domain-specific methods
+<pre><code class="language-typescript">// src/lib/services/marketplace-service.ts
+export class MarketplaceService {
+  // General marketplace operations
+  // ENS-specific methods (prefix with <code>ens</code>)
+  // NFT-specific methods
+}</code></pre>
+
+<strong>Recommendation</strong>: <strong>Keep separate</strong> - They serve different purposes:
+<li>ENS marketplace is domain-focused</li>
+<li>OpenSea marketplace is general NFT marketplace</li>
+<li>Different use cases and APIs</li>
+
+<hr>
+
+<h3 id="3-transaction-tracking-medium-priority">3. <strong>Transaction Tracking</strong> ⚠️ MEDIUM PRIORITY</h3>
+
+<strong>Current State</strong>: 2 separate services
+<li><code>transaction-manager.ts</code> (services/) - Transaction queue, status tracking, retry</li>
+<li><code>transaction-tracker.ts</code> (security/) - Transaction tracking with audit logging</li>
+
+<strong>Analysis</strong>:
+<li><code>transaction-manager.ts</code> - Queue management, status polling, retry logic</li>
+<li><code>transaction-tracker.ts</code> - Audit logging, transaction interception</li>
+
+<strong>Recommendation</strong>: Consolidate into <code>transaction-manager.ts</code>
+
+<strong>New Structure</strong>:
+<pre><code class="language-typescript">// src/lib/services/transaction-manager.ts
+export class TransactionManager {
+  // Queue management (from transaction-manager.ts)
+  // Status tracking (from transaction-manager.ts)
+  // Audit logging integration (from transaction-tracker.ts)
+  // Transaction interception (from transaction-tracker.ts)
+}</code></pre>
+
+<strong>Benefits</strong>:
+<li>Single transaction management system</li>
+<li>Unified transaction lifecycle</li>
+<li>Better integration between queue and audit logging</li>
+
+<strong>Migration</strong>:
+<li>Move <code>transaction-tracker.ts</code> functionality into <code>transaction-manager.ts</code></li>
+<li>Update imports across codebase</li>
+<li>Keep audit logging as optional feature</li>
+
+<hr>
+
+<h3 id="4-event-tracking-low-priority">4. <strong>Event Tracking</strong> ⚠️ LOW PRIORITY</h3>
+
+<strong>Current State</strong>: 2 separate services
+<li><code>event-tracker.ts</code> - General application event tracking</li>
+<li><code>delegate-event-tracker.ts</code> - Delegate-specific blockchain event tracking</li>
+
+<strong>Analysis</strong>:
+<li><code>event-tracker.ts</code> - UI events, user actions, application events</li>
+<li><code>delegate-event-tracker.ts</code> - Blockchain event queries (DelegateAdded, DelegateRemoved)</li>
+
+<strong>Recommendation</strong>: <strong>Keep separate</strong> - Different purposes:
+<li><code>event-tracker.ts</code> - Application-level event tracking</li>
+<li><code>delegate-event-tracker.ts</code> - Blockchain event querying (specialized)</li>
+
+<strong>Alternative</strong>: Rename for clarity
+<li><code>event-tracker.ts</code> → <code>app-event-tracker.ts</code> or <code>analytics-tracker.ts</code></li>
+<li><code>delegate-event-tracker.ts</code> → Keep as is (or <code>blockchain-event-tracker.ts</code>)</li>
+
+<hr>
+
+<h3 id="5-registry-services-low-priority">5. <strong>Registry Services</strong> ⚠️ LOW PRIORITY</h3>
+
+<strong>Current State</strong>: 
+<li><code>registry-service.ts</code> - General registry service</li>
+<li>Multiple registry components (ContractRegistry, DAORegistry, ENSContractsRegistry)</li>
+
+<strong>Analysis</strong>:
+<li><code>registry-service.ts</code> - Backend API integration</li>
+<li>Components are UI-only</li>
+
+<strong>Recommendation</strong>: <strong>Keep as is</strong> - Service and components serve different layers
+
+<hr>
+
+<h2 id="-recommended-consolidations">📋 Recommended Consolidations</h2>
+
+<h3 id="priority-1-seaport-services-high-impact-low-risk">Priority 1: Seaport Services (High Impact, Low Risk)</h3>
+<strong>Action</strong>: Merge 4 Seaport files into 1
+<li>Merge <code>seaport-advanced.ts</code> into <code>seaport-service.ts</code></li>
+<li>Merge <code>seaport-signer.ts</code> utilities into <code>seaport-service.ts</code></li>
+<li>Merge <code>seaport-error-handler.ts</code> into <code>seaport-service.ts</code></li>
+<li>Update all imports</li>
+
+<strong>Estimated Time</strong>: 2-3 hours
+<strong>Files Affected</strong>: ~10-15 files that import Seaport services
+
+<hr>
+
+<h3 id="priority-2-transaction-services-medium-impact-medium-risk">Priority 2: Transaction Services (Medium Impact, Medium Risk)</h3>
+<strong>Action</strong>: Merge transaction tracking into transaction manager
+<li>Move <code>transaction-tracker.ts</code> functionality into <code>transaction-manager.ts</code></li>
+<li>Integrate audit logging</li>
+<li>Update imports</li>
+
+<strong>Estimated Time</strong>: 3-4 hours
+<strong>Files Affected</strong>: ~5-8 files
+
+<hr>
+
+<h3 id="priority-3-event-tracking-low-priority">Priority 3: Event Tracking (Low Priority)</h3>
+<strong>Action</strong>: Rename for clarity (no consolidation)
+<li><code>event-tracker.ts</code> → <code>app-event-tracker.ts</code></li>
+<li>Keep <code>delegate-event-tracker.ts</code> as is</li>
+
+<strong>Estimated Time</strong>: 1 hour (just renaming)
+
+<hr>
+
+<h2 id="-do-not-consolidate">🚫 Do NOT Consolidate</h2>
+
+<h3 id="keep-separate">Keep Separate:</h3>
+<ol><li><strong>Marketplace Services</strong> - Different purposes (ENS vs general NFT)</li>
+<li><strong>Event Trackers</strong> - Different domains (app events vs blockchain events)</li>
+<li><strong>Registry Service vs Components</strong> - Different layers (service vs UI)</li>
+
+<hr>
+
+<h2 id="-impact-analysis">📊 Impact Analysis</h2>
+
+<h3 id="before-consolidation">Before Consolidation:</h3>
+<li><strong>Seaport</strong>: 4 files, ~2000 lines total</li>
+<li><strong>Transaction</strong>: 2 files, ~600 lines total</li>
+<li><strong>Total Services</strong>: 25 files</li>
+
+<h3 id="after-consolidation">After Consolidation:</h3>
+<li><strong>Seaport</strong>: 1 file, ~2000 lines (better organized)</li>
+<li><strong>Transaction</strong>: 1 file, ~600 lines (unified)</li>
+<li><strong>Total Services</strong>: 22 files (-3 files)</li>
+
+<h3 id="benefits">Benefits:</h3>
+<li>✅ Reduced file count</li>
+<li>✅ Better code organization</li>
+<li>✅ Easier maintenance</li>
+<li>✅ Clearer dependencies</li>
+<li>✅ Reduced import complexity</li>
+
+<h3 id="risks">Risks:</h3>
+<li>⚠️ Large files (mitigated by good organization)</li>
+<li>⚠️ Need to update imports</li>
+<li>⚠️ Testing required after merge</li>
+
+<hr>
+
+<h2 id="-implementation-steps">🔧 Implementation Steps</h2>
+
+<h3 id="step-1-seaport-consolidation">Step 1: Seaport Consolidation</h3>
+<li>Create backup of all Seaport files</li>
+<li>Merge <code>seaport-advanced.ts</code> methods into <code>seaport-service.ts</code></li>
+<li>Merge <code>seaport-signer.ts</code> functions into <code>seaport-service.ts</code></li>
+<li>Merge <code>seaport-error-handler.ts</code> into <code>seaport-service.ts</code></li>
+<li>Update all imports</li>
+<li>Test marketplace functionality</li>
+<li>Delete old files</li>
+
+<h3 id="step-2-transaction-consolidation">Step 2: Transaction Consolidation</h3>
+<li>Create backup of <code>transaction-tracker.ts</code></li>
+<li>Move audit logging methods into <code>transaction-manager.ts</code></li>
+<li>Integrate transaction interception</li>
+<li>Update imports</li>
+<li>Test transaction flow</li>
+<li>Delete <code>transaction-tracker.ts</code></li>
+
+<h3 id="step-3-cleanup">Step 3: Cleanup</h3>
+<li>Update <code>src/lib/services/index.ts</code> exports</li>
+<li>Run linter</li>
+<li>Test all affected features</li>
+<li>Update documentation</li>
+
+<hr>
+
+<h2 id="-notes">📝 Notes</h2>
+
+<li><strong>Seaport consolidation</strong> is the highest priority - most impact, least risk</li>
+<li><strong>Transaction consolidation</strong> improves transaction lifecycle management</li>
+<li><strong>Event tracking</strong> should stay separate (different domains)</li>
+<li><strong>Marketplace services</strong> should stay separate (different use cases)</li>
+
+<hr>
+
+<h2 id="-next-steps">✅ Next Steps</h2>
+
+<li>Review this plan</li>
+<li>Approve consolidation priorities</li>
+<li>Start with Seaport consolidation (highest impact)</li>
+<li>Test thoroughly after each consolidation</li>
+<li>Update documentation</li></ol>
+
+
+
+
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>

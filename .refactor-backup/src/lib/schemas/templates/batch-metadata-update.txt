@@ -1,0 +1,14 @@
+# Batch Metadata Update Template
+# Updates multiple text records for a domain
+
+setText: [{{domain}}]@domain@[description]@key = [{{description}}]@value
+setText: [{{domain}}]@domain@[url]@key = [{{url}}]@value
+setText: [{{domain}}]@domain@[avatar]@key = [{{avatar}}]@value
+setText: [{{domain}}]@domain@[email]@key = [{{email}}]@value
+setText: [{{domain}}]@domain@[keywords]@key = [{{keywords}}]@value
+setText: [{{domain}}]@domain@[com.twitter]@key = [{{twitter}}]@value
+setText: [{{domain}}]@domain@[com.github]@key = [{{github}}]@value
+setText: [{{domain}}]@domain@[com.discord]@key = [{{discord}}]@value
+setText: [{{domain}}]@domain@[org.telegram]@key = [{{telegram}}]@value
+
+

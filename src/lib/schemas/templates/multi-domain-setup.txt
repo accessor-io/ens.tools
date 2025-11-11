@@ -1,0 +1,28 @@
+# Multi-Domain Setup Template
+# Sets up multiple domains with the same configuration
+# Replace {{domain1}}, {{domain2}}, etc. with your actual domains
+
+# Domain 1 Setup
+setResolver: [{{domain1}}]@domain = [0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63]@resolver
+setAddr: [{{domain1}}]@domain = [{{address1}}]@address
+setText: [{{domain1}}]@domain@[description]@key = [{{description1}}]@value
+setText: [{{domain1}}]@domain@[url]@key = [{{url1}}]@value
+
+# Domain 2 Setup
+setResolver: [{{domain2}}]@domain = [0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63]@resolver
+setAddr: [{{domain2}}]@domain = [{{address2}}]@address
+setText: [{{domain2}}]@domain@[description]@key = [{{description2}}]@value
+setText: [{{domain2}}]@domain@[url]@key = [{{url2}}]@value
+
+# Domain 3 Setup (add more as needed)
+# setResolver: [{{domain3}}]@domain = [0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63]@resolver
+# setAddr: [{{domain3}}]@domain = [{{address3}}]@address
+# setText: [{{domain3}}]@domain@[description]@key = [{{description3}}]@value
+# setText: [{{domain3}}]@domain@[url]@key = [{{url3}}]@value
+
+
+
+
+
+
+

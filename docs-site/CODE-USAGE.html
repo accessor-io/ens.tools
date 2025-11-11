@@ -1,0 +1,3018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Usage - ENS Tools Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 0;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin: 0;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.75em;
+            margin: 20px 20px 10px 20px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin: 0 0 20px 0;
+            padding: 0;
+        }
+        
+        .sidebar li {
+            margin: 0;
+        }
+        
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            padding: 10px 20px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar a:hover {
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+        
+        .sidebar a.active {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border-left-color: #3498db;
+            font-weight: 500;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 15px 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3498db;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .search-box::placeholder {
+            color: #95a5a6;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            background: white;
+            padding: 50px 60px;
+            max-width: 1100px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+        }
+        
+        .main-content h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #3498db;
+            font-weight: 700;
+        }
+        
+        .main-content h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h3 {
+            color: #555;
+            font-size: 1.4em;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            scroll-margin-top: 20px;
+        }
+        
+        .main-content h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .main-content code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .main-content pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .main-content blockquote {
+            border-left: 4px solid #3498db;
+            margin: 25px 0;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            color: #555;
+            font-style: italic;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .main-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .main-content th, .main-content td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .main-content th {
+            background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .main-content tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .main-content tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .main-content a {
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .main-content a:hover {
+            color: #2980b9;
+            border-bottom-color: #2980b9;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0;
+            padding-left: 35px;
+        }
+        
+        .main-content li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        
+        .main-content li ul, .main-content li ol {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .main-content hr {
+            border: none;
+            border-top: 2px solid #ecf0f1;
+            margin: 40px 0;
+        }
+        
+        .main-content p {
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        .table-of-contents {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .table-of-contents h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        
+        .table-of-contents ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        
+        .table-of-contents li {
+            margin: 8px 0;
+        }
+        
+        .table-of-contents a {
+            color: #555;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .table-of-contents a:hover {
+            color: #3498db;
+            padding-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 30px 20px;
+            }
+            
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 1001;
+                background: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1.2em;
+            }
+        }
+        
+        @media print {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display: none;">☰</button>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>ENS Tools Docs</h1>
+        </div>
+        <input type="text" class="search-box" placeholder="Search documentation..." id="searchBox">
+        <h2>Getting Started</h2><ul><li><a href="ENSIP19-QUICKSTART.html" class="">ENSIP-19 Quick Start Guide</a></li><li><a href="PROJECT-OVERVIEW.html" class="">Project Overview</a></li></ul><h2>Core Documentation</h2><ul><li><a href="API-REFERENCE.html" class="">API Reference</a></li><li><a href="BUSINESS-LOGIC.html" class="">Business Logic</a></li><li><a href="CODE-USAGE.html" class="active">Code Usage</a></li><li><a href="FUNCTIONALITY.html" class="">Functionality Documentation</a></li><li><a href="MISSING-ENS-FUNCTIONALITY.html" class="">Missing ENS Functionality Analysis</a></li><li><a href="MISSING-FUNCTIONALITY-REPORT.html" class="">Missing Functionality Report</a></li><li><a href="TERMINAL-USAGE.html" class="">Terminal Usage</a></li></ul><h2>Implementation</h2><ul><li><a href="AUDIT-LOG-IMPLEMENTATION.html" class="">Audit Log & User Configuration System</a></li><li><a href="BASE-METADATA-IMPLEMENTATION.html" class="">Base Chain Metadata Implementation</a></li><li><a href="ENSIP19-IMPLEMENTATION.html" class="">ENSIP-19 Implementation Summary</a></li><li><a href="GRANULAR-PERMISSIONS-INTEGRATION.html" class="">Granular Permissions Integration</a></li><li><a href="IMPLEMENTATION-COMPLETE.html" class="">Implementation Complete</a></li><li><a href="IMPLEMENTATION-SUMMARY.html" class="">Implementation Summary: Audit Log & User Configuration System</a></li><li><a href="IMPORT-REVIEW-COMPLETE.html" class="">Import Review Complete</a></li><li><a href="INTEGRATION-COMPLETE.html" class="">ENSIP-19 Integration Complete</a></li><li><a href="MARKETPLACE-IMPLEMENTATION.html" class="">Marketplace Implementation - OpenSea Seaport Integration</a></li><li><a href="MARKETPLACE-SUMMARY.html" class="">Marketplace Implementation Summary</a></li><li><a href="PRODUCTION-SEAPORT-IMPLEMENTATION.html" class="">Production-Ready Seaport Implementation</a></li><li><a href="PRODUCTION-UPDATE-SUMMARY.html" class="">Production Update Summary</a></li><li><a href="REFACTORING-COMPLETE.html" class="">ENSConsole Refactoring - Complete Implementation Guide</a></li><li><a href="TOOLING-ORGANIZATION-COMPLETE.html" class="">Tooling Organization Complete</a></li></ul><h2>Features</h2><ul><li><a href="ACCESSOR-ETH-USDC-TRANSACTIONS.html" class="">USDC Transactions to accessor.eth</a></li><li><a href="ACTION-SCHEMA-QUICK-REFERENCE.html" class="">Action Schema System - Quick Reference</a></li><li><a href="BEST-PRACTICES-ACTION-SCHEMA.html" class="">Best Practices: ENS Action Schema System</a></li><li><a href="COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="ENS-ACTION-SCHEMA-GUIDE.html" class="">ENS Action Schema System - Complete Guide</a></li><li><a href="ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="ENS-MARKETPLACE-DOCUMENTATION.html" class="">ENS Marketplace Documentation</a></li><li><a href="SCHEMA-PREVIEW-EDITOR.html" class="">ENSIP-19 Schema Preview & Editor</a></li><li><a href="SRC-COMPREHENSIVE-FEATURES.html" class="">Comprehensive ens.tools Features</a></li><li><a href="SRC-ENS-ENTERPRISE-FEATURES.html" class="">ens.tools - Comprehensive Feature Guide</a></li><li><a href="USDC-TRANSACTION-CHECK.html" class="">USDC Transaction Check: accessor.eth</a></li></ul><h2>Setup & Deployment</h2><ul><li><a href="DEPLOYMENT-CHECKLIST.html" class="">Deployment Checklist - Required Updates</a></li><li><a href="ENCRYPTION-SETUP.html" class="">Encryption Setup Guide</a></li><li><a href="PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="PRODUCTION-SETUP.html" class="">ENS Tools Production Setup Guide</a></li><li><a href="SEAPORT-PRODUCTION-READY.html" class="">Seaport Production-Ready Implementation Summary</a></li><li><a href="SRC-PRODUCTION-READY.html" class="">Production-Ready ENS Integration</a></li><li><a href="TOOLING-ORGANIZATION.html" class="">Tooling Organization</a></li></ul><h2>Security</h2><ul><li><a href="SECURITY-FIXES-APPLIED.html" class="">Security Fixes Applied</a></li><li><a href="SECURITY-VULNERABILITIES-REPORT.html" class="">Security Vulnerabilities Report</a></li></ul><h2>Legal & Compliance</h2><ul><li><a href="FINANCIAL-RISK-DISCLOSURE.html" class="">Financial Risk Disclosure</a></li><li><a href="LEGAL-COMPLIANCE.html" class="">Legal Compliance</a></li><li><a href="PRIVACY-POLICY.html" class="">Privacy Policy</a></li><li><a href="TERMS-OF-AGREEMENT.html" class="">Terms of Agreement</a></li><li><a href="USAGE-POLICY.html" class="">Usage Policy</a></li><li><a href="USER-AGREEMENTS.html" class="">User Agreements</a></li></ul><h2>Other</h2><ul><li><a href="APPLICATION-TREE.html" class="">ENS Tools Application Directory Tree</a></li><li><a href="Attributions.html" class="">Documentation</a></li><li><a href="BEST-PRACTICES.html" class="">Best Practices</a></li><li><a href="CONDITIONS-AND-RESULTS.html" class="">Conditions and Results</a></li><li><a href="CONTRACT-NAMING-IMPROVEMENTS.html" class="">Contract Naming & Metadata Deployment Improvements</a></li><li><a href="CONTRACTS-LIST.html" class="">Contracts List</a></li><li><a href="COST-ESTIMATE-SINCE-SEPT-10-2024.html" class="">Cost Estimate Report: Work Since September 10, 2024</a></li><li><a href="DELEGATION-SYSTEM-DOCUMENTATION.html" class="">ENS Delegation System Documentation</a></li><li><a href="DOCUMENTATION-INDEX.html" class="">Documentation Index</a></li><li><a href="DOCUMENTATION-PACKAGE.html" class="">ENS Tools Documentation Package</a></li><li><a href="FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="HELP-AND-SUGGESTIONS.html" class="">Help and Suggestions</a></li><li><a href="IMPROVEMENT-ROADMAP.html" class="">ENS Tools - Improvement Roadmap</a></li><li><a href="IMPROVEMENTS-IMPLEMENTED.html" class="">Improvements Implemented</a></li><li><a href="MODULE-CONSOLIDATION-PLAN.html" class="">Module Consolidation Plan</a></li><li><a href="PRESENTATION-SCRIPT.html" class="">ENS.tools Presentation Talking Points</a></li><li><a href="PROJECT-HOURS-ESTIMATE-REPORT.html" class="">ENS.Tools Development Hours Estimate Report</a></li><li><a href="REFACTORING-PROGRESS.html" class="">ENSConsole Refactoring Progress</a></li><li><a href="REVENUE-BREAKDOWN.html" class="">Revenue Breakdown Document - ens.tools</a></li><li><a href="REVENUE-ESTIMATE.html" class="">Revenue Estimate for ens.tools</a></li><li><a href="SRC-Attributions.html" class="">Documentation</a></li><li><a href="SRC-FIXES-APPLIED.html" class="">Error Fixes Applied</a></li><li><a href="SRC-Guidelines.html" class="">General guidelines</a></li><li><a href="WEB3-PROVIDER-DISCLOSURE.html" class="">Web3 Provider Disclosure</a></li></ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="table-of-contents">
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#basic-usage">Basic Usage</a></li>
+  <li><a href="#importing-modules">Importing Modules</a></li>
+  <li><a href="#domain-operations">Domain Operations</a></li>
+  <li><a href="#delegation">Delegation</a></li>
+  <li><a href="#transaction-building">Transaction Building</a></li>
+  <li><a href="#action-schema">Action Schema</a></li>
+  <li><a href="#metadata-management">Metadata Management</a></li>
+  <li><a href="#marketplace">Marketplace</a></li>
+<li><a href="#react-hooks">React Hooks</a></li>
+  <li><a href="#use-transaction-manager">Use Transaction Manager</a></li>
+  <li><a href="#use-domain-context">Use Domain Context</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+  <li><a href="#try-catch-pattern">Try-Catch Pattern</a></li>
+  <li><a href="#error-types">Error Types</a></li>
+<li><a href="#advanced-patterns">Advanced Patterns</a></li>
+  <li><a href="#batch-operations">Batch Operations</a></li>
+  <li><a href="#template-usage">Template Usage</a></li>
+<li><a href="#testing">Testing</a></li>
+  <li><a href="#unit-tests">Unit Tests</a></li>
+<li><a href="#type-definitions">Type Definitions</a></li>
+  <li><a href="#common-types">Common Types</a></li>
+<li><a href="#code-examples-from-existing-documentation">Code Examples from Existing Documentation</a></li>
+  <li><a href="#examples-from-audit-log-implementationmd">Examples from AUDIT-LOG-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-base-metadata-implementationmd">Examples from BASE-METADATA-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-contract-naming-improvementsmd">Examples from CONTRACT-NAMING-IMPROVEMENTS.md</a></li>
+  <li><a href="#examples-from-delegation-system-documentationmd">Examples from DELEGATION-SYSTEM-DOCUMENTATION.md</a></li>
+  <li><a href="#examples-from-deployment-checklistmd">Examples from DEPLOYMENT-CHECKLIST.md</a></li>
+  <li><a href="#examples-from-encryption-setupmd">Examples from ENCRYPTION-SETUP.md</a></li>
+  <li><a href="#examples-from-ens-marketplace-documentationmd">Examples from ENS-MARKETPLACE-DOCUMENTATION.md</a></li>
+  <li><a href="#examples-from-ensip19-implementationmd">Examples from ENSIP19-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-ensip19-quickstartmd">Examples from ENSIP19-QUICKSTART.md</a></li>
+  <li><a href="#examples-from-granular-permissions-integrationmd">Examples from GRANULAR-PERMISSIONS-INTEGRATION.md</a></li>
+  <li><a href="#examples-from-implementation-summarymd">Examples from IMPLEMENTATION-SUMMARY.md</a></li>
+  <li><a href="#examples-from-import-review-completemd">Examples from IMPORT-REVIEW-COMPLETE.md</a></li>
+  <li><a href="#examples-from-improvement-roadmapmd">Examples from IMPROVEMENT-ROADMAP.md</a></li>
+  <li><a href="#examples-from-improvements-implementedmd">Examples from IMPROVEMENTS-IMPLEMENTED.md</a></li>
+  <li><a href="#examples-from-integration-completemd">Examples from INTEGRATION-COMPLETE.md</a></li>
+  <li><a href="#examples-from-marketplace-implementationmd">Examples from MARKETPLACE-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-missing-ens-functionalitymd">Examples from MISSING-ENS-FUNCTIONALITY.md</a></li>
+  <li><a href="#examples-from-module-consolidation-planmd">Examples from MODULE-CONSOLIDATION-PLAN.md</a></li>
+  <li><a href="#examples-from-production-seaport-implementationmd">Examples from PRODUCTION-SEAPORT-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-production-setupmd">Examples from PRODUCTION-SETUP.md</a></li>
+  <li><a href="#examples-from-production-update-summarymd">Examples from PRODUCTION-UPDATE-SUMMARY.md</a></li>
+  <li><a href="#examples-from-refactoring-completemd">Examples from REFACTORING-COMPLETE.md</a></li>
+  <li><a href="#examples-from-revenue-breakdownmd">Examples from REVENUE-BREAKDOWN.md</a></li>
+  <li><a href="#examples-from-schema-preview-editormd">Examples from SCHEMA-PREVIEW-EDITOR.md</a></li>
+  <li><a href="#examples-from-seaport-production-readymd">Examples from SEAPORT-PRODUCTION-READY.md</a></li>
+  <li><a href="#examples-from-security-fixes-appliedmd">Examples from SECURITY-FIXES-APPLIED.md</a></li>
+  <li><a href="#examples-from-security-vulnerabilities-reportmd">Examples from SECURITY-VULNERABILITIES-REPORT.md</a></li>
+  <li><a href="#2-jwt-token-verification-bypass">2. JWT Token Verification Bypass</a></li>
+  <li><a href="#examples-from-tooling-organization-completemd">Examples from TOOLING-ORGANIZATION-COMPLETE.md</a></li>
+  <li><a href="#examples-from-tooling-organizationmd">Examples from TOOLING-ORGANIZATION.md</a></li>
+  <li><a href="#examples-from-accessor-eth-usdc-transactionsmd">Examples from ACCESSOR-ETH-USDC-TRANSACTIONS.md</a></li>
+  <li><a href="#examples-from-action-schema-quick-referencemd">Examples from ACTION-SCHEMA-QUICK-REFERENCE.md</a></li>
+  <li><a href="#examples-from-api-referencemd">Examples from API-REFERENCE.md</a></li>
+  <li><a href="#examples-from-application-treemd">Examples from APPLICATION-TREE.md</a></li>
+  <li><a href="#examples-from-audit-log-implementationmd">Examples from AUDIT-LOG-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-base-metadata-implementationmd">Examples from BASE-METADATA-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-best-practices-action-schemamd">Examples from BEST-PRACTICES-ACTION-SCHEMA.md</a></li>
+  <li><a href="#examples-from-code-usagemd">Examples from CODE-USAGE.md</a></li>
+  <li><a href="#examples-from-comprehensive-featuresmd">Examples from COMPREHENSIVE-FEATURES.md</a></li>
+  <li><a href="#examples-from-conditions-and-resultsmd">Examples from CONDITIONS-AND-RESULTS.md</a></li>
+  <li><a href="#examples-from-contract-naming-improvementsmd">Examples from CONTRACT-NAMING-IMPROVEMENTS.md</a></li>
+  <li><a href="#examples-from-delegation-system-documentationmd">Examples from DELEGATION-SYSTEM-DOCUMENTATION.md</a></li>
+  <li><a href="#examples-from-ens-action-schema-guidemd">Examples from ENS-ACTION-SCHEMA-GUIDE.md</a></li>
+  <li><a href="#examples-from-ens-marketplace-documentationmd">Examples from ENS-MARKETPLACE-DOCUMENTATION.md</a></li>
+  <li><a href="#examples-from-ensip19-implementationmd">Examples from ENSIP19-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-ensip19-quickstartmd">Examples from ENSIP19-QUICKSTART.md</a></li>
+  <li><a href="#examples-from-functionalitymd">Examples from FUNCTIONALITY.md</a></li>
+  <li><a href="#examples-from-implementation-summarymd">Examples from IMPLEMENTATION-SUMMARY.md</a></li>
+  <li><a href="#examples-from-import-review-completemd">Examples from IMPORT-REVIEW-COMPLETE.md</a></li>
+  <li><a href="#examples-from-integration-completemd">Examples from INTEGRATION-COMPLETE.md</a></li>
+  <li><a href="#examples-from-marketplace-implementationmd">Examples from MARKETPLACE-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-production-readymd">Examples from PRODUCTION-READY.md</a></li>
+  <li><a href="#examples-from-production-seaport-implementationmd">Examples from PRODUCTION-SEAPORT-IMPLEMENTATION.md</a></li>
+  <li><a href="#examples-from-production-setupmd">Examples from PRODUCTION-SETUP.md</a></li>
+  <li><a href="#examples-from-production-update-summarymd">Examples from PRODUCTION-UPDATE-SUMMARY.md</a></li>
+  <li><a href="#examples-from-project-hours-estimate-reportmd">Examples from PROJECT-HOURS-ESTIMATE-REPORT.md</a></li>
+<li><a href="#3-react-component-layer">3. React Component Layer</a></li>
+  <li><a href="#31-overview">3.1 Overview</a></li>
+  <li><a href="#32-major-component-breakdown">3.2 Major Component Breakdown</a></li>
+<li><a href="#4-backend-api-server">4. Backend API Server</a></li>
+  <li><a href="#41-api-routes">4.1 API Routes</a></li>
+  <li><a href="#42-middleware-utilities">4.2 Middleware &amp; Utilities</a></li>
+  <li><a href="#43-database-schema">4.3 Database Schema</a></li>
+  <li><a href="#44-database-infrastructure">4.4 Database Infrastructure</a></li>
+<li><a href="#5-ensip-19-compliance-implementation">5. ENSIP-19 Compliance Implementation</a></li>
+  <li><a href="#51-core-ensip-19-utilities">5.1 Core ENSIP-19 Utilities</a></li>
+  <li><a href="#examples-from-project-overviewmd">Examples from PROJECT-OVERVIEW.md</a></li>
+  <li><a href="#examples-from-schema-preview-editormd">Examples from SCHEMA-PREVIEW-EDITOR.md</a></li>
+  <li><a href="#examples-from-terminal-usagemd">Examples from TERMINAL-USAGE.md</a></li>
+  <li><a href="#examples-from-tooling-organization-completemd">Examples from TOOLING-ORGANIZATION-COMPLETE.md</a></li>
+  <li><a href="#examples-from-tooling-organizationmd">Examples from TOOLING-ORGANIZATION.md</a></li>
+  <li><a href="#examples-from-usdc-transaction-checkmd">Examples from USDC-TRANSACTION-CHECK.md</a></li>
+</ul>
+</div>
+
+        <h1>Code Usage</h1>
+<h2 id="overview">Overview</h2>
+<p>This document provides code examples and usage patterns for ENS Tools.</p>
+<h2 id="installation">Installation</h2>
+<pre><code class="language-bash">npm install</code></pre>
+
+<h2 id="basic-usage">Basic Usage</h2>
+
+<h3 id="importing-modules">Importing Modules</h3>
+
+<pre><code class="language-typescript">import { ENSClient } from &#039;@/lib/ens&#039;;
+import { DelegationService } from &#039;@/lib/services&#039;;
+import { parseAction } from &#039;@/lib/schemas&#039;;</code></pre>
+
+<h3 id="domain-operations">Domain Operations</h3>
+
+<h4 id="get-domain-info">Get Domain Info</h4>
+<pre><code class="language-typescript">import { getDomainInfo } from &#039;@/lib/ens&#039;;
+
+const domainInfo = await getDomainInfo(&#039;example.eth&#039;);
+console.log(domainInfo);</code></pre>
+
+<h4 id="set-address-record">Set Address Record</h4>
+<pre><code class="language-typescript">import { setAddress } from &#039;@/lib/ens/ens-write-operations&#039;;
+
+await setAddress({
+  domain: &#039;example.eth&#039;,
+  address: &#039;0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&#039;,
+  publicClient,
+  walletClient,
+});</code></pre>
+
+<h4 id="set-text-record">Set Text Record</h4>
+<pre><code class="language-typescript">import { setText } from &#039;@/lib/ens/ens-write-operations&#039;;
+
+await setText({
+  domain: &#039;example.eth&#039;,
+  key: &#039;description&#039;,
+  value: &#039;My awesome domain&#039;,
+  publicClient,
+  walletClient,
+});</code></pre>
+
+<h3 id="delegation">Delegation</h3>
+
+<h4 id="add-delegate">Add Delegate</h4>
+<pre><code class="language-typescript">import { delegateTo } from &#039;@/lib/delegation&#039;;
+
+await delegateTo({
+  domain: &#039;example.eth&#039;,
+  delegate: &#039;0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&#039;,
+  permissions: 7, // Full permissions
+  publicClient,
+  walletClient,
+});</code></pre>
+
+<h4 id="remove-delegate">Remove Delegate</h4>
+<pre><code class="language-typescript">import { removeDelegate } from &#039;@/lib/delegation&#039;;
+
+await removeDelegate({
+  domain: &#039;example.eth&#039;,
+  delegate: &#039;0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&#039;,
+  publicClient,
+  walletClient,
+});</code></pre>
+
+<h3 id="transaction-building">Transaction Building</h3>
+
+<h4 id="build-single-transaction">Build Single Transaction</h4>
+<pre><code class="language-typescript">import { TransactionBuilder } from &#039;@/lib/ens/transaction-builder&#039;;
+
+const builder = new TransactionBuilder(publicClient, walletClient);
+builder.setAddress(&#039;example.eth&#039;, &#039;0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&#039;);
+builder.setText(&#039;example.eth&#039;, &#039;description&#039;, &#039;My domain&#039;);
+
+const hashes = await builder.execute();</code></pre>
+
+<h4 id="build-batch-transaction">Build Batch Transaction</h4>
+<pre><code class="language-typescript">import { buildBatchTransaction } from &#039;@/lib/schemas/ens-batch-builder&#039;;
+
+const actions = [
+  &#039;setText: [example.eth]@domain@[description]@key = [My domain]@value&#039;,
+  &#039;setAddr: [example.eth]@domain = [0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@address&#039;,
+];
+
+const batchResult = await buildBatchTransaction(actions, chainId);</code></pre>
+
+<h3 id="action-schema">Action Schema</h3>
+
+<h4 id="parse-actions">Parse Actions</h4>
+<pre><code class="language-typescript">import { parseAction, parseActions } from &#039;@/lib/schemas&#039;;
+
+// Single action
+const action = parseAction(&#039;setText: [example.eth]@domain@[description]@key = [My domain]@value&#039;);
+
+// Multiple actions
+const actions = parseActions(`
+  setText: [example.eth]@domain@[description]@key = [My domain]@value
+  setAddr: [example.eth]@domain = [0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@address
+`);</code></pre>
+
+<h4 id="execute-actions">Execute Actions</h4>
+<pre><code class="language-typescript">import { executeActionsFromString } from &#039;@/lib/schemas&#039;;
+
+const result = await executeActionsFromString(
+  &#039;setText: [example.eth]@domain@[description]@key = [My domain]@value&#039;,
+  {
+    publicClient,
+    walletClient,
+    actor: &#039;0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&#039;,
+  }
+);</code></pre>
+
+<h3 id="metadata-management">Metadata Management</h3>
+
+<h4 id="get-metadata">Get Metadata</h4>
+<pre><code class="language-typescript">import { getMetadata } from &#039;@/lib/services/base-metadata-service&#039;;
+
+const metadata = await getMetadata(&#039;example.eth&#039;);</code></pre>
+
+<h4 id="set-metadata">Set Metadata</h4>
+<pre><code class="language-typescript">import { setMetadata } from &#039;@/lib/services/base-metadata-service&#039;;
+
+await setMetadata(&#039;example.eth&#039;, {
+  name: &#039;Example Domain&#039;,
+  description: &#039;My awesome domain&#039;,
+  // ... other fields
+});</code></pre>
+
+<h3 id="marketplace">Marketplace</h3>
+
+<h4 id="create-listing">Create Listing</h4>
+<pre><code class="language-typescript">import { createListing } from &#039;@/lib/services/ens-marketplace-service&#039;;
+
+const listing = await createListing({
+  domain: &#039;example.eth&#039;,
+  price: parseEther(&#039;1.0&#039;),
+});</code></pre>
+
+<h4 id="fulfill-order">Fulfill Order</h4>
+<pre><code class="language-typescript">import { fulfillOrder } from &#039;@/lib/services/ens-marketplace-service&#039;;
+
+await fulfillOrder({
+  orderId: &#039;order-id&#039;,
+  publicClient,
+  walletClient,
+});</code></pre>
+
+<h2 id="react-hooks">React Hooks</h2>
+
+<h3 id="use-transaction-manager">Use Transaction Manager</h3>
+<pre><code class="language-typescript">import { useTransactionManager } from &#039;@/lib/hooks/useTransactionManager&#039;;
+
+function MyComponent() {
+  const { executeTransaction, status, error } = useTransactionManager();
+
+  const handleExecute = async () =&gt; {
+    await executeTransaction({
+      // transaction config
+    });
+  };
+
+  return (
+    &lt;button onClick={handleExecute}&gt;
+      Execute Transaction
+    &lt;/button&gt;
+  );
+}</code></pre>
+
+<h3 id="use-domain-context">Use Domain Context</h3>
+<pre><code class="language-typescript">import { useDomainContext } from &#039;@/lib/contexts/DomainContext&#039;;
+
+function MyComponent() {
+  const { domain, domainInfo, loading, error } = useDomainContext(&#039;example.eth&#039;);
+
+  if (loading) return &lt;div&gt;Loading...&lt;/div&gt;;
+  if (error) return &lt;div&gt;Error: {error.message}&lt;/div&gt;;
+
+  return &lt;div&gt;{domainInfo?.name}&lt;/div&gt;;
+}</code></pre>
+
+<h2 id="error-handling">Error Handling</h2>
+
+<h3 id="try-catch-pattern">Try-Catch Pattern</h3>
+<pre><code class="language-typescript">try {
+  await setAddress({
+    domain: &#039;example.eth&#039;,
+    address: &#039;0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&#039;,
+    publicClient,
+    walletClient,
+  });
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error(&#039;Validation error:&#039;, error.message);
+  } else if (error instanceof AuthorizationError) {
+    console.error(&#039;Authorization error:&#039;, error.message);
+  } else {
+    console.error(&#039;Unexpected error:&#039;, error);
+  }
+}</code></pre>
+
+<h3 id="error-types">Error Types</h3>
+<pre><code class="language-typescript">import {
+  ValidationError,
+  AuthorizationError,
+  NetworkError,
+  TransactionError,
+} from &#039;@/lib/utils/error-handler&#039;;
+
+// Handle specific error types
+if (error instanceof ValidationError) {
+  // Handle validation error
+}</code></pre>
+
+<h2 id="advanced-patterns">Advanced Patterns</h2>
+
+<h3 id="batch-operations">Batch Operations</h3>
+<pre><code class="language-typescript">const builder = new TransactionBuilder(publicClient, walletClient);
+
+// Add multiple operations
+builder.setAddress(&#039;example.eth&#039;, address1);
+builder.setText(&#039;example.eth&#039;, &#039;key1&#039;, &#039;value1&#039;);
+builder.setText(&#039;example.eth&#039;, &#039;key2&#039;, &#039;value2&#039;);
+builder.setAddress(&#039;sub.example.eth&#039;, address2);
+
+// Execute all at once
+const hashes = await builder.execute();</code></pre>
+
+<h3 id="template-usage">Template Usage</h3>
+<pre><code class="language-typescript">import { generateProfilesFromTemplate } from &#039;@/lib/schemas&#039;;
+
+const template = `
+  setText: [{{domain}}]@domain@[description]@key = [{{description}}]@value
+  setAddr: [{{domain}}]@domain = [{{address}}]@address
+`;
+
+const profiles = generateProfilesFromTemplate(template, [
+  { domain: &#039;example.eth&#039;, description: &#039;Example&#039;, address: &#039;0x...&#039; },
+  { domain: &#039;test.eth&#039;, description: &#039;Test&#039;, address: &#039;0x...&#039; },
+]);</code></pre>
+
+<h2 id="testing">Testing</h2>
+
+<h3 id="unit-tests">Unit Tests</h3>
+<pre><code class="language-typescript">import { describe, it, expect } from &#039;vitest&#039;;
+import { parseAction } from &#039;@/lib/schemas&#039;;
+
+describe(&#039;parseAction&#039;, () =&gt; {
+  it(&#039;should parse simple action&#039;, () =&gt; {
+    const action = parseAction(&#039;setText: [example.eth]@domain@[key]@key = [value]@value&#039;);
+    expect(action.action).toBe(&#039;setText&#039;);
+  });
+});</code></pre>
+
+<h2 id="type-definitions">Type Definitions</h2>
+
+<h3 id="common-types">Common Types</h3>
+<pre><code class="language-typescript">interface DomainInfo {
+  name: string;
+  owner: Address;
+  resolver?: Address;
+  expiry?: Date;
+}
+
+interface ParsedAction {
+  action: string;
+  operator: ActionOperator;
+  parameters: Record&lt;string, string&gt;;
+  raw: string;
+}</code></pre>
+
+
+<hr>
+
+
+<h2 id="code-examples-from-existing-documentation">Code Examples from Existing Documentation</h2>
+
+<h3 id="examples-from-audit-log-implementationmd">Examples from AUDIT-LOG-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-typescript">import { userConfigService } from &#039;./lib/user-config-service&#039;;
+
+// Get config for connected address
+const config = userConfigService.getUserConfig(address);
+
+// Update config
+userConfigService.updateUserConfig(address, {
+  displayOptions: { theme: &#039;dark&#039; }
+});
+
+// Save complete config
+userConfigService.setUserConfig(address, config);</code></pre>
+
+<pre><code class="language-typescript">import { eventTracker } from &#039;./lib/event-tracker&#039;;
+
+// Track specific actions
+eventTracker.trackWalletConnected(address);
+eventTracker.trackDomainSearch(query, resultCount, address);
+eventTracker.trackTextRecordSet(domain, key, value, address);
+eventTracker.trackTransactionConfirmed(txHash, address);
+
+// Subscribe to events
+const unsubscribe = eventTracker.subscribe(&#039;transaction_confirmed&#039;, (data) =&gt; {
+  console.log(&#039;Transaction confirmed:&#039;, data);
+});</code></pre>
+
+<pre><code class="language-bash">npm install crypto-js @types/crypto-js</code></pre>
+
+<h3 id="examples-from-base-metadata-implementationmd">Examples from BASE-METADATA-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-text">┌─────────────────┐
+│ Contract Deploy │
+│  (Any EVM Net)  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Generate Metadata Package    │
+│ - Canonical ID              │
+│ - Full Metadata JSON         │
+│ - Cross-Chain Pointers      │
+└────────┬────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Store on Base Chain         │
+│ - Metadata Registry Contract │
+│ - Cross-Chain Pointers      │
+└────────┬────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Create ENS Reference        │
+│ - Store pointer in ENS      │
+│ - Link to Base metadata     │
+└────────┬────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Cross-Chain Resolution      │
+│ Any EVM Network             │
+│ → Read ENS pointer          │
+│ → Fetch from Base           │
+└─────────────────────────────┘</code></pre>
+
+<pre><code class="language-json">{
+  &quot;protocol&quot;: &quot;base-metadata&quot;,
+  &quot;chainId&quot;: 8453,
+  &quot;nameHash&quot;: &quot;0x...&quot;,
+  &quot;canonicalId&quot;: &quot;org.protocol.category.role.v1-0-0.1&quot;,
+  &quot;metadataHash&quot;: &quot;0x...&quot;
+}</code></pre>
+
+<pre><code class="language-typescript">{
+  chainId: number,
+  contractAddress: string,
+  metadataHash: string
+}</code></pre>
+
+<h3 id="examples-from-contract-naming-improvementsmd">Examples from CONTRACT-NAMING-IMPROVEMENTS.md</h3>
+
+<pre><code class="language-text">1. Contract Registration Request
+   ↓
+<ol><ul><li>Generate Metadata Package</li>
+   - Canonical ID
+   - Full metadata JSON
+   - Cross-chain pointers
+   ↓
+<li>Store on Base Chain</li>
+   - Metadata Registry Contract
+   - Cross-chain mappings
+   ↓
+<li>Create ENS Reference</li>
+   - Text record: ensip19.base
+   - Contains: nameHash, canonicalId, metadataHash
+   ↓
+<li>Cross-Chain Resolution</li>
+   - Any EVM network can query ENS
+   - Fetch reference from ENS
+   - Retrieve metadata from Base</code></pre>
+
+<pre><code class="language-json">{
+  &quot;protocol&quot;: &quot;base-metadata&quot;,
+  &quot;chainId&quot;: 8453,
+  &quot;nameHash&quot;: &quot;0x...&quot;,
+  &quot;canonicalId&quot;: &quot;org.protocol.category.role.v1-0-0.1&quot;,
+  &quot;metadataHash&quot;: &quot;0x...&quot;
+}</code></pre>
+
+<pre><code class="language-typescript">{
+  chainId: number,
+  contractAddress: string,
+  metadataHash: string
+}</code></pre>
+
+<h3 id="examples-from-delegation-system-documentationmd">Examples from DELEGATION-SYSTEM-DOCUMENTATION.md</h3>
+
+<pre><code class="language-text">PreflightChecker → UnifiedContractRegistration
+  ↓
+Check Permissions
+  ↓
+Set Up Delegation
+  ↓
+Register Contract with ENS</code></pre>
+
+<pre><code class="language-text">Metadata Editor → Permission Check
+  ↓
+Show Editable Fields
+  ↓
+Execute Updates
+  ↓
+Verify Changes</code></pre>
+
+<pre><code class="language-typescript">import { permissionService } from &#039;./lib/permission-service&#039;;
+import { delegationPlanner } from &#039;./lib/delegation-planner&#039;;
+import { postVerificationService } from &#039;./lib/post-verification-service&#039;;
+
+// 1. Check permissions
+const permissionCheck = await permissionService.checkPermissions(
+  publicClient,
+  contractAddress,
+  managerAddress,
+  &#039;mycontract.eth&#039;
+);
+
+// 2. Create delegation plan
+const plan = await delegationPlanner.createDelegationPlan(
+  publicClient,
+  permissionCheck,
+  managerAddress,
+  backupManagerAddress
+);
+
+// 3. Execute plan
+const hashes = await executeDelegationPlan(walletClient, publicClient, plan.actions);
+
+// 4. Verify
+const verification = await postVerificationService.verifyDelegation(
+  publicClient,
+  &#039;mycontract.eth&#039;,
+  managerAddress,
+  plan.metadataRecords
+);</code></pre>
+
+<h3 id="examples-from-deployment-checklistmd">Examples from DEPLOYMENT-CHECKLIST.md</h3>
+
+<pre><code class="language-typescript">contractAddress: &#039;0x0000000000000000000000000000000000000000&#039; // PLACEHOLDER</code></pre>
+
+<pre><code class="language-typescript">contractAddress: &#039;0x...&#039; // DEPLOYED CONTRACT ADDRESS</code></pre>
+
+<pre><code class="language-typescript">adminAddress: &#039;0x0000000000000000000000000000000000000000&#039; // PLACEHOLDER</code></pre>
+
+<h3 id="examples-from-encryption-setupmd">Examples from ENCRYPTION-SETUP.md</h3>
+
+<pre><code class="language-bash"># Primary encryption key (strongly recommended in production)
+ENCRYPTION_KEY=your-256-bit-encryption-key-here
+
+<h1>Optional: Fallback key (used if ENCRYPTION_KEY not set)</h1>
+FALLBACK_ENCRYPTION_KEY=fallback-key-for-development</code></pre>
+
+<pre><code class="language-bash"># Using OpenSSL
+openssl rand -base64 32
+
+<h1>Using Node.js</h1>
+node -e &quot;console.log(require(&#039;crypto&#039;).randomBytes(32).toString(&#039;base64&#039;))&quot;
+
+<h1>Using Python</h1>
+python3 -c &quot;import secrets; print(secrets.token_urlsafe(32))&quot;</code></pre>
+
+<pre><code class="language-sql">-- Old (unencrypted JSONB)
+config_json JSONB NOT NULL
+
+-- New (encrypted TEXT)
+config_json TEXT NOT NULL</code></pre>
+
+<h3 id="examples-from-ens-marketplace-documentationmd">Examples from ENS-MARKETPLACE-DOCUMENTATION.md</h3>
+
+<pre><code class="language-text">src/lib/services/
+├── ens-marketplace-service.ts    # ENS-specific marketplace operations
+├── seaport-service.ts             # Core Seaport protocol implementation
+├── seaport-signer.ts              # Order signing utilities
+├── seaport-advanced.ts            # Advanced features
+└── seaport-error-handler.ts       # Error handling</code></pre>
+
+<pre><code class="language-text">src/components/marketplace/
+├── ENSMarketplace.tsx             # Main ENS marketplace UI
+├── Marketplace.tsx                 # General marketplace (legacy)
+└── index.ts                        # Component exports</code></pre>
+
+<h3 id="examples-from-ensip19-implementationmd">Examples from ENSIP19-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-typescript">import { generateCanonicalId, generateMetadataHash } from &#039;./lib/ensip19-utils&#039;;
+
+const id = generateCanonicalId({
+  org: &#039;uniswap&#039;,
+  protocol: &#039;uniswap&#039;,
+  category: &#039;defi&#039;,
+  role: &#039;router&#039;,
+  version: &#039;v4-0-0&#039;,
+  chainId: 1,
+});
+// Returns: uniswap.uniswap.defi.router.v4-0-0.1
+
+const hash = await generateMetadataHash(metadata);
+// Returns: 0xcd788df219a200c224a9f06a1f2738b04512be65a0219162f9ac4aa926da097f</code></pre>
+
+<pre><code class="language-typescript">import { validateENSIP19Full, QAValidator } from &#039;./lib/ensip19-validator&#039;;
+
+const validation = validateENSIP19Full(metadata);
+// { valid: true, errors: [], warnings: [] }
+
+const score = QAValidator.calculateComplianceScore(metadata);
+// { score: 95, level: &#039;excellent&#039;, breakdown: {...} }</code></pre>
+
+<pre><code class="language-typescript">import { generateHierarchicalDomain, parseHierarchicalDomain } from &#039;./lib/ensip19-hierarchical&#039;;
+
+const domain = generateHierarchicalDomain({
+  org: &#039;uniswap&#039;,
+  category: &#039;defi&#039;,
+  subcategory: &#039;amm&#039;,
+  contract: &#039;router&#039;
+});
+// Returns: router.amm.defi.uniswap.cns.eth
+
+const parsed = parseHierarchicalDomain(domain);
+// { level: 4, org: &#039;uniswap&#039;, category: &#039;defi&#039;, subcategory: &#039;amm&#039;, contract: &#039;router&#039; }</code></pre>
+
+<h3 id="examples-from-ensip19-quickstartmd">Examples from ENSIP19-QUICKSTART.md</h3>
+
+<pre><code class="language-text">uniswap.uniswap.defi.router.v4-0-0.1</code></pre>
+
+<pre><code class="language-text">Step 1 - Basic Information:
+  Organization: uniswap
+  Protocol: uniswap
+  Role: router
+  Version: v4-0-0
+  Chain ID: 1 (Ethereum Mainnet)
+  Contract Address: 0x... (your contract)
+  Deployed Block: 19000000
+
+Step 2 - Classification:
+  Category: defi
+  Subcategory: amm
+  ERC Standards: (leave empty)
+  Tags: dex, swap, amm
+
+Step 3 - Security:
+  Proxy Type: uups
+  Implementation: 0x... (implementation address)
+  Owners: 0x... (multisig address)
+  Audit Firm: Trail of Bits
+  Audit Date: 2024-01-15
+  Audit Report: https://...
+
+Step 4 - Lifecycle:
+  Status: deployed
+  Deployed Since: 2024-01-17T00:00:00
+
+Step 5 - Review:
+  Click &quot;Validate ENSIP-19&quot; → Score: 95/100 (excellent)
+  Click &quot;Register Contract&quot;
+
+Result:
+  Canonical ID: uniswap.uniswap.defi.router.v4-0-0.1
+  ENS Domain: router.amm.defi.uniswap.cns.eth
+  Metadata Hash: 0xcd788df...
+  Status: ENSIP-19 Compliant ✓</code></pre>
+
+<pre><code class="language-javascript">import { publicClient } from &#039;viem&#039;;
+
+const metadata = await publicClient.getEnsText({
+  name: &#039;router.amm.defi.uniswap.cns.eth&#039;,
+  key: &#039;ensip19.metadata&#039;
+});
+
+console.log(JSON.parse(metadata));</code></pre>
+
+<h3 id="examples-from-granular-permissions-integrationmd">Examples from GRANULAR-PERMISSIONS-INTEGRATION.md</h3>
+
+<pre><code class="language-typescript">granularPermissionService[&#039;contractAddress&#039;] = &#039;0x...&#039; as Address;</code></pre>
+
+<pre><code class="language-tsx">&lt;GranularPermissions 
+  domainName=&quot;example.eth&quot; 
+  contractAddress=&quot;0x...&quot; 
+/&gt;</code></pre>
+
+<h3 id="examples-from-implementation-summarymd">Examples from IMPLEMENTATION-SUMMARY.md</h3>
+
+<pre><code class="language-text">┌─────────────────────────────────────┐
+│      ENSConsole (Main Component)    │
+│         ~400 lines (was 2,985)      │
+└──────────────┬──────────────────────┘
+               │
+       ┌───────┴────────┐
+       │                 │
+┌──────▼──────┐  ┌──────▼──────┐
+│   Hooks     │  │  Components  │
+│ (Logic)      │  │    (UI)      │
+├─────────────┤  ├──────────────┤
+│ useConsole  │  │ ConsoleTab    │
+│ useENS      │  │ OperationsTab │
+│ useNetwork  │  │ AnalyticsTab  │
+│ useDomain   │  │ NetworkTab    │
+└─────────────┘  └──────────────┘</code></pre>
+
+<pre><code class="language-typescript">// Import the refactored version
+import { ENSConsoleRefactored } from &#039;./ENSConsole.refactored.example&#039;;
+
+// Use it in your app
+&lt;ENSConsoleRefactored /&gt;</code></pre>
+
+<pre><code class="language-bash"># Install dependencies
+npm install
+
+<h1>Run tests</h1>
+npm test
+
+<h1>Run tests with UI</h1>
+npm run test:ui</code></pre>
+
+<h3 id="examples-from-import-review-completemd">Examples from IMPORT-REVIEW-COMPLETE.md</h3>
+
+<pre><code class="language-text">../lib/web3-provider
+../lib/ens-write-operations
+../lib/permission-service
+../lib/delegation-planner
+../lib/ens-utils
+../lib/metadata-schemas
+../lib/ensip19-utils
+../lib/ensip19-validator
+../lib/ensip19-hierarchical
+../lib/audit-log-service
+../lib/transfer-domain
+../lib/ens-status-indicators
+../lib/address-display-service
+../lib/event-tracker</code></pre>
+
+<pre><code class="language-text">../../lib/services (for web3-provider, address-display-service, event-tracker)
+../../lib/ens (for ens operations)
+../../lib/delegation (for permission and delegation services)
+../../lib/metadata (for metadata and ENSIP-19 operations)
+../../lib/security (for security and audit services)</code></pre>
+
+<pre><code class="language-text">lib/
+├── ens/           # ENS core operations
+├── delegation/   # Permission &amp; delegation
+├── metadata/     # Metadata management
+├── security/     # Security features
+└── services/     # General services
+
+components/
+├── workflows/    # Registration workflows
+├── domains/      # Domain management
+├── registry/     # Contract registries
+├── metadata/     # Metadata editing
+├── security/     # Security monitoring
+├── governance/   # Governance
+└── reference/     # Documentation</code></pre>
+
+<h3 id="examples-from-improvement-roadmapmd">Examples from IMPROVEMENT-ROADMAP.md</h3>
+
+<pre><code class="language-typescript">// Create transaction manager service
+<li>TransactionQueue class</li>
+<li>Transaction status polling</li>
+<li>Confirmation dialogs</li>
+<li>Error recovery</li>
+<li>Receipt storage</code></pre></li>
+
+<pre><code class="language-typescript">class TransactionManager {
+  - queue: Transaction[]
+  - addTransaction(tx: Transaction)
+  - executeTransaction(tx: Transaction)
+  - trackStatus(txHash: string)
+  - retryFailed(tx: Transaction)
+  - getHistory(): Transaction[]
+  - clearCompleted()
+}</code></pre>
+
+<pre><code class="language-typescript">class EventListenerService {
+  - subscribeToDelegates(node: Hex)
+  - getDelegatesFromEvents(node: Hex)
+  - cacheDelegateList(node: Hex, delegates: Address[])
+}</code></pre>
+
+<h3 id="examples-from-improvements-implementedmd">Examples from IMPROVEMENTS-IMPLEMENTED.md</h3>
+
+<pre><code class="language-text">src/components/devtools/
+├── types.ts                    # Shared type definitions
+├── hooks/
+│   ├── index.ts
+│   ├── useConsoleLogs.ts      # Console log management
+│   ├── useENSOperations.ts    # ENS operations tracking
+│   ├── useNetworkRequests.ts  # Network request interception
+│   ├── useDomainInspector.ts  # Domain inspection
+│   └── __tests__/
+│       └── useConsoleLogs.test.ts
+├── tabs/
+│   ├── index.ts
+│   └── ConsoleTab.tsx         # Console tab component
+├── ErrorBoundary.tsx           # Error handling
+└── ENSConsole.tsx              # Main component (to be refactored)</code></pre>
+
+<pre><code class="language-typescript">// Before: Everything in one massive component
+export function ENSConsole() {
+  // 2,985 lines of mixed logic and UI
+}
+
+// After: Clean separation
+export function ENSConsole() {
+  const consoleLogs = useConsoleLogs();
+  const operations = useENSOperations();
+  const network = useNetworkRequests();
+  const domainInspector = useDomainInspector(publicClient, operations.trackENSOperation);
+  
+  return (
+    &lt;ErrorBoundary&gt;
+      &lt;Tabs&gt;
+        &lt;ConsoleTab {...consoleLogs} /&gt;
+        {/<em> Other tabs </em>/}
+      &lt;/Tabs&gt;
+    &lt;/ErrorBoundary&gt;
+  );
+}</code></pre>
+
+<pre><code class="language-bash">npm install --save-dev vitest @testing-library/react @testing-library/jest-dom jsdom
+npm test</code></pre>
+
+<h3 id="examples-from-integration-completemd">Examples from INTEGRATION-COMPLETE.md</h3>
+
+<pre><code class="language-bash">cd /Users/acc/Downloads/ens.tools
+npm install</code></pre>
+
+<pre><code class="language-text">Format: org.protocol.category.role[.variant].version.chainId
+Example: uniswap.uniswap.defi.router.v4-0-0.1</code></pre>
+
+<pre><code class="language-text">Algorithm: SHA-256
+Format: 0x[64 hex chars]
+Example: 0xcd788df219a200c224a9f06a1f2738b04512be65a0219162f9ac4aa926da097f</code></pre>
+
+<h3 id="examples-from-marketplace-implementationmd">Examples from MARKETPLACE-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-bash">VITE_OPENSEA_API_KEY=your_api_key_here</code></pre>
+
+<h3 id="examples-from-missing-ens-functionalitymd">Examples from MISSING-ENS-FUNCTIONALITY.md</h3>
+
+<pre><code class="language-typescript">export async function setContentHash(
+  walletClient: WalletClient,
+  publicClient: PublicClient,
+  params: { name: string; contentHash: string }
+): Promise&lt;string&gt; {
+  // Encode content hash (IPFS, Swarm, etc.)
+  // Call resolver.setContenthash
+}</code></pre>
+
+<pre><code class="language-typescript">export async function fetchSubdomains(
+  parentName: string,
+  publicClient: PublicClient
+): Promise&lt;string[]&gt; {
+  // Query The Graph ENS subgraph
+  // Return list of subdomains
+}</code></pre>
+
+<h3 id="examples-from-module-consolidation-planmd">Examples from MODULE-CONSOLIDATION-PLAN.md</h3>
+
+<pre><code class="language-typescript">// src/lib/services/seaport-service.ts
+export class SeaportService {
+  // Core operations (from seaport-service.ts)
+  // Advanced features (from seaport-advanced.ts)
+  // Signing utilities (from seaport-signer.ts)
+  // Error handling (from seaport-error-handler.ts)
+}
+
+// Keep separate exports for utilities if needed
+export { SeaportErrorHandler, SeaportErrorType } from &#039;./seaport-service&#039;;</code></pre>
+
+<pre><code class="language-typescript">// src/lib/services/marketplace-service.ts
+export class MarketplaceService {
+  // General marketplace operations
+  // ENS-specific methods (prefix with <code>ens</code>)
+  // NFT-specific methods
+}</code></pre>
+
+<pre><code class="language-typescript">// src/lib/services/transaction-manager.ts
+export class TransactionManager {
+  // Queue management (from transaction-manager.ts)
+  // Status tracking (from transaction-manager.ts)
+  // Audit logging integration (from transaction-tracker.ts)
+  // Transaction interception (from transaction-tracker.ts)
+}</code></pre>
+
+<h3 id="examples-from-production-seaport-implementationmd">Examples from PRODUCTION-SEAPORT-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-text">src/lib/services/
+├── seaport-service.ts        # Core Seaport operations
+├── seaport-signer.ts         # EIP-712 signing utilities
+├── seaport-advanced.ts       # Advanced features (collections, bundles)
+├── seaport-error-handler.ts  # Error handling and validation
+└── opensea-marketplace-service.ts  # High-level marketplace integration</code></pre>
+
+<pre><code class="language-text">src/components/marketplace/
+├── Marketplace.tsx           # Main marketplace UI
+└── index.ts                  # Component exports</code></pre>
+
+<pre><code class="language-typescript">const orderParams = await marketplaceService.createListingOrder({
+  tokenAddress: &#039;0x...&#039;,
+  tokenId: &#039;1234&#039;,
+  price: &#039;0.5&#039;,
+  publicClient,
+  walletClient,
+  chainId: 1,
+});</code></pre>
+
+<h3 id="examples-from-production-setupmd">Examples from PRODUCTION-SETUP.md</h3>
+
+<pre><code class="language-bash"># Frontend dependencies
+npm install
+
+<h1>Backend dependencies</h1>
+cd server
+npm install
+cd ..</code></pre>
+
+<pre><code class="language-bash">cd server
+psql ens_tools &lt; db/schema.sql</code></pre>
+
+<pre><code class="language-bash"># Backend
+cp server/.env.example server/.env
+
+<h1>Frontend</h1>
+cp .env.example .env</code></pre>
+
+<h3 id="examples-from-production-update-summarymd">Examples from PRODUCTION-UPDATE-SUMMARY.md</h3>
+
+<pre><code class="language-text">server/
+├── api/
+│   ├── index.ts
+│   ├── middleware/
+│   │   ├── auth.ts
+│   │   └── error-handler.ts
+│   ├── routes/
+│   │   ├── auth.ts
+│   │   ├── contracts.ts
+│   │   ├── daos.ts
+│   │   ├── integrations.ts
+│   │   ├── audit-log.ts
+│   │   ├── config.ts
+│   │   ├── analytics.ts
+│   │   └── domains.ts
+│   └── utils/
+│       └── logger.ts
+├── db/
+│   ├── schema.sql
+│   ├── index.ts
+│   └── redis.ts
+├── package.json
+├── tsconfig.json
+└── .env.example</code></pre>
+
+<pre><code class="language-text">PRODUCTION-SETUP.md
+PRODUCTION-UPDATE-SUMMARY.md</code></pre>
+
+<pre><code class="language-text">DATABASE_URL=postgresql://...
+REDIS_URL=redis://...
+FRONTEND_URL=http://localhost:5173
+JWT_SECRET=...
+INFURA_PROJECT_ID=...
+THEGRAPH_API_KEY=...
+IPFS_GATEWAY=https://ipfs.io/ipfs/
+NODE_ENV=development
+PORT=3001</code></pre>
+
+<h3 id="examples-from-refactoring-completemd">Examples from REFACTORING-COMPLETE.md</h3>
+
+<pre><code class="language-text">src/components/devtools/
+├── types.ts                          # Shared type definitions
+├── hooks/
+│   ├── index.ts
+│   ├── useConsoleLogs.ts            # Console log management
+│   ├── useENSOperations.ts          # ENS operations tracking
+│   ├── useNetworkRequests.ts        # Network interception
+│   └── useDomainInspector.ts        # Domain inspection
+├── tabs/
+│   ├── index.ts
+│   ├── ConsoleTab.tsx               # Console UI
+│   ├── OperationsTab.tsx            # Operations UI
+│   ├── AnalyticsTab.tsx            # Analytics UI
+│   └── NetworkTab.tsx              # Network UI
+├── ErrorBoundary.tsx                # Error handling
+├── ENSConsole.tsx                   # Original (preserved)
+└── ENSConsole.refactored.example.tsx # Refactored example</code></pre>
+
+<pre><code class="language-typescript">import { useConsoleLogs, useENSOperations } from &#039;./hooks&#039;;
+
+function MyComponent() {
+  const consoleLogs = useConsoleLogs();
+  const operations = useENSOperations();
+  
+  // Use the hooks
+  consoleLogs.addConsoleLog(&#039;info&#039;, &#039;Message&#039;);
+  operations.trackENSOperation({ type: &#039;query&#039;, operation: &#039;test&#039; });
+}</code></pre>
+
+<pre><code class="language-typescript">import { ConsoleTab, OperationsTab } from &#039;./tabs&#039;;
+
+function MyConsole() {
+  const consoleLogs = useConsoleLogs();
+  
+  return (
+    &lt;ConsoleTab
+      {...consoleLogs}
+      savedFilters={[]}
+      onSaveFilter={() =&gt; {}}
+      onLoadFilter={() =&gt; {}}
+    /&gt;
+  );
+}</code></pre>
+
+<h3 id="examples-from-revenue-breakdownmd">Examples from REVENUE-BREAKDOWN.md</h3>
+
+<pre><code class="language-typescript">const isPremium = await premiumPriceService.getPremiumPrice(name);
+const sellerRecipient = isPremium &amp;&amp; ensAddresses.daoTreasury
+  ? ensAddresses.daoTreasury
+  : sellerAddress;</code></pre>
+
+<h3 id="examples-from-schema-preview-editormd">Examples from SCHEMA-PREVIEW-EDITOR.md</h3>
+
+<pre><code class="language-tsx">import { SchemaPreviewEditor } from &#039;./components/SchemaPreviewEditor&#039;;
+
+function MyComponent() {
+  const handleSave = (metadata: ENSIP19Metadata) =&gt; {
+    console.log(&#039;Saved metadata:&#039;, metadata);
+    // Save to resolver, IPFS, or database
+  };
+
+  return (
+    &lt;SchemaPreviewEditor
+      domain=&quot;uniswap.defi.cns.eth&quot;
+      initialMetadata={{
+        id: &quot;uniswap.uniswap-v3.defi.governor.v1-0-0.1&quot;,
+        org: &quot;uniswap&quot;,
+        protocol: &quot;uniswap-v3&quot;,
+        category: &quot;defi&quot;,
+        role: &quot;governor&quot;,
+        version: &quot;v1-0-0&quot;,
+        chainId: 1,
+        addresses: [
+          { chainId: 1, address: &quot;0x...&quot; }
+        ]
+      }}
+      onSave={handleSave}
+      readOnly={false}
+    /&gt;
+  );
+}</code></pre>
+
+<pre><code class="language-tsx">import { SchemaPreviewEditor } from &#039;./components/SchemaPreviewEditor&#039;;
+import { useWeb3 } from &#039;./lib/web3-provider&#039;;
+
+function ContractRegistration() {
+  const { publicClient } = useWeb3();
+  const [metadata, setMetadata] = useState({});
+
+  const handleSave = async (ensMetadata: ENSIP19Metadata) =&gt; {
+    // Calculate metadata hash
+    const hash = await calculateMetadataHash(ensMetadata);
+    
+    // Save to ENS resolver
+    await updateTextRecord(
+      &#039;eth.contract.metadata&#039;,
+      JSON.stringify(ensMetadata)
+    );
+    
+    // Register subdomain
+    await registerSubdomain(
+      ensMetadata.id,
+      ensMetadata.ensRoot
+    );
+  };
+
+  return (
+    &lt;SchemaPreviewEditor
+      onSave={handleSave}
+      initialMetadata={metadata}
+    /&gt;
+  );
+}</code></pre>
+
+<pre><code class="language-tsx">function ComplianceChecker() {
+  const [score, setScore] = useState(0);
+
+  return (
+    &lt;SchemaPreviewEditor
+      onMetadataChange={(metadata) =&gt; {
+        const result = QAValidator.calculateComplianceScore(metadata);
+        setScore(result.score);
+      }}
+    /&gt;
+  );
+}</code></pre>
+
+<h3 id="examples-from-seaport-production-readymd">Examples from SEAPORT-PRODUCTION-READY.md</h3>
+
+<pre><code class="language-typescript">const orderParams = await marketplaceService.createListingOrder({
+  tokenAddress: &#039;0x...&#039;,
+  tokenId: &#039;1234&#039;,
+  price: &#039;0.5&#039;,
+  publicClient,
+  walletClient,
+  chainId: 1,
+});</code></pre>
+
+<pre><code class="language-typescript">const offerParams = await marketplaceService.createOffer({
+  tokenAddress: &#039;0x...&#039;,
+  tokenId: &#039;1234&#039;,
+  price: &#039;0.4&#039;,
+  publicClient,
+  walletClient,
+  chainId: 1,
+});</code></pre>
+
+<pre><code class="language-typescript">const hash = await marketplaceService.fulfillOrder(
+  order,
+  publicClient,
+  walletClient,
+  chainId
+);</code></pre>
+
+<h3 id="examples-from-security-fixes-appliedmd">Examples from SECURITY-FIXES-APPLIED.md</h3>
+
+<pre><code class="language-json">{
+  &quot;jsonwebtoken&quot;: &quot;^9.0.2&quot;,
+  &quot;zod&quot;: &quot;^3.22.4&quot;,
+  &quot;uuid&quot;: &quot;^9.0.1&quot;,
+  &quot;csurf&quot;: &quot;^1.11.0&quot;,
+  &quot;cookie-parser&quot;: &quot;^1.4.6&quot;
+}</code></pre>
+
+<pre><code class="language-bash">cd server
+   npm install</code></pre>
+
+<h3 id="examples-from-security-vulnerabilities-reportmd">Examples from SECURITY-VULNERABILITIES-REPORT.md</h3>
+
+<pre><code class="language-text"><strong>Impact:</strong> Attackers can intercept database connections and potentially steal credentials or manipulate data.
+
+<strong>Recommendation:</strong> Enable certificate validation and provide proper CA certificate:</code></pre>
+
+<pre><code class="language-text">---
+
+<h3 id="2-jwt-token-verification-bypass">2. JWT Token Verification Bypass</h3>
+<strong>Location:</strong> <code>server/api/middleware/auth.ts:31</code>  
+<strong>Severity:</strong> Critical  
+<strong>Description:</strong> The JWT token is manually parsed and decoded without verifying the signature. An attacker can forge tokens by creating a valid-looking JWT without knowing the secret.
+
+<strong>Vulnerable Code:</strong></code></pre>
+
+<pre><code class="language-text"><strong>Impact:</strong> Complete authentication bypass - attackers can impersonate any user by crafting a JWT with any address.
+
+<strong>Recommendation:</strong> Use a proper JWT library (e.g., <code>jsonwebtoken</code>) to verify signatures:</code></pre>
+
+<h3 id="examples-from-tooling-organization-completemd">Examples from TOOLING-ORGANIZATION-COMPLETE.md</h3>
+
+<pre><code class="language-typescript">import { PreflightChecker, ContractRegistration } from &#039;./components/workflows&#039;;
+import { DomainManagement } from &#039;./components/domains&#039;;
+import { MetadataEditor, MetadataTools } from &#039;./components/metadata&#039;;
+import { SecurityMonitor, AuditLog } from &#039;./components/security&#039;;
+import { GovernancePanel } from &#039;./components/governance&#039;;
+import { ProtocolReference, BestPracticesView, NamingToolkit } from &#039;./components/reference&#039;;
+import { DAORegistry, IntegrationRegistry, ContractRegistry } from &#039;./components/registry&#039;;
+import { Web3Provider } from &#039;./lib/services&#039;;</code></pre>
+
+<pre><code class="language-text">src/
+├── components/
+│   ├── ui/              # UI primitives (unchanged)
+│   ├── workflows/       # Workflow components (4 files)
+│   ├── domains/         # Domain management (2 files)
+│   ├── registry/        # Contract registry (4 files)
+│   ├── metadata/        # Metadata editing (4 files)
+│   ├── security/        # Security &amp; monitoring (3 files)
+│   ├── governance/      # Governance (1 file)
+│   └── reference/       # Documentation/reference (5 files)
+├── lib/
+│   ├── ens/            # ENS core operations (7 files)
+│   ├── delegation/     # Delegation &amp; permissions (4 files)
+│   ├── metadata/       # Metadata management (6 files)
+│   ├── security/       # Security features (1 file)
+│   └── services/       # General services (5 files)</code></pre>
+
+<h3 id="examples-from-tooling-organizationmd">Examples from TOOLING-ORGANIZATION.md</h3>
+
+<pre><code class="language-text">src/components/
+├── ui/                     # UI primitives (shadcn/ui)
+├── workflows/              # Workflow components
+│   ├── PreflightChecker.tsx
+│   ├── UnifiedContractRegistration.tsx
+│   ├── ContractRegistration.tsx
+│   └── ENSIP19Registration.tsx
+├── domains/                # Domain management
+│   ├── DomainManagement.tsx
+│   └── DomainProfile.tsx
+├── registry/               # Contract registry
+│   ├── ContractRegistry.tsx
+│   ├── DAORegistry.tsx
+│   ├── ENSContractsRegistry.tsx
+│   └── IntegrationRegistry.tsx
+├── metadata/               # Metadata editing
+│   ├── MetadataEditor.tsx
+│   ├── MetadataTools.tsx
+│   ├── SchemaPreviewEditor.tsx
+│   └── SchemaPreviewView.tsx
+├── security/               # Security &amp; monitoring
+│   ├── SecurityMonitor.tsx
+│   ├── AuditLog.tsx
+│   └── AuditLogTray.tsx
+├── governance/             # Governance
+│   └── GovernancePanel.tsx
+└── reference/              # Documentation/reference
+    ├── ProtocolReference.tsx
+    ├── ProtocolSection.tsx
+    ├── BestPractices.tsx
+    ├── BestPracticesView.tsx
+    └── NamingToolkit.tsx</code></pre>
+
+<pre><code class="language-text">src/lib/
+├── ens/                    # ENS core operations
+│   ├── ens-write-operations.ts
+│   ├── ens-helpers.ts
+│   ├── ens-utils.ts
+│   ├── ens-contracts.ts
+│   ├── ens-addresses.ts
+│   ├── ens-status-indicators.ts
+│   └── transfer-domain.ts
+├── delegation/             # Delegation &amp; permissions
+│   ├── permission-service.ts
+│   ├── delegation-planner.ts
+│   ├── safe-transaction-bundler.ts
+│   └── post-verification-service.ts
+├── metadata/               # Metadata management
+│   ├── metadata-schemas.ts
+│   ├── metadata-templates.ts
+│   ├── ensip19-utils.ts
+│   ├── ensip19-validator.ts
+│   ├── ensip19-hierarchical.ts
+│   └── ensip19-schema.json
+├── security/               # Security features
+│   └── audit-log-service.ts
+└── services/                # General services
+    ├── address-display-service.ts
+    ├── notification-service.ts
+    ├── user-config-service.ts
+    ├── event-tracker.ts
+    └── web3-provider.tsx</code></pre>
+
+<pre><code class="language-typescript">import { PreflightChecker } from &#039;../components/PreflightChecker&#039;;
+import { DomainManagement } from &#039;../components/DomainManagement&#039;;
+import { permissionService } from &#039;../lib/permission-service&#039;;</code></pre>
+
+<h3 id="examples-from-accessor-eth-usdc-transactionsmd">Examples from ACCESSOR-ETH-USDC-TRANSACTIONS.md</h3>
+
+<pre><code class="language-bash"># Arbitrum API
+   https://api.arbiscan.io/api?module=account&amp;action=tokentx&amp;contractaddress=0xaf88d065e77c8cc2239327c5edb3a432268e5831&amp;address=0x721fc93037515aABA593480f608E58ee593bcDf1&amp;startblock=0&amp;endblock=99999999&amp;sort=desc&amp;apikey=YOUR_API_KEY
+   
+   # Base API
+   https://api.basescan.org/api?module=account&amp;action=tokentx&amp;contractaddress=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913&amp;address=0x721fc93037515aABA593480f608E58ee593bcDf1&amp;startblock=0&amp;endblock=99999999&amp;sort=desc&amp;apikey=YOUR_API_KEY</code></pre>
+
+<h3 id="examples-from-action-schema-quick-referencemd">Examples from ACTION-SCHEMA-QUICK-REFERENCE.md</h3>
+
+<pre><code class="language-text">[operator]action: [value1]@parameter1@[value2]@parameter2</code></pre>
+
+<pre><code class="language-bash"># Create subdomain
++mintSubdomain: [app]@subname@[example.eth]@parent
+
+<h1>Set text record</h1>
+setText: [example.eth]@domain@[description]@key = [My domain]@value
+
+<h1>Set address</h1>
+setAddr: [example.eth]@domain = [0x742d...]@address
+
+<h1>Add delegate</h1>
++delegateTo: [example.eth]@domain = [0x742d...]@delegate@[7]@permissions
+
+<h1>Remove delegate</h1>
+-removeDelegate: [example.eth]@domain@[0x742d...]@delegate</code></pre>
+
+<pre><code class="language-text">MANAGE_SUBDOMAINS
+SET_ADDR_RECORD
+SET_TEXT_RECORD
+SET_CONTENT_HASH
+SET_PUBKEY
+SET_ABI
+SET_ZONEHASH
+SET_TTL
+SET_RESOLVER
+SET_OWNER
+SET_FUSES</code></pre>
+
+<h3 id="examples-from-api-referencemd">Examples from API-REFERENCE.md</h3>
+
+<pre><code class="language-text">http://localhost:3001/api</code></pre>
+
+<pre><code class="language-text">Authorization: Bearer &lt;token&gt;
+Content-Type: application/json</code></pre>
+
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {},
+  &quot;message&quot;: &quot;Operation successful&quot;
+}</code></pre>
+
+<h3 id="examples-from-application-treemd">Examples from APPLICATION-TREE.md</h3>
+
+<pre><code class="language-text">ens.tools/
+├── index.html
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+├── vercel.json
+├── src/
+└── server/</code></pre>
+
+<pre><code class="language-text">src/
+├── App.tsx
+├── main.tsx
+├── index.css
+├── components/
+│   ├── AnalyticsDashboard.tsx
+│   ├── AppSidebar.tsx
+│   ├── Dashboard.tsx
+│   ├── Settings.tsx
+│   ├── WalletConnect.tsx
+│   ├── WalletSelectionModal.tsx
+│   ├── domains/
+│   │   ├── DomainManagement.tsx
+│   │   ├── DomainProfile.tsx
+│   │   ├── NameBrowser.tsx
+│   │   └── index.ts
+│   ├── figma/
+│   │   └── ImageWithFallback.tsx
+│   ├── governance/
+│   │   ├── GovernancePanel.tsx
+│   │   └── index.ts
+│   ├── marketplace/
+│   │   ├── ENSMarketplace.tsx
+│   │   ├── Marketplace.tsx
+│   │   └── index.ts
+│   ├── metadata/
+│   │   ├── MetadataEditor.tsx
+│   │   ├── MetadataTools.tsx
+│   │   ├── SchemaPreviewEditor.tsx
+│   │   ├── SchemaPreviewView.tsx
+│   │   └── index.ts
+│   ├── reference/
+│   │   ├── BestPractices.tsx
+│   │   ├── BestPracticesView.tsx
+│   │   ├── NamingToolkit.tsx
+│   │   ├── ProtocolReference.tsx
+│   │   ├── ProtocolSection.tsx
+│   │   └── index.ts
+│   ├── registry/
+│   │   ├── ContractRegistry.tsx
+│   │   ├── DAORegistry.tsx
+│   │   ├── ENSContractsRegistry.tsx
+│   │   ├── IntegrationRegistry.tsx
+│   │   └── index.ts
+│   ├── security/
+│   │   ├── AuditLog.tsx
+│   │   ├── AuditLogTray.tsx
+│   │   ├── SecurityMonitor.tsx
+│   │   └── index.ts
+│   ├── ui/
+│   │   ├── accordion.tsx
+│   │   ├── alert-dialog.tsx
+│   │   ├── alert.tsx
+│   │   ├── aspect-ratio.tsx
+│   │   ├── avatar.tsx
+│   │   ├── badge.tsx
+│   │   ├── breadcrumb.tsx
+│   │   ├── button.tsx
+│   │   ├── calendar.tsx
+│   │   ├── card.tsx
+│   │   ├── carousel.tsx
+│   │   ├── chart.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── collapsible.tsx
+│   │   ├── command.tsx
+│   │   ├── context-menu.tsx
+│   │   ├── dialog.tsx
+│   │   ├── drawer.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── form.tsx
+│   │   ├── hover-card.tsx
+│   │   ├── input-otp.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── menubar.tsx
+│   │   ├── navigation-menu.tsx
+│   │   ├── pagination.tsx
+│   │   ├── popover.tsx
+│   │   ├── progress.tsx
+│   │   ├── radio-group.tsx
+│   │   ├── resizable.tsx
+│   │   ├── scroll-area.tsx
+│   │   ├── select.tsx
+│   │   ├── separator.tsx
+│   │   ├── sheet.tsx
+│   │   ├── sidebar.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── slider.tsx
+│   │   ├── sonner.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   ├── tabs.tsx
+│   │   ├── textarea.tsx
+│   │   ├── toggle-group.tsx
+│   │   ├── toggle.tsx
+│   │   ├── tooltip.tsx
+│   │   ├── use-mobile.ts
+│   │   └── utils.ts
+│   ├── workflows/
+│   │   ├── ContractRegistration.tsx
+│   │   ├── ENSIPXRegistration.tsx
+│   │   ├── PreflightChecker.tsx
+│   │   ├── UnifiedContractRegistration.tsx
+│   │   └── index.ts
+│   └── styles/
+│       └── globals.css
+└── lib/
+    ├── delegation/
+    │   ├── delegation-planner.ts
+    │   ├── permission-service.ts
+    │   ├── post-verification-service.ts
+    │   ├── safe-transaction-bundler.ts
+    │   └── index.ts
+    ├── ens/
+    │   ├── ens-addresses.ts
+    │   ├── ens-contracts.ts
+    │   ├── ens-helpers.ts
+    │   ├── ens-status-indicators.ts
+    │   ├── ens-utils.ts
+    │   ├── ens-write-operations.ts
+    │   ├── transfer-domain.ts
+    │   └── index.ts
+    ├── metadata/
+    │   ├── ensipx-hierarchical.ts
+    │   ├── ensipx-schema.json
+    │   ├── ensipx-utils.ts
+    │   ├── ensipx-validator.ts
+    │   ├── metadata-schemas.ts
+    │   ├── metadata-templates.ts
+    │   └── index.ts
+    ├── security/
+    │   ├── audit-log-service.ts
+    │   └── index.ts
+    └── services/
+        ├── address-display-service.ts
+        ├── base-metadata-service.ts
+        ├── ens-marketplace-service.ts
+        ├── etherscan-service.ts
+        ├── event-tracker.ts
+        ├── history-cache-service.ts
+        ├── name-browser-service.ts
+        ├── name-watching-service.ts
+        ├── notification-service.ts
+        ├── opensea-marketplace-service.ts
+        ├── premium-price-service.ts
+        ├── registry-service.ts
+        ├── seaport-advanced.ts
+        ├── seaport-error-handler.ts
+        ├── seaport-service.ts
+        ├── seaport-signer.ts
+        ├── user-config-service.ts
+        ├── web3-provider.tsx
+        └── index.ts</code></pre>
+
+<pre><code class="language-text">server/
+├── package.json
+├── tsconfig.json
+├── api/
+│   ├── index.ts
+│   ├── middleware/
+│   │   ├── auth.ts
+│   │   └── error-handler.ts
+│   ├── routes/
+│   │   ├── analytics.ts
+│   │   ├── audit-log.ts
+│   │   ├── auth.ts
+│   │   ├── config.ts
+│   │   ├── contracts.ts
+│   │   ├── daos.ts
+│   │   ├── domains.ts
+│   │   └── integrations.ts
+│   └── utils/
+│       └── logger.ts
+└── db/
+    ├── index.ts
+    ├── redis.ts
+    └── schema.sql</code></pre>
+
+<h3 id="examples-from-audit-log-implementationmd">Examples from AUDIT-LOG-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-typescript">import { userConfigService } from &#039;./lib/user-config-service&#039;;
+
+// Get config for connected address
+const config = userConfigService.getUserConfig(address);
+
+// Update config
+userConfigService.updateUserConfig(address, {
+  displayOptions: { theme: &#039;dark&#039; }
+});
+
+// Save complete config
+userConfigService.setUserConfig(address, config);</code></pre>
+
+<pre><code class="language-typescript">import { eventTracker } from &#039;./lib/event-tracker&#039;;
+
+// Track specific actions
+eventTracker.trackWalletConnected(address);
+eventTracker.trackDomainSearch(query, resultCount, address);
+eventTracker.trackTextRecordSet(domain, key, value, address);
+eventTracker.trackTransactionConfirmed(txHash, address);
+
+// Subscribe to events
+const unsubscribe = eventTracker.subscribe(&#039;transaction_confirmed&#039;, (data) =&gt; {
+  console.log(&#039;Transaction confirmed:&#039;, data);
+});</code></pre>
+
+<pre><code class="language-bash">npm install crypto-js @types/crypto-js</code></pre>
+
+<h3 id="examples-from-base-metadata-implementationmd">Examples from BASE-METADATA-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-text">┌─────────────────┐
+│ Contract Deploy │
+│  (Any EVM Net)  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Generate Metadata Package    │
+│ - Canonical ID              │
+│ - Full Metadata JSON         │
+│ - Cross-Chain Pointers      │
+└────────┬────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Store on Base Chain         │
+│ - Metadata Registry Contract │
+│ - Cross-Chain Pointers      │
+└────────┬────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Create ENS Reference        │
+│ - Store pointer in ENS      │
+│ - Link to Base metadata     │
+└────────┬────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│ Cross-Chain Resolution      │
+│ Any EVM Network             │
+│ → Read ENS pointer          │
+│ → Fetch from Base           │
+└─────────────────────────────┘</code></pre>
+
+<pre><code class="language-json">{
+  &quot;protocol&quot;: &quot;base-metadata&quot;,
+  &quot;chainId&quot;: 8453,
+  &quot;nameHash&quot;: &quot;0x...&quot;,
+  &quot;canonicalId&quot;: &quot;org.protocol.category.role.v1-0-0.1&quot;,
+  &quot;metadataHash&quot;: &quot;0x...&quot;
+}</code></pre>
+
+<pre><code class="language-typescript">{
+  chainId: number,
+  contractAddress: string,
+  metadataHash: string
+}</code></pre>
+
+<h3 id="examples-from-best-practices-action-schemamd">Examples from BEST-PRACTICES-ACTION-SCHEMA.md</h3>
+
+<pre><code class="language-text">✅ Good:
+<li>complete-domain-setup.txt</li>
+<li>batch-metadata-update-2024-01.txt</li>
+<li>subdomain-structure-v2.txt</li>
+
+❌ Bad:
+<li>actions.txt</li>
+<li>temp.txt</li>
+<li>file1.txt</code></pre></li>
+
+<pre><code class="language-bash"># ============================================
+<h1>Domain Setup</h1>
+<h1>============================================</h1>
+
+<h1>Wrap domain</h1>
++wrap: [example.eth]@domain = [0x742d...]@owner
+
+<h1>Set resolver</h1>
+setResolver: [example.eth]@domain = [0x231b...]@resolver
+
+<h1>============================================</h1>
+<h1>Address Configuration</h1>
+<h1>============================================</h1>
+
+setAddr: [example.eth]@domain = [0x742d...]@address
+
+<h1>============================================</h1>
+<h1>Metadata</h1>
+<h1>============================================</h1>
+
+setText: [example.eth]@domain@[description]@key = [My domain]@value
+setText: [example.eth]@domain@[url]@key = [https://example.com]@value</code></pre>
+
+<pre><code class="language-bash"># Set up delegation with subdomain management and text record permissions
+<h1>Permission bitmask: 1 (MANAGE_SUBDOMAINS) + 4 (SET_TEXT_RECORD) = 5</h1>
++delegateTo: [example.eth]@domain = [0x742d...]@delegate@[5]@permissions</code></pre>
+
+<h3 id="examples-from-code-usagemd">Examples from CODE-USAGE.md</h3>
+
+<pre><code class="language-typescript">import { ENSClient } from &#039;@/lib/ens&#039;;
+import { DelegationService } from &#039;@/lib/services&#039;;
+import { parseAction } from &#039;@/lib/schemas&#039;;</code></pre>
+
+<pre><code class="language-typescript">import { getDomainInfo } from &#039;@/lib/ens&#039;;
+
+const domainInfo = await getDomainInfo(&#039;example.eth&#039;);
+console.log(domainInfo);</code></pre>
+
+<pre><code class="language-typescript">import { setAddress } from &#039;@/lib/ens/ens-write-operations&#039;;
+
+await setAddress({
+  domain: &#039;example.eth&#039;,
+  address: &#039;0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb&#039;,
+  publicClient,
+  walletClient,
+});</code></pre>
+
+<h3 id="examples-from-comprehensive-featuresmd">Examples from COMPREHENSIVE-FEATURES.md</h3>
+
+<pre><code class="language-text">1. Create Subdomain (with fuses)
+   ↓
+<li>Set Contract Address Record</li>
+   ↓
+<li>Set All Metadata Records</li>
+   ↓
+<li>Set Contract-Specific Metadata</li>
+   ↓
+<li>Success - Name Resolves to Contract</code></pre></li>
+
+<pre><code class="language-typescript">validateMetadata(metadata, schema)
+// Returns: { valid: boolean, errors: string[] }</code></pre>
+
+<pre><code class="language-typescript">getRecommendedSchema(&#039;dao.example.eth&#039;)
+// Returns: DAO_SCHEMA
+
+getRecommendedSchema(&#039;app.example.eth&#039;)
+// Returns: APPLICATION_SCHEMA</code></pre>
+
+<h3 id="examples-from-conditions-and-resultsmd">Examples from CONDITIONS-AND-RESULTS.md</h3>
+
+<pre><code class="language-json">{
+  &quot;error&quot;: {
+    &quot;code&quot;: &quot;ERROR_CODE&quot;,
+    &quot;message&quot;: &quot;Human-readable message&quot;,
+    &quot;details&quot;: {}
+  }
+}</code></pre>
+
+<h3 id="examples-from-contract-naming-improvementsmd">Examples from CONTRACT-NAMING-IMPROVEMENTS.md</h3>
+
+<pre><code class="language-text">1. Contract Registration Request
+   ↓
+<li>Generate Metadata Package</li>
+   - Canonical ID
+   - Full metadata JSON
+   - Cross-chain pointers
+   ↓
+<li>Store on Base Chain</li>
+   - Metadata Registry Contract
+   - Cross-chain mappings
+   ↓
+<li>Create ENS Reference</li>
+   - Text record: ensip19.base
+   - Contains: nameHash, canonicalId, metadataHash
+   ↓
+<li>Cross-Chain Resolution</li>
+   - Any EVM network can query ENS
+   - Fetch reference from ENS
+   - Retrieve metadata from Base</code></pre>
+
+<pre><code class="language-json">{
+  &quot;protocol&quot;: &quot;base-metadata&quot;,
+  &quot;chainId&quot;: 8453,
+  &quot;nameHash&quot;: &quot;0x...&quot;,
+  &quot;canonicalId&quot;: &quot;org.protocol.category.role.v1-0-0.1&quot;,
+  &quot;metadataHash&quot;: &quot;0x...&quot;
+}</code></pre>
+
+<pre><code class="language-typescript">{
+  chainId: number,
+  contractAddress: string,
+  metadataHash: string
+}</code></pre>
+
+<h3 id="examples-from-delegation-system-documentationmd">Examples from DELEGATION-SYSTEM-DOCUMENTATION.md</h3>
+
+<pre><code class="language-text">PreflightChecker → UnifiedContractRegistration
+  ↓
+Check Permissions
+  ↓
+Set Up Delegation
+  ↓
+Register Contract with ENS</code></pre>
+
+<pre><code class="language-text">Metadata Editor → Permission Check
+  ↓
+Show Editable Fields
+  ↓
+Execute Updates
+  ↓
+Verify Changes</code></pre>
+
+<pre><code class="language-typescript">import { permissionService } from &#039;./lib/permission-service&#039;;
+import { delegationPlanner } from &#039;./lib/delegation-planner&#039;;
+import { postVerificationService } from &#039;./lib/post-verification-service&#039;;
+
+// 1. Check permissions
+const permissionCheck = await permissionService.checkPermissions(
+  publicClient,
+  contractAddress,
+  managerAddress,
+  &#039;mycontract.eth&#039;
+);
+
+// 2. Create delegation plan
+const plan = await delegationPlanner.createDelegationPlan(
+  publicClient,
+  permissionCheck,
+  managerAddress,
+  backupManagerAddress
+);
+
+// 3. Execute plan
+const hashes = await executeDelegationPlan(walletClient, publicClient, plan.actions);
+
+// 4. Verify
+const verification = await postVerificationService.verifyDelegation(
+  publicClient,
+  &#039;mycontract.eth&#039;,
+  managerAddress,
+  plan.metadataRecords
+);</code></pre>
+
+<h3 id="examples-from-ens-action-schema-guidemd">Examples from ENS-ACTION-SCHEMA-GUIDE.md</h3>
+
+<pre><code class="language-text">[operator]action: [value1]@parameter1@[value2]@parameter2</code></pre>
+
+<pre><code class="language-bash"># Create subdomain
++mintSubdomain: [app]@subname@[example.eth]@parent
+
+<h1>Set text record</h1>
+setText: [example.eth]@domain@[description]@key = [My awesome domain]@value
+
+<h1>Remove delegate</h1>
+-removeDelegate: [example.eth]@domain@[0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@delegate
+
+<h1>Delegate with permissions</h1>
++delegateTo: [example.eth]@domain = [0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@delegate@[7]@permissions</code></pre>
+
+<pre><code class="language-bash"># My ENS Actions
++mintSubdomain: [app]@subname@[example.eth]@parent = [0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@owner
+setText: [example.eth]@domain@[description]@key = [My awesome domain]@value
+setText: [example.eth]@domain@[url]@key = [https://example.com]@value
++delegateTo: [example.eth]@domain = [0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@delegate@[7]@permissions</code></pre>
+
+<h3 id="examples-from-ens-marketplace-documentationmd">Examples from ENS-MARKETPLACE-DOCUMENTATION.md</h3>
+
+<pre><code class="language-text">src/lib/services/
+├── ens-marketplace-service.ts    # ENS-specific marketplace operations
+├── seaport-service.ts             # Core Seaport protocol implementation
+├── seaport-signer.ts              # Order signing utilities
+├── seaport-advanced.ts            # Advanced features
+└── seaport-error-handler.ts       # Error handling</code></pre>
+
+<pre><code class="language-text">src/components/marketplace/
+├── ENSMarketplace.tsx             # Main ENS marketplace UI
+├── Marketplace.tsx                 # General marketplace (legacy)
+└── index.ts                        # Component exports</code></pre>
+
+<h3 id="examples-from-ensip19-implementationmd">Examples from ENSIP19-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-typescript">import { generateCanonicalId, generateMetadataHash } from &#039;./lib/ensip19-utils&#039;;
+
+const id = generateCanonicalId({
+  org: &#039;uniswap&#039;,
+  protocol: &#039;uniswap&#039;,
+  category: &#039;defi&#039;,
+  role: &#039;router&#039;,
+  version: &#039;v4-0-0&#039;,
+  chainId: 1,
+});
+// Returns: uniswap.uniswap.defi.router.v4-0-0.1
+
+const hash = await generateMetadataHash(metadata);
+// Returns: 0xcd788df219a200c224a9f06a1f2738b04512be65a0219162f9ac4aa926da097f</code></pre>
+
+<pre><code class="language-typescript">import { validateENSIP19Full, QAValidator } from &#039;./lib/ensip19-validator&#039;;
+
+const validation = validateENSIP19Full(metadata);
+// { valid: true, errors: [], warnings: [] }
+
+const score = QAValidator.calculateComplianceScore(metadata);
+// { score: 95, level: &#039;excellent&#039;, breakdown: {...} }</code></pre>
+
+<pre><code class="language-typescript">import { generateHierarchicalDomain, parseHierarchicalDomain } from &#039;./lib/ensip19-hierarchical&#039;;
+
+const domain = generateHierarchicalDomain({
+  org: &#039;uniswap&#039;,
+  category: &#039;defi&#039;,
+  subcategory: &#039;amm&#039;,
+  contract: &#039;router&#039;
+});
+// Returns: router.amm.defi.uniswap.cns.eth
+
+const parsed = parseHierarchicalDomain(domain);
+// { level: 4, org: &#039;uniswap&#039;, category: &#039;defi&#039;, subcategory: &#039;amm&#039;, contract: &#039;router&#039; }</code></pre>
+
+<h3 id="examples-from-ensip19-quickstartmd">Examples from ENSIP19-QUICKSTART.md</h3>
+
+<pre><code class="language-text">uniswap.uniswap.defi.router.v4-0-0.1</code></pre>
+
+<pre><code class="language-text">Step 1 - Basic Information:
+  Organization: uniswap
+  Protocol: uniswap
+  Role: router
+  Version: v4-0-0
+  Chain ID: 1 (Ethereum Mainnet)
+  Contract Address: 0x... (your contract)
+  Deployed Block: 19000000
+
+Step 2 - Classification:
+  Category: defi
+  Subcategory: amm
+  ERC Standards: (leave empty)
+  Tags: dex, swap, amm
+
+Step 3 - Security:
+  Proxy Type: uups
+  Implementation: 0x... (implementation address)
+  Owners: 0x... (multisig address)
+  Audit Firm: Trail of Bits
+  Audit Date: 2024-01-15
+  Audit Report: https://...
+
+Step 4 - Lifecycle:
+  Status: deployed
+  Deployed Since: 2024-01-17T00:00:00
+
+Step 5 - Review:
+  Click &quot;Validate ENSIP-19&quot; → Score: 95/100 (excellent)
+  Click &quot;Register Contract&quot;
+
+Result:
+  Canonical ID: uniswap.uniswap.defi.router.v4-0-0.1
+  ENS Domain: router.amm.defi.uniswap.cns.eth
+  Metadata Hash: 0xcd788df...
+  Status: ENSIP-19 Compliant ✓</code></pre>
+
+<pre><code class="language-javascript">import { publicClient } from &#039;viem&#039;;
+
+const metadata = await publicClient.getEnsText({
+  name: &#039;router.amm.defi.uniswap.cns.eth&#039;,
+  key: &#039;ensip19.metadata&#039;
+});
+
+console.log(JSON.parse(metadata));</code></pre>
+
+<h3 id="examples-from-functionalitymd">Examples from FUNCTIONALITY.md</h3>
+
+<pre><code class="language-text">[operator]action: [value1]@parameter1@[value2]@parameter2</code></pre>
+
+<pre><code class="language-text"># Create subdomain
++mintSubdomain: [app]@subname@[example.eth]@parent
+
+<h1>Set text record</h1>
+setText: [example.eth]@domain@[description]@key = [My awesome domain]@value
+
+<h1>Delegate with permissions</h1>
++delegateTo: [example.eth]@domain = [0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb]@delegate@[7]@permissions</code></pre>
+
+<h3 id="examples-from-implementation-summarymd">Examples from IMPLEMENTATION-SUMMARY.md</h3>
+
+<pre><code class="language-bash">npm install crypto-js @types/crypto-js</code></pre>
+
+<pre><code class="language-typescript">import { eventTracker } from &#039;../lib/event-tracker&#039;;</code></pre>
+
+<pre><code class="language-typescript">eventTracker.trackDomainGroup(domain, groupId, groupName, address);
+   eventTracker.trackSubdomainCreated(domain, subdomain, address);</code></pre>
+
+<h3 id="examples-from-import-review-completemd">Examples from IMPORT-REVIEW-COMPLETE.md</h3>
+
+<pre><code class="language-text">../lib/web3-provider
+../lib/ens-write-operations
+../lib/permission-service
+../lib/delegation-planner
+../lib/ens-utils
+../lib/metadata-schemas
+../lib/ensip19-utils
+../lib/ensip19-validator
+../lib/ensip19-hierarchical
+../lib/audit-log-service
+../lib/transfer-domain
+../lib/ens-status-indicators
+../lib/address-display-service
+../lib/event-tracker</code></pre>
+
+<pre><code class="language-text">../../lib/services (for web3-provider, address-display-service, event-tracker)
+../../lib/ens (for ens operations)
+../../lib/delegation (for permission and delegation services)
+../../lib/metadata (for metadata and ENSIP-19 operations)
+../../lib/security (for security and audit services)</code></pre>
+
+<pre><code class="language-text">lib/
+├── ens/           # ENS core operations
+├── delegation/   # Permission &amp; delegation
+├── metadata/     # Metadata management
+├── security/     # Security features
+└── services/     # General services
+
+components/
+├── workflows/    # Registration workflows
+├── domains/      # Domain management
+├── registry/     # Contract registries
+├── metadata/     # Metadata editing
+├── security/     # Security monitoring
+├── governance/   # Governance
+└── reference/     # Documentation</code></pre>
+
+<h3 id="examples-from-integration-completemd">Examples from INTEGRATION-COMPLETE.md</h3>
+
+<pre><code class="language-bash">cd /Users/acc/Downloads/ens.tools
+npm install</code></pre>
+
+<pre><code class="language-text">Format: org.protocol.category.role[.variant].version.chainId
+Example: uniswap.uniswap.defi.router.v4-0-0.1</code></pre>
+
+<pre><code class="language-text">Algorithm: SHA-256
+Format: 0x[64 hex chars]
+Example: 0xcd788df219a200c224a9f06a1f2738b04512be65a0219162f9ac4aa926da097f</code></pre>
+
+<h3 id="examples-from-marketplace-implementationmd">Examples from MARKETPLACE-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-bash">VITE_OPENSEA_API_KEY=your_api_key_here</code></pre>
+
+<h3 id="examples-from-production-readymd">Examples from PRODUCTION-READY.md</h3>
+
+<pre><code class="language-text">User Connects Wallet
+       ↓
+Web3Provider captures address
+       ↓
+Dashboard/DomainManagement fetch data
+       ↓
+The Graph subgraph queries owned names
+       ↓
+On-chain calls fetch additional details
+       ↓
+UI updates with real data</code></pre>
+
+<pre><code class="language-graphql">query GetNames($owner: String!) {
+  domains(where: { owner: $owner }, first: 100) {
+    id
+    name
+    labelName
+    labelhash
+    owner { id }
+    resolvedAddress { id }
+    resolver {
+      id
+      addr { id }
+      texts
+      contentHash
+    }
+    registrations {
+      expiryDate
+      registrationDate
+    }
+    wrappedDomain {
+      id
+      expiryDate
+      fuses
+    }
+  }
+}</code></pre>
+
+<h3 id="examples-from-production-seaport-implementationmd">Examples from PRODUCTION-SEAPORT-IMPLEMENTATION.md</h3>
+
+<pre><code class="language-text">src/lib/services/
+├── seaport-service.ts        # Core Seaport operations
+├── seaport-signer.ts         # EIP-712 signing utilities
+├── seaport-advanced.ts       # Advanced features (collections, bundles)
+├── seaport-error-handler.ts  # Error handling and validation
+└── opensea-marketplace-service.ts  # High-level marketplace integration</code></pre>
+
+<pre><code class="language-text">src/components/marketplace/
+├── Marketplace.tsx           # Main marketplace UI
+└── index.ts                  # Component exports</code></pre>
+
+<pre><code class="language-typescript">const orderParams = await marketplaceService.createListingOrder({
+  tokenAddress: &#039;0x...&#039;,
+  tokenId: &#039;1234&#039;,
+  price: &#039;0.5&#039;,
+  publicClient,
+  walletClient,
+  chainId: 1,
+});</code></pre>
+
+<h3 id="examples-from-production-setupmd">Examples from PRODUCTION-SETUP.md</h3>
+
+<pre><code class="language-bash"># Frontend dependencies
+npm install
+
+<h1>Backend dependencies</h1>
+cd server
+npm install
+cd ..</code></pre>
+
+<pre><code class="language-bash">cd server
+psql ens_tools &lt; db/schema.sql</code></pre>
+
+<pre><code class="language-bash"># Backend
+cp server/.env.example server/.env
+
+<h1>Frontend</h1>
+cp .env.example .env</code></pre>
+
+<h3 id="examples-from-production-update-summarymd">Examples from PRODUCTION-UPDATE-SUMMARY.md</h3>
+
+<pre><code class="language-text">server/
+├── api/
+│   ├── index.ts
+│   ├── middleware/
+│   │   ├── auth.ts
+│   │   └── error-handler.ts
+│   ├── routes/
+│   │   ├── auth.ts
+│   │   ├── contracts.ts
+│   │   ├── daos.ts
+│   │   ├── integrations.ts
+│   │   ├── audit-log.ts
+│   │   ├── config.ts
+│   │   ├── analytics.ts
+│   │   └── domains.ts
+│   └── utils/
+│       └── logger.ts
+├── db/
+│   ├── schema.sql
+│   ├── index.ts
+│   └── redis.ts
+├── package.json
+├── tsconfig.json
+└── .env.example</code></pre>
+
+<pre><code class="language-text">PRODUCTION-SETUP.md
+PRODUCTION-UPDATE-SUMMARY.md</code></pre>
+
+<pre><code class="language-text">DATABASE_URL=postgresql://...
+REDIS_URL=redis://...
+FRONTEND_URL=http://localhost:5173
+JWT_SECRET=...
+INFURA_PROJECT_ID=...
+THEGRAPH_API_KEY=...
+IPFS_GATEWAY=https://ipfs.io/ipfs/
+NODE_ENV=development
+PORT=3001</code></pre>
+
+<h3 id="examples-from-project-hours-estimate-reportmd">Examples from PROJECT-HOURS-ESTIMATE-REPORT.md</h3>
+
+<pre><code class="language-text"><strong>References:</strong>
+<li>MARKETPLACE-IMPLEMENTATION.md documents full Seaport integration</li>
+<li>Supports 5 chains with contract addresses defined</li>
+
+<h4 id="222-ens-domain-services">2.2.2 ENS Domain Services</h4>
+<strong>Estimated Hours:</strong> 25-30 hours  
+<strong>Evidence:</strong>
+<li><code>src/lib/services/name-browser-service.ts</code> - 365 lines</li>
+<li><code>src/lib/services/name-watching-service.ts</code> - 139 lines</li>
+<li><code>src/lib/services/premium-price-service.ts</code> - 65 lines</li>
+<li><code>src/lib/services/address-display-service.ts</code> - 75 lines</li>
+<li><code>src/lib/services/history-cache-service.ts</code> - 118 lines</li>
+
+<strong>Features:</strong>
+<li>Domain name resolution and browsing</li>
+<li>Premium pricing calculation</li>
+<li>Address formatting (full, abbreviated, ENS-name)</li>
+<li>Domain watching and notifications</li>
+
+<h4 id="223-registry-services">2.2.3 Registry Services</h4>
+<strong>Estimated Hours:</strong> 15-20 hours  
+<strong>Evidence:</strong>
+<li><code>src/lib/services/registry-service.ts</code> - 203 lines</li>
+<li><code>src/lib/services/base-metadata-service.ts</code> - 335 lines</li>
+<li><code>src/lib/services/etherscan-service.ts</code> - 220 lines</li>
+
+<strong>Features:</strong>
+<li>DAO registry management</li>
+<li>Contract metadata storage</li>
+<li>Etherscan API integration</li>
+
+<h4 id="224-metadata-services">2.2.4 Metadata Services</h4>
+<strong>Estimated Hours:</strong> 20-25 hours  
+<strong>Evidence:</strong>
+<li><code>src/lib/services/base-metadata-service.ts</code> - 335 lines</li>
+<li><code>src/lib/services/notification-service.ts</code> - 274 lines</li>
+
+<strong>Features:</strong>
+<li>Cross-chain metadata storage</li>
+<li>Notification system</li>
+<li>Metadata templates</li>
+
+<h4 id="225-user-configuration-amp-event-tracking">2.2.5 User Configuration &amp; Event Tracking</h4>
+<strong>Estimated Hours:</strong> 15-20 hours  
+<strong>Evidence:</strong>
+<li><code>src/lib/services/user-config-service.ts</code> - 116 lines</li>
+<li><code>src/lib/services/event-tracker.ts</code> - 330 lines</li>
+
+<strong>Features:</strong>
+<li>AES-256 encrypted configuration storage</li>
+<li>Per-address isolated storage</li>
+<li>Event tracking with audit log integration</li>
+
+<strong>Supporting Documentation:</strong>
+<li>IMPLEMENTATION-SUMMARY.md details the audit log system</li>
+<li>Tracks 15+ event types (wallet, navigation, domain operations, etc.)</li>
+
+<hr>
+
+<h2 id="3-react-component-layer">3. React Component Layer</h2>
+
+<h3 id="31-overview">3.1 Overview</h3>
+<strong>Total Lines:</strong> 24,458 lines across 82 components  
+<strong>Estimated Hours:</strong> 160-200 hours  
+<strong>Average:</strong> 2-2.5 hours per component
+
+<h3 id="32-major-component-breakdown">3.2 Major Component Breakdown</h3>
+
+<h4 id="321-domain-management-components">3.2.1 Domain Management Components</h4>
+<strong>Estimated Hours:</strong> 35-45 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/domains/DomainManagement.tsx</code> - 1,526 lines</li>
+<li><code>src/components/domains/DomainProfile.tsx</code> - 1,118 lines</li>
+<li><code>src/components/domains/NameBrowser.tsx</code> - 1,279 lines</li>
+
+<strong>Features:</strong>
+<li>Complete domain lifecycle management</li>
+<li>Subdomain creation</li>
+<li>Transfer and ownership management</li>
+<li>Resolver configuration</li>
+<li>Expiration tracking</li>
+
+<strong>Complexity Indicators:</strong>
+<li>DomainManagement: 1,526 lines (complex filtering, grouping, search)</li>
+<li>DomainProfile: 1,118 lines (full domain details, record management)</li>
+<li>NameBrowser: 1,279 lines (hierarchical browsing)</li>
+
+<h4 id="322-registry-components">3.2.2 Registry Components</h4>
+<strong>Estimated Hours:</strong> 30-40 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/registry/ENSContractsRegistry.tsx</code> - 935 lines</li>
+<li><code>src/components/registry/ContractRegistry.tsx</code> - 784 lines</li>
+<li><code>src/components/registry/DAORegistry.tsx</code> - 644 lines</li>
+<li><code>src/components/registry/IntegrationRegistry.tsx</code> - 696 lines</li>
+
+<strong>Features:</strong>
+<li>Contract security classification</li>
+<li>DAO discovery and management</li>
+<li>Integration health monitoring</li>
+<li>Multi-chain contract tracking</li>
+
+<h4 id="323-metadata-amp-schema-tools">3.2.3 Metadata &amp; Schema Tools</h4>
+<strong>Estimated Hours:</strong> 25-30 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/metadata/MetadataTools.tsx</code> - 789 lines</li>
+<li><code>src/components/metadata/SchemaPreviewEditor.tsx</code> - 629 lines</li>
+<li><code>src/components/metadata/MetadataEditor.tsx</code> (referenced)</li>
+
+<strong>Features:</strong>
+<li>Metadata editor with validation</li>
+<li>Schema preview and editing</li>
+<li>Template library</li>
+<li>Verification system</li>
+
+<h4 id="324-marketplace-components">3.2.4 Marketplace Components</h4>
+<strong>Estimated Hours:</strong> 20-25 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/marketplace/Marketplace.tsx</code> - 832 lines</li>
+<li><code>src/components/marketplace/ENSMarketplace.tsx</code> - 811 lines</li>
+
+<strong>Features:</strong>
+<li>OpenSea Seaport integration UI</li>
+<li>Listing and offer management</li>
+<li>Collection statistics</li>
+<li>ENS domain marketplace</li>
+
+<h4 id="325-workflow-components">3.2.5 Workflow Components</h4>
+<strong>Estimated Hours:</strong> 25-30 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/workflows/UnifiedContractRegistration.tsx</code> - 1,256 lines</li>
+<li><code>src/components/workflows/ENSIPXRegistration.tsx</code> - 873 lines</li>
+<li><code>src/components/workflows/ContractRegistration.tsx</code> - 674 lines</li>
+<li><code>src/components/workflows/PreflightChecker.tsx</code> (referenced)</li>
+
+<strong>Features:</strong>
+<li>Multi-step registration wizards</li>
+<li>ENSIP-19 compliance validation</li>
+<li>Preflight checks</li>
+<li>On-chain registration</li>
+
+<strong>Supporting Evidence:</strong></code></pre>
+
+<pre><code class="language-text">#### 3.2.6 Analytics Dashboard
+<strong>Estimated Hours:</strong> 15-20 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/AnalyticsDashboard.tsx</code> - 517 lines</li>
+
+<strong>Features:</strong>
+<li>Cross-chain metrics</li>
+<li>DAO performance tracking</li>
+<li>Integration health monitoring</li>
+<li>Growth insights</li>
+
+<h4 id="327-security-components">3.2.7 Security Components</h4>
+<strong>Estimated Hours:</strong> 15-20 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/security/SecurityMonitor.tsx</code> - 597 lines</li>
+<li><code>src/components/security/AuditLog.tsx</code></li>
+<li><code>src/components/security/AuditLogTray.tsx</code></li>
+
+<strong>Features:</strong>
+<li>Fuse status monitoring</li>
+<li>Security alerts</li>
+<li>Audit log viewing</li>
+<li>Real-time event tracking</li>
+
+<h4 id="328-reference-amp-documentation-components">3.2.8 Reference &amp; Documentation Components</h4>
+<strong>Estimated Hours:</strong> 15-20 hours  
+<strong>Evidence:</strong>
+<li><code>src/components/reference/NamingToolkit.tsx</code> - 673 lines</li>
+<li><code>src/components/reference/ProtocolReference.tsx</code></li>
+<li><code>src/components/reference/BestPractices.tsx</code></li>
+
+<strong>Features:</strong>
+<li>ENS protocol documentation</li>
+<li>Naming convention validation</li>
+<li>Best practices guide</li>
+
+<h4 id="329-ui-component-library-integration">3.2.9 UI Component Library Integration</h4>
+<strong>Estimated Hours:</strong> 20-30 hours  
+<strong>Evidence:</strong>
+<li>46 shadcn/ui components in <code>src/components/ui/</code></li>
+<li>Custom styling and theming</li>
+<li>Responsive design implementation</li>
+
+<strong>Component Count:</strong>
+<li>accordion, alert-dialog, alert, aspect-ratio, avatar, badge, breadcrumb, button, calendar, card, carousel, chart, checkbox, collapsible, command, context-menu, dialog, drawer, dropdown-menu, form, hover-card, input-otp, input, label, menubar, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, skeleton, slider, sonner, switch, table, tabs, textarea, toggle-group, toggle, tooltip, use-mobile, utils</li>
+
+<hr>
+
+<h2 id="4-backend-api-server">4. Backend API Server</h2>
+
+<h3 id="41-api-routes">4.1 API Routes</h3>
+<strong>Total Lines:</strong> 925 lines  
+<strong>Estimated Hours:</strong> 40-50 hours
+
+<strong>Evidence:</strong>
+<li><code>server/api/routes/contracts.ts</code> - 146 lines</li>
+<li><code>server/api/routes/integrations.ts</code> - 134 lines</li>
+<li><code>server/api/routes/daos.ts</code> - 137 lines</li>
+<li><code>server/api/routes/domains.ts</code> - 76 lines</li>
+<li><code>server/api/routes/audit-log.ts</code> - 79 lines</li>
+<li><code>server/api/routes/auth.ts</code> - 86 lines</li>
+<li><code>server/api/routes/analytics.ts</code> - 29 lines</li>
+<li><code>server/api/routes/config.ts</code> - 56 lines</li>
+
+<strong>Routes Implemented:</strong>
+<li>Contracts - Contract registry management</li>
+<li>Integrations - Integration registry</li>
+<li>DAOs - DAO registry operations</li>
+<li>Domains - Domain management</li>
+<li>Audit Log - Audit log API</li>
+<li>Auth - Authentication endpoints</li>
+<li>Analytics - Analytics data</li>
+<li>Config - Configuration management</li></ol>
+
+<h3 id="42-middleware-amp-utilities">4.2 Middleware &amp; Utilities</h3>
+<strong>Estimated Hours:</strong> 10-15 hours  
+<strong>Evidence:</strong>
+<li><code>server/api/middleware/auth.ts</code> - 84 lines</li>
+<li><code>server/api/middleware/error-handler.ts</code> - 20 lines</li>
+<li><code>server/api/utils/logger.ts</code> - 13 lines</li>
+
+<h3 id="43-database-schema">4.3 Database Schema</h3>
+<strong>Estimated Hours:</strong> 8-12 hours  
+<strong>Evidence:</strong>
+<li><code>server/db/schema.sql</code> - Complete PostgreSQL schema</li>
+<li>Tables: users, daos, contracts, integrations, audit_logs, user_configs, domain_cache</li>
+<li>Indexes and relationships defined</li>
+
+<strong>Supporting Evidence:</strong></code></pre>
+
+<pre><code class="language-text">### 4.4 Database Infrastructure
+<strong>Estimated Hours:</strong> 5-8 hours  
+<strong>Evidence:</strong>
+<li><code>server/db/index.ts</code> - Database connection</li>
+<li><code>server/db/redis.ts</code> - Redis caching layer</li>
+
+<hr>
+
+<h2 id="5-ensip-19-compliance-implementation">5. ENSIP-19 Compliance Implementation</h2>
+
+<h3 id="51-core-ensip-19-utilities">5.1 Core ENSIP-19 Utilities</h3>
+<strong>Estimated Hours:</strong> 25-30 hours  
+<strong>Evidence:</strong>
+<li><code>src/lib/metadata/ensipx-utils.ts</code> - 522+ lines</li>
+<li><code>src/lib/metadata/ensipx-schema.json</code> - JSON Schema definition</li>
+<li><code>src/lib/metadata/ensipx-validator.ts</code> - 317 lines</li>
+<li><code>src/lib/metadata/ensipx-hierarchical.ts</code> - Hierarchical schema system</li>
+
+<strong>Features:</strong>
+<li>Canonical ID generation (<code>org.protocol.category.role[.variant].version.chainId</code>)</li>
+<li>SHA-256 metadata hash generation</li>
+<li>19 category enums with subcategories</li>
+<li>Proxy type validation</li>
+<li>Lifecycle status management</li>
+<li>Version validation and normalization</li>
+
+<strong>Supporting Documentation:</strong>
+<li>ENSIP19-IMPLEMENTATION.md - Complete implementation guide</li>
+<li>Achieves ~95% ENSIP-19 compliance</li></ul>
+
+<strong>Complexity Indicators:</strong></code></pre>
+
+<h3 id="examples-from-project-overviewmd">Examples from PROJECT-OVERVIEW.md</h3>
+
+<pre><code class="language-text">ens.tools/
+├── src/              # Frontend React application
+├── server/           # Backend Express API
+├── contracts/       # Smart contracts
+├── docs/            # Documentation
+└── scripts/         # Utility scripts</code></pre>
+
+<pre><code class="language-bash">npm install
+cd server &amp;&amp; npm install</code></pre>
+
+<pre><code class="language-bash"># Frontend
+npm run dev
+
+<h1>Backend</h1>
+cd server
+npm run dev</code></pre>
+
+<h3 id="examples-from-schema-preview-editormd">Examples from SCHEMA-PREVIEW-EDITOR.md</h3>
+
+<pre><code class="language-tsx">import { SchemaPreviewEditor } from &#039;./components/SchemaPreviewEditor&#039;;
+
+function MyComponent() {
+  const handleSave = (metadata: ENSIP19Metadata) =&gt; {
+    console.log(&#039;Saved metadata:&#039;, metadata);
+    // Save to resolver, IPFS, or database
+  };
+
+  return (
+    &lt;SchemaPreviewEditor
+      domain=&quot;uniswap.defi.cns.eth&quot;
+      initialMetadata={{
+        id: &quot;uniswap.uniswap-v3.defi.governor.v1-0-0.1&quot;,
+        org: &quot;uniswap&quot;,
+        protocol: &quot;uniswap-v3&quot;,
+        category: &quot;defi&quot;,
+        role: &quot;governor&quot;,
+        version: &quot;v1-0-0&quot;,
+        chainId: 1,
+        addresses: [
+          { chainId: 1, address: &quot;0x...&quot; }
+        ]
+      }}
+      onSave={handleSave}
+      readOnly={false}
+    /&gt;
+  );
+}</code></pre>
+
+<pre><code class="language-tsx">import { SchemaPreviewEditor } from &#039;./components/SchemaPreviewEditor&#039;;
+import { useWeb3 } from &#039;./lib/web3-provider&#039;;
+
+function ContractRegistration() {
+  const { publicClient } = useWeb3();
+  const [metadata, setMetadata] = useState({});
+
+  const handleSave = async (ensMetadata: ENSIP19Metadata) =&gt; {
+    // Calculate metadata hash
+    const hash = await calculateMetadataHash(ensMetadata);
+    
+    // Save to ENS resolver
+    await updateTextRecord(
+      &#039;eth.contract.metadata&#039;,
+      JSON.stringify(ensMetadata)
+    );
+    
+    // Register subdomain
+    await registerSubdomain(
+      ensMetadata.id,
+      ensMetadata.ensRoot
+    );
+  };
+
+  return (
+    &lt;SchemaPreviewEditor
+      onSave={handleSave}
+      initialMetadata={metadata}
+    /&gt;
+  );
+}</code></pre>
+
+<pre><code class="language-tsx">function ComplianceChecker() {
+  const [score, setScore] = useState(0);
+
+  return (
+    &lt;SchemaPreviewEditor
+      onMetadataChange={(metadata) =&gt; {
+        const result = QAValidator.calculateComplianceScore(metadata);
+        setScore(result.score);
+      }}
+    /&gt;
+  );
+}</code></pre>
+
+<h3 id="examples-from-terminal-usagemd">Examples from TERMINAL-USAGE.md</h3>
+
+<pre><code class="language-bash"># Install dependencies
+npm install
+
+<h1>Install server dependencies</h1>
+cd server &amp;&amp; npm install</code></pre>
+
+<pre><code class="language-bash"># Start frontend development server
+npm run dev
+
+<h1>Start backend server (in server directory)</h1>
+cd server
+npm run dev</code></pre>
+
+<pre><code class="language-bash"># Build frontend for production
+npm run build
+
+<h1>Build output will be in build/ directory</code></pre></h1>
+
+<h3 id="examples-from-tooling-organization-completemd">Examples from TOOLING-ORGANIZATION-COMPLETE.md</h3>
+
+<pre><code class="language-typescript">import { PreflightChecker, ContractRegistration } from &#039;./components/workflows&#039;;
+import { DomainManagement } from &#039;./components/domains&#039;;
+import { MetadataEditor, MetadataTools } from &#039;./components/metadata&#039;;
+import { SecurityMonitor, AuditLog } from &#039;./components/security&#039;;
+import { GovernancePanel } from &#039;./components/governance&#039;;
+import { ProtocolReference, BestPracticesView, NamingToolkit } from &#039;./components/reference&#039;;
+import { DAORegistry, IntegrationRegistry, ContractRegistry } from &#039;./components/registry&#039;;
+import { Web3Provider } from &#039;./lib/services&#039;;</code></pre>
+
+<pre><code class="language-text">src/
+├── components/
+│   ├── ui/              # UI primitives (unchanged)
+│   ├── workflows/       # Workflow components (4 files)
+│   ├── domains/         # Domain management (2 files)
+│   ├── registry/        # Contract registry (4 files)
+│   ├── metadata/        # Metadata editing (4 files)
+│   ├── security/        # Security &amp; monitoring (3 files)
+│   ├── governance/      # Governance (1 file)
+│   └── reference/       # Documentation/reference (5 files)
+├── lib/
+│   ├── ens/            # ENS core operations (7 files)
+│   ├── delegation/     # Delegation &amp; permissions (4 files)
+│   ├── metadata/       # Metadata management (6 files)
+│   ├── security/       # Security features (1 file)
+│   └── services/       # General services (5 files)</code></pre>
+
+<h3 id="examples-from-tooling-organizationmd">Examples from TOOLING-ORGANIZATION.md</h3>
+
+<pre><code class="language-text">src/components/
+├── ui/                     # UI primitives (shadcn/ui)
+├── workflows/              # Workflow components
+│   ├── PreflightChecker.tsx
+│   ├── UnifiedContractRegistration.tsx
+│   ├── ContractRegistration.tsx
+│   └── ENSIP19Registration.tsx
+├── domains/                # Domain management
+│   ├── DomainManagement.tsx
+│   └── DomainProfile.tsx
+├── registry/               # Contract registry
+│   ├── ContractRegistry.tsx
+│   ├── DAORegistry.tsx
+│   ├── ENSContractsRegistry.tsx
+│   └── IntegrationRegistry.tsx
+├── metadata/               # Metadata editing
+│   ├── MetadataEditor.tsx
+│   ├── MetadataTools.tsx
+│   ├── SchemaPreviewEditor.tsx
+│   └── SchemaPreviewView.tsx
+├── security/               # Security &amp; monitoring
+│   ├── SecurityMonitor.tsx
+│   ├── AuditLog.tsx
+│   └── AuditLogTray.tsx
+├── governance/             # Governance
+│   └── GovernancePanel.tsx
+└── reference/              # Documentation/reference
+    ├── ProtocolReference.tsx
+    ├── ProtocolSection.tsx
+    ├── BestPractices.tsx
+    ├── BestPracticesView.tsx
+    └── NamingToolkit.tsx</code></pre>
+
+<pre><code class="language-text">src/lib/
+├── ens/                    # ENS core operations
+│   ├── ens-write-operations.ts
+│   ├── ens-helpers.ts
+│   ├── ens-utils.ts
+│   ├── ens-contracts.ts
+│   ├── ens-addresses.ts
+│   ├── ens-status-indicators.ts
+│   └── transfer-domain.ts
+├── delegation/             # Delegation &amp; permissions
+│   ├── permission-service.ts
+│   ├── delegation-planner.ts
+│   ├── safe-transaction-bundler.ts
+│   └── post-verification-service.ts
+├── metadata/               # Metadata management
+│   ├── metadata-schemas.ts
+│   ├── metadata-templates.ts
+│   ├── ensip19-utils.ts
+│   ├── ensip19-validator.ts
+│   ├── ensip19-hierarchical.ts
+│   └── ensip19-schema.json
+├── security/               # Security features
+│   └── audit-log-service.ts
+└── services/                # General services
+    ├── address-display-service.ts
+    ├── notification-service.ts
+    ├── user-config-service.ts
+    ├── event-tracker.ts
+    └── web3-provider.tsx</code></pre>
+
+<pre><code class="language-typescript">import { PreflightChecker } from &#039;../components/PreflightChecker&#039;;
+import { DomainManagement } from &#039;../components/DomainManagement&#039;;
+import { permissionService } from &#039;../lib/permission-service&#039;;</code></pre>
+
+<h3 id="examples-from-usdc-transaction-checkmd">Examples from USDC-TRANSACTION-CHECK.md</h3>
+
+<pre><code class="language-text">https://arbiscan.io/address/{ADDRESS}#tokentxnsErc20</code></pre>
+
+<pre><code class="language-text">https://basescan.org/address/{ADDRESS}#tokentxnsErc20</code></pre>
+
+<pre><code class="language-sql">-- Arbitrum USDC transfers
+   SELECT 
+       sum(amount) as total_usdc
+   FROM arbitrum.erc20_evt_transfer
+   WHERE to = &#039;0x...&#039; -- accesor.eth address
+   AND contract_address = &#039;0xaf88d065e77c8cc2239327c5edb3a432268e5831&#039;
+   AND evt_block_time &gt;= &#039;2024-09-01&#039;
+   
+   -- Base USDC transfers  
+   SELECT 
+       sum(amount) as total_usdc
+   FROM base.erc20_evt_transfer
+   WHERE to = &#039;0x...&#039; -- accesor.eth address
+   AND contract_address = &#039;0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913&#039;
+   AND evt_block_time &gt;= &#039;2024-09-01&#039;</code></pre>
+
+
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const links = document.querySelectorAll('.sidebar a');
+        
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            let visibleCount = 0;
+            
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                const parent = link.closest('li');
+                const category = link.closest('ul').previousElementSibling;
+                
+                if (text.includes(query) || query === '') {
+                    link.style.display = 'block';
+                    if (parent) parent.style.display = 'block';
+                    if (category && query !== '') category.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    link.style.display = 'none';
+                    if (parent) {
+                        const siblings = Array.from(parent.parentElement.children);
+                        const hasVisible = siblings.some(s => s.querySelector('a') && s.querySelector('a').style.display !== 'none');
+                        if (!hasVisible && category) {
+                            category.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        if (window.innerWidth <= 1024) {
+            document.querySelector('.menu-toggle').style.display = 'block';
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Highlight current section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    if (id) {
+                        document.querySelectorAll('.table-of-contents a').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === '#' + id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('h2, h3').forEach(heading => {
+            observer.observe(heading);
+        });
+    </script>
+</body>
+</html>
