@@ -3,6 +3,10 @@
  * Mainnet addresses are authoritative; L2s use resolvers where deployed
  */
 
+// ENS DAO Treasury address (mainnet)
+// This is where premium name sale proceeds go (minus marketplace fees)
+export const ENS_DAO_TREASURY = '0xFe89cc7aBB2C4183683ab71653C4cdc9B02D44b7' as const;
+
 export const ENS_ADDRESSES = {
   // Ethereum Mainnet (Authoritative)
   1: {
@@ -12,6 +16,7 @@ export const ENS_ADDRESSES = {
     ethRegistrarController: '0x253553366Da8546fC250F225fe3d25d0C782303b',
     reverseRegistrar: '0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb',
     multicall3: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    daoTreasury: ENS_DAO_TREASURY,
   },
   // Optimism
   10: {
@@ -21,6 +26,7 @@ export const ENS_ADDRESSES = {
     ethRegistrarController: '0x253553366Da8546fC250F225fe3d25d0C782303b',
     reverseRegistrar: '0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb',
     multicall3: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    daoTreasury: ENS_DAO_TREASURY,
   },
   // Base
   8453: {
@@ -30,6 +36,7 @@ export const ENS_ADDRESSES = {
     ethRegistrarController: '0x253553366Da8546fC250F225fe3d25d0C782303b',
     reverseRegistrar: '0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb',
     multicall3: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    daoTreasury: ENS_DAO_TREASURY,
   },
   // Arbitrum
   42161: {
@@ -39,6 +46,7 @@ export const ENS_ADDRESSES = {
     ethRegistrarController: '0x253553366Da8546fC250F225fe3d25d0C782303b',
     reverseRegistrar: '0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb',
     multicall3: '0xcA11bde05977b3631167028862bE2a173976CA11',
+    daoTreasury: ENS_DAO_TREASURY,
   },
   // Sepolia (Testnet)
   11155111: {

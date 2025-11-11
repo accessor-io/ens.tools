@@ -8,7 +8,7 @@ import { cn } from '../ui/utils';
 
 interface QuickRefCard {
   title: string;
-  category: 'naming' | 'metadata' | 'security' | 'management';
+  category: 'naming' | 'metadata' | 'security' | 'management' | 'permissions';
   examples: string[];
   keyPoints: string[];
   severity: 'critical' | 'high' | 'medium';
@@ -104,6 +104,21 @@ const quickRefCards: QuickRefCard[] = [
       'Default to Public Resolver',
       'Lower maintenance burden',
       'Reduced security surface',
+    ],
+  },
+  {
+    title: 'Granular Permissions',
+    category: 'permissions',
+    severity: 'critical',
+    examples: [
+      'Grant SET_TEXT_RECORD only',
+      'Set 90-day expiration',
+      'Lock critical delegates',
+    ],
+    keyPoints: [
+      'Use granular permissions vs full transfer',
+      'Always set expiration dates',
+      'Follow least privilege principle',
     ],
   },
 ];
@@ -267,5 +282,6 @@ export function BestPracticesQuickRef({ contractType, compact = false }: BestPra
     </div>
   );
 }
+
 
 

@@ -49,8 +49,14 @@ import {
   Activity,
   TrendingUp,
   Eye,
+  FileText,
+  Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useWeb3 } from '../../lib/services/web3-provider';
+import { getAllTextRecords, formatAddress } from '../../lib/ens/ens-utils';
+import { granularPermissionService, parsePermissions } from '../../lib/services/granular-permission-service';
+import { namehash } from '../../lib/ens/ens-helpers';
 
 interface Contract {
   id: string;
@@ -71,11 +77,27 @@ interface Contract {
   tvl?: string;
 }
 
+interface ContractDetails {
+  metadata: Array<{ key: string; value: string }>;
+  delegates: Array<{
+    address: string;
+    permissions: string[];
+    expiresAt: bigint;
+    enabled: boolean;
+    locked: boolean;
+  }>;
+}
+
 export function ContractRegistry() {
+  const { publicClient } = useWeb3();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedChain, setSelectedChain] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [contractDetails, setContractDetails] = useState<ContractDetails | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   const mockContracts: Contract[] = [
     {
@@ -232,6 +254,52 @@ export function ContractRegistry() {
   ];
 
   const chains = ['all', 'Ethereum', 'Polygon', 'Arbitrum', 'Optimism', 'Base'];
+
+  const loadContractDetails = async (contract: Contract) => {
+    if (!publicClient || !contract.ensName) {
+      toast.error('Cannot load details: Web3 client not available or no ENS name');
+      return;
+    }
+
+    setIsLoadingDetails(true);
+    setSelectedContract(contract);
+    setIsDetailsDialogOpen(true);
+
+    try {
+      // Load metadata (text records)
+      const textRecords = await getAllTextRecords(publicClient, contract.ensName);
+      const metadata = textRecords.map(r => ({ key: r.key, value: r.value }));
+
+      // Load granular permissions
+      const delegates: ContractDetails['delegates'] = [];
+      try {
+        const node = namehash(contract.ensName);
+        granularPermissionService.setClients(publicClient);
+        
+        const delegateInfo = await granularPermissionService.getAllDelegateInfo(node);
+        for (const info of delegateInfo) {
+          delegates.push({
+            address: info.address,
+            permissions: info.permissions,
+            expiresAt: info.expiresAt,
+            enabled: info.enabled,
+            locked: info.locked,
+          });
+        }
+      } catch (error) {
+        console.error('Error loading granular permissions:', error);
+        // Silently fail - permissions may not be configured
+      }
+
+      setContractDetails({ metadata, delegates });
+    } catch (error) {
+      console.error('Error loading contract details:', error);
+      toast.error('Failed to load contract details');
+      setContractDetails({ metadata: [], delegates: [] });
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
 
   const filteredContracts = mockContracts.filter((contract) => {
     const matchesSearch =
@@ -487,8 +555,13 @@ export function ContractRegistry() {
                       </div>
                       <CardDescription>{contract.ensName}</CardDescription>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      <ExternalLink className="h-4 w-4" />
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => loadContractDetails(contract)}
+                      title="View details"
+                    >
+                      <Eye className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="flex gap-2 mt-2">
@@ -646,7 +719,12 @@ export function ContractRegistry() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => loadContractDetails(contract)}
+                          title="View details"
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -779,6 +857,202 @@ export function ContractRegistry() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Contract Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileCode className="h-5 w-5" />
+              {selectedContract?.name} - Details
+            </DialogTitle>
+            <DialogDescription>
+              ENS Name: {selectedContract?.ensName} | Address: {formatAddress(selectedContract?.address || '')}
+            </DialogDescription>
+          </DialogHeader>
+
+          {isLoadingDetails ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-slate-600">Loading contract details...</div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Metadata Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Metadata (Text Records)
+                  </CardTitle>
+                  <CardDescription>All text records attached to this ENS name</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {contractDetails?.metadata && contractDetails.metadata.length > 0 ? (
+                    <div className="space-y-2">
+                      {contractDetails.metadata.map((record, idx) => (
+                        <div key={idx} className="flex items-start gap-3 p-3 border rounded-lg bg-slate-50">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="outline" className="font-mono text-xs">
+                                {record.key}
+                              </Badge>
+                            </div>
+                            <p className="text-slate-700 break-words text-sm">{record.value}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Alert>
+                      <AlertDescription>No metadata records found for this ENS name.</AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Permissions Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Granular Permissions
+                  </CardTitle>
+                  <CardDescription>Delegates and their permissions for this domain</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {contractDetails?.delegates && contractDetails.delegates.length > 0 ? (
+                    <div className="space-y-3">
+                      {contractDetails.delegates.map((delegate, idx) => (
+                        <div key={idx} className="p-4 border rounded-lg bg-slate-50">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Users className="h-4 w-4 text-slate-600" />
+                                <code className="text-sm font-mono">{formatAddress(delegate.address)}</code>
+                                {delegate.locked && (
+                                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                                    <Lock className="h-3 w-3 mr-1" />
+                                    Locked
+                                  </Badge>
+                                )}
+                                {!delegate.enabled && (
+                                  <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                    Disabled
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {delegate.permissions.map((perm, pidx) => (
+                                  <Badge key={pidx} variant="secondary" className="text-xs">
+                                    {perm}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-600">
+                                <Calendar className="h-3 w-3" />
+                                Expires: {delegate.expiresAt > 0n 
+                                  ? new Date(Number(delegate.expiresAt) * 1000).toLocaleDateString()
+                                  : 'Never'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Alert>
+                      <AlertDescription>
+                        No granular permissions found. This contract may use traditional ownership or approval methods.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Contract Info Summary */}
+              {selectedContract && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contract Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-slate-600 text-sm">Type</p>
+                        <Badge variant="secondary" className="capitalize mt-1">
+                          {selectedContract.type}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-slate-600 text-sm">Security Level</p>
+                        <Badge
+                          variant={
+                            selectedContract.security === 'critical'
+                              ? 'destructive'
+                              : selectedContract.security === 'high'
+                              ? 'default'
+                              : 'outline'
+                          }
+                          className="mt-1"
+                        >
+                          {selectedContract.security}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-slate-600 text-sm">Status</p>
+                        <Badge
+                          variant={
+                            selectedContract.status === 'active'
+                              ? 'default'
+                              : selectedContract.status === 'deprecated'
+                              ? 'destructive'
+                              : 'secondary'
+                          }
+                          className="mt-1"
+                        >
+                          {selectedContract.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-slate-600 text-sm">Version</p>
+                        <p className="text-slate-900 mt-1">{selectedContract.version}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-600 text-sm">Chain</p>
+                        <p className="text-slate-900 mt-1">{selectedContract.chain}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-600 text-sm">Deployed</p>
+                        <p className="text-slate-900 mt-1">{selectedContract.deployed}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4 pt-4 border-t">
+                      {selectedContract.multisig && (
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                          <Lock className="h-3 w-3 mr-1" />
+                          Multisig Protected
+                        </Badge>
+                      )}
+                      {selectedContract.upgradeable && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          <GitBranch className="h-3 w-3 mr-1" />
+                          Upgradeable
+                        </Badge>
+                      )}
+                      {selectedContract.verified && (
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Breadcrumb } from '../ui/breadcrumb';
 import {
   FileCode,
   CheckCircle2,
@@ -25,6 +26,7 @@ import {
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services/web3-provider';
 import { setTextRecord, createSubdomain, combineFuses } from '../../lib/ens/ens-write-operations';
+import { DomainSelector } from '../ui/domain-selector';
 import {
   ENSIPXMetadata,
   ENSIPX_CATEGORIES,
@@ -353,7 +355,7 @@ export function UnifiedContractRegistration() {
         });
 
         const fuses = combineFuses(['PARENT_CANNOT_CONTROL', 'CANNOT_UNWRAP']);
-        await createSubdomain(walletClient, {
+        await createSubdomain(walletClient, publicClient, {
           parentName: parentDomain,
           label: subdomainLabel,
           owner: address,
@@ -372,33 +374,25 @@ export function UnifiedContractRegistration() {
         metadataJson = JSON.stringify(basicMetadata, null, 2);
       }
 
+      // Batch all metadata records into a single transaction
+      const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
+      const builder = new TransactionBuilder(publicClient, walletClient);
+      
       // Store contract address
-      await setTextRecord(walletClient, publicClient, {
-        name: ensName,
-        recordType: 'text',
-        key: 'eth.contract.address',
-        value: contractAddress,
-      });
-
+      builder.addTextRecord(ensName, 'eth.contract.address', contractAddress);
+      
       // Store contract type
       if (contractType) {
-        await setTextRecord(walletClient, publicClient, {
-          name: ensName,
-          recordType: 'text',
-          key: STANDARD_KEYS.CONTRACT_TYPE,
-          value: contractType,
-        });
+        builder.addTextRecord(ensName, STANDARD_KEYS.CONTRACT_TYPE, contractType);
       }
-
+      
       // Store implementation address for proxies
       if (isProxy && implementationAddress) {
-        await setTextRecord(walletClient, publicClient, {
-          name: ensName,
-          recordType: 'text',
-          key: STANDARD_KEYS.IMPLEMENTATION,
-          value: implementationAddress,
-        });
+        builder.addTextRecord(ensName, STANDARD_KEYS.IMPLEMENTATION, implementationAddress);
       }
+      
+      // Execute all metadata updates in a single batched transaction
+      await builder.execute();
 
       toast.success('Contract registered successfully!', {
         description: `${ensName} is now ${validationMode === 'ensip19' ? 'ENSIP-X compliant' : 'registered'}`,
@@ -540,6 +534,14 @@ export function UnifiedContractRegistration() {
       {/* Progress Steps */}
       <Card className="border-2">
         <CardContent className="pt-6">
+          <Breadcrumb
+            items={steps.map((s, idx) => ({
+              label: s.charAt(0).toUpperCase() + s.slice(1),
+              onClick: idx <= steps.indexOf(step) ? () => setStep(s) : undefined,
+              disabled: idx > steps.indexOf(step),
+            }))}
+            className="mb-4"
+          />
           <div className="flex items-center justify-between">
             {steps.map((s, idx) => (
               <div key={s} className="flex items-center">
@@ -691,11 +693,12 @@ export function UnifiedContractRegistration() {
                 <Label htmlFor="parent-domain">
                   Parent Domain <span className="text-red-600">*</span>
                 </Label>
-                <Input
-                  id="parent-domain"
-                  placeholder="company.eth"
+                <DomainSelector
                   value={parentDomain}
-                  onChange={(e) => setParentDomain(e.target.value)}
+                  onValueChange={setParentDomain}
+                  placeholder="Select your domain"
+                  filterSubdomains={true}
+                  allowCustom={true}
                 />
                 <p className="text-slate-600">
                   Your root ENS name (must be owned by your connected wallet)
@@ -719,7 +722,7 @@ export function UnifiedContractRegistration() {
                     >
                       <div className="flex items-center justify-between">
                         <code className="text-blue-600">
-                          {template.label || 'custom'}.{parentDomain || 'example.eth'}
+                          {template.label || 'custom'}.{parentDomain || 'yourdomain.eth'}
                         </code>
                         {selectedTemplate === template.id && (
                           <CheckCircle2 className="h-5 w-5 text-blue-600" />
@@ -742,7 +745,7 @@ export function UnifiedContractRegistration() {
                     value={subdomainLabel}
                     onChange={(e) => setSubdomainLabel(e.target.value)}
                   />
-                  <span className="text-slate-600">.{parentDomain || 'example.eth'}</span>
+                  <span className="text-slate-600">.{parentDomain || 'yourdomain.eth'}</span>
                 </div>
               </div>
 

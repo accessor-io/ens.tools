@@ -12,13 +12,18 @@ import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { ContractRegistration, PreflightChecker } from './components/workflows';
 import { ENSMarketplace } from './components/marketplace';
 import { DNSSECConfig } from './components/dnssec';
+import { FeeManagement } from './components/admin/FeeManagement';
+import { MasterDatabaseView } from './components/admin/MasterDatabaseView';
+import { AdminPanel } from './components/admin/AdminPanel';
 import { WalletConnect } from './components/WalletConnect';
 import { Web3Provider } from './lib/services';
+import { DomainProvider } from './lib/contexts/DomainContext';
 import { Toaster } from './components/ui/sonner';
 import { JazzCupBackground } from './components/JazzCupBackground';
+import { TransactionStatusPanel } from './components/TransactionStatusPanel';
 import { Network } from 'lucide-react';
 
-export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec';
+export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -65,6 +70,12 @@ export default function App() {
         return <ENSMarketplace />;
       case 'dnssec':
         return <DNSSECConfig />;
+      case 'fee-management':
+        return <FeeManagement />;
+      case 'master-database':
+        return <MasterDatabaseView />;
+      case 'admin-panel':
+        return <AdminPanel />;
       default:
         return <Dashboard />;
     }
@@ -72,7 +83,8 @@ export default function App() {
 
   return (
     <Web3Provider>
-      <div className="flex min-h-screen w-full relative">
+      <DomainProvider>
+        <div className="flex min-h-screen w-full relative">
         <JazzCupBackground />
         <div className="flex-1 relative z-10 flex flex-col">
           <div className="fixed top-0 left-0 right-0 z-[100] bg-white/98 backdrop-blur-xl border-b border-slate-200/60 px-4 py-3 flex items-center justify-between gap-4 shadow-sm shadow-slate-900/5" style={{ marginLeft: '72px' }}>
@@ -94,8 +106,10 @@ export default function App() {
           </main>
         </div>
         <BottomToolbar currentView={currentView} onViewChange={setCurrentView} />
+        <TransactionStatusPanel />
         <Toaster />
       </div>
+      </DomainProvider>
     </Web3Provider>
   );
 }

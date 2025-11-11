@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { recoverMessageAddress } from 'viem';
+import jwt from 'jsonwebtoken';
 import { db } from '../../db';
+import { SecurityLogger } from './security-logger';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -11,6 +13,13 @@ interface AuthPayload {
   address: string;
   message: string;
   signature: string;
+}
+
+interface JWTPayload {
+  address: string;
+  userId: string;
+  exp: number;
+  iat?: number;
 }
 
 export const authMiddleware = async (
@@ -27,16 +36,36 @@ export const authMiddleware = async (
 
     const token = authHeader.substring(7);
     
-    // Decode JWT token (simplified - in production use a proper JWT library)
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    
-    if (!payload.address || !payload.exp) {
-      return res.status(401).json({ error: 'Invalid token' });
+    // Verify JWT token signature
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error('JWT_SECRET must be set in production');
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+      // Development fallback - but log warning
+      console.warn('JWT_SECRET not set, using insecure default for development only');
     }
-
-    // Check token expiration
-    if (Date.now() >= payload.exp * 1000) {
-      return res.status(401).json({ error: 'Token expired' });
+    
+    let payload: JWTPayload;
+    try {
+      payload = jwt.verify(token, jwtSecret || 'dev-secret') as JWTPayload;
+    } catch (error) {
+      // Log authentication failures
+      if (error instanceof jwt.TokenExpiredError) {
+        await SecurityLogger.logAuthFailure(req, 'Token expired');
+        return res.status(401).json({ error: 'Token expired' });
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        await SecurityLogger.logAuthFailure(req, 'Invalid token signature');
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+      await SecurityLogger.logAuthFailure(req, 'Token verification error');
+      throw error;
+    }
+    
+    if (!payload.address || !payload.userId) {
+      return res.status(401).json({ error: 'Invalid token payload' });
     }
 
     // Get or create user
@@ -58,6 +87,10 @@ export const authMiddleware = async (
 
     req.userId = userId;
     req.userAddress = payload.address;
+    
+    // Log successful authentication
+    await SecurityLogger.logAuthSuccess(req, userId, payload.address);
+    
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);

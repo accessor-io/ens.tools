@@ -108,4 +108,15 @@ temp/
 # SvelteKit build / generate output
 .svelte-kit
 
+# Documentation files
+*.md
+!README.md
+
+# Documentation build artifacts
+documentation-compiled/
+documentation-compiled*/
+ens-tools-documentation-package/
+*.zip
+*.tar.gz
+
 # End of https://www.toptal.com/developers/gitignore/api/node

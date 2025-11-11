@@ -1,6 +1,6 @@
 import { PublicClient, formatEther } from 'viem';
 import { ETH_REGISTRAR_CONTROLLER_ABI } from '../ens/ens-contracts';
-import { ENS_ADDRESSES } from '../ens/ens-addresses';
+import { getEnsAddresses } from '../ens/ens-addresses';
 
 export interface PremiumPriceInfo {
   base: string; // ETH
@@ -24,8 +24,16 @@ export class PremiumPriceService {
     try {
       const label = name.split('.')[0];
       
+      // Get the correct contract address for the current chain
+      const chainId = await publicClient.getChainId();
+      const addresses = getEnsAddresses(chainId as any);
+      
+      if (!addresses?.ethRegistrarController) {
+        throw new Error('ETH Registrar Controller not available on this chain');
+      }
+      
       const result = await publicClient.readContract({
-        address: ENS_ADDRESSES.ETH_REGISTRAR_CONTROLLER,
+        address: addresses.ethRegistrarController,
         abi: ETH_REGISTRAR_CONTROLLER_ABI,
         functionName: 'rentPrice',
         args: [label, BigInt(duration)],

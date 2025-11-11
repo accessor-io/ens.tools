@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { toast } from 'sonner';
+import { DomainProfile } from './DomainProfile';
 
 type SortField = 'name' | 'expiryDate' | 'registrationDate' | 'length';
 type SortDirection = 'asc' | 'desc';
@@ -25,16 +26,16 @@ type SortDirection = 'asc' | 'desc';
 export function NameBrowser() {
   const { publicClient } = useWeb3();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'expiring-soon' | 'grace-period' | 'expired' | 'premium'>('expiring-soon');
+  const [activeTab, setActiveTab] = useState<'expiring-soon' | 'grace-period' | 'expired' | 'premium' | 'recent'>('recent');
   const [domains, setDomains] = useState<ENSDomain[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const pageSize = 50;
+  const pageSize = 100; // Increased from 50 to show more domains
   
   // Sorting state
-  const [sortField, setSortField] = useState<SortField>('expiryDate');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField>('registrationDate');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   
   // Filter state
   const [minLength, setMinLength] = useState<string>('');
@@ -43,7 +44,13 @@ export function NameBrowser() {
   const [domainType, setDomainType] = useState<'all' | 'wrapped' | 'direct'>('all');
   const [hasResolver, setHasResolver] = useState<'all' | 'yes' | 'no'>('all');
   const [subdomainFilter, setSubdomainFilter] = useState<'all' | 'subdomains' | 'top-level'>('all');
-  const [patternFilter, setPatternFilter] = useState<'all' | 'numbers' | 'emoji'>('all');
+  const [patternFilter, setPatternFilter] = useState<'all' | 'numbers' | 'letters' | 'mixed' | 'emoji'>('all');
+  const [registrationDateFrom, setRegistrationDateFrom] = useState<string>('');
+  const [registrationDateTo, setRegistrationDateTo] = useState<string>('');
+  const [expiryDateFrom, setExpiryDateFrom] = useState<string>('');
+  const [expiryDateTo, setExpiryDateTo] = useState<string>('');
+  const [hasAddress, setHasAddress] = useState<'all' | 'yes' | 'no'>('all');
+  const [characterType, setCharacterType] = useState<'all' | 'letters-only' | 'numbers-only' | 'mixed' | 'punctuation'>('all');
   
   // Infinite scroll ref
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -62,6 +69,9 @@ export function NameBrowser() {
   
   // Premium prices cache
   const [premiumPrices, setPremiumPrices] = useState<Map<string, PremiumPriceInfo>>(new Map());
+  
+  // Selected domain for profile view
+  const [selectedDomain, setSelectedDomain] = useState<ENSDomain | null>(null);
 
   const loadDomains = async (reset: boolean = false) => {
     setLoading(true);
@@ -99,6 +109,17 @@ export function NameBrowser() {
     setSearchTerm('');
     setCurrentPage(0);
     setHasMore(true);
+    // Update default sort based on tab
+    if (activeTab === 'recent') {
+      setSortField('registrationDate');
+      setSortDirection('desc');
+    } else if (activeTab === 'expiring-soon' || activeTab === 'grace-period' || activeTab === 'expired') {
+      setSortField('expiryDate');
+      setSortDirection('asc');
+    } else {
+      setSortField('registrationDate');
+      setSortDirection('desc');
+    }
     loadDomains(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -278,7 +299,7 @@ export function NameBrowser() {
     }
   };
 
-  const hasActiveFilters = searchTerm || ownerFilter || minLength || maxLength || domainType !== 'all' || hasResolver !== 'all' || subdomainFilter !== 'all' || patternFilter !== 'all';
+  const hasActiveFilters = searchTerm || ownerFilter || minLength || maxLength || domainType !== 'all' || hasResolver !== 'all' || hasAddress !== 'all' || subdomainFilter !== 'all' || patternFilter !== 'all' || characterType !== 'all' || registrationDateFrom || registrationDateTo || expiryDateFrom || expiryDateTo;
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -287,8 +308,14 @@ export function NameBrowser() {
     setMaxLength('');
     setDomainType('all');
     setHasResolver('all');
+    setHasAddress('all');
     setSubdomainFilter('all');
     setPatternFilter('all');
+    setCharacterType('all');
+    setRegistrationDateFrom('');
+    setRegistrationDateTo('');
+    setExpiryDateFrom('');
+    setExpiryDateTo('');
   };
 
   // Quick filter presets
@@ -530,6 +557,12 @@ export function NameBrowser() {
 
   const tabs = [
     {
+      value: 'recent',
+      label: 'Recent',
+      description: 'Recently registered domains (last 30 days)',
+      icon: RefreshCw,
+    },
+    {
       value: 'expiring-soon',
       label: 'Expiring Soon',
       description: 'Names expiring within 90 days',
@@ -565,7 +598,7 @@ export function NameBrowser() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
               <tab.icon className="w-4 h-4" />
@@ -616,12 +649,12 @@ export function NameBrowser() {
                           Filters
                             {hasActiveFilters && (
                             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
-                              {[searchTerm, ownerFilter, minLength, maxLength, domainType !== 'all', hasResolver !== 'all', subdomainFilter !== 'all', patternFilter !== 'all'].filter(Boolean).length}
+                              {[searchTerm, ownerFilter, minLength, maxLength, domainType !== 'all', hasResolver !== 'all', hasAddress !== 'all', subdomainFilter !== 'all', patternFilter !== 'all', characterType !== 'all', registrationDateFrom, registrationDateTo, expiryDateFrom, expiryDateTo].filter(Boolean).length}
                             </span>
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80">
+                      <PopoverContent className="w-96 max-h-[600px] overflow-y-auto">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold">Filters</h4>
@@ -701,7 +734,7 @@ export function NameBrowser() {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="subdomain-filter">Domain Type</Label>
+                            <Label htmlFor="subdomain-filter">Subdomain Type</Label>
                             <Select value={subdomainFilter} onValueChange={(value: any) => setSubdomainFilter(value)}>
                               <SelectTrigger id="subdomain-filter">
                                 <SelectValue />
@@ -712,6 +745,72 @@ export function NameBrowser() {
                                 <SelectItem value="top-level">Top-Level Only</SelectItem>
                               </SelectContent>
                             </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="has-address">Has Address</Label>
+                            <Select value={hasAddress} onValueChange={(value: any) => setHasAddress(value)}>
+                              <SelectTrigger id="has-address">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All</SelectItem>
+                                <SelectItem value="yes">Yes</SelectItem>
+                                <SelectItem value="no">No</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="character-type">Character Type</Label>
+                            <Select value={characterType} onValueChange={(value: any) => setCharacterType(value)}>
+                              <SelectTrigger id="character-type">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All</SelectItem>
+                                <SelectItem value="letters-only">Letters Only</SelectItem>
+                                <SelectItem value="numbers-only">Numbers Only</SelectItem>
+                                <SelectItem value="mixed">Mixed</SelectItem>
+                                <SelectItem value="punctuation">Has Punctuation</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Registration Date Range</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                type="date"
+                                placeholder="From"
+                                value={registrationDateFrom}
+                                onChange={(e) => setRegistrationDateFrom(e.target.value)}
+                              />
+                              <Input
+                                type="date"
+                                placeholder="To"
+                                value={registrationDateTo}
+                                onChange={(e) => setRegistrationDateTo(e.target.value)}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Expiry Date Range</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                type="date"
+                                placeholder="From"
+                                value={expiryDateFrom}
+                                onChange={(e) => setExpiryDateFrom(e.target.value)}
+                              />
+                              <Input
+                                type="date"
+                                placeholder="To"
+                                value={expiryDateTo}
+                                onChange={(e) => setExpiryDateTo(e.target.value)}
+                              />
+                            </div>
                           </div>
                         </div>
                       </PopoverContent>
@@ -869,16 +968,24 @@ export function NameBrowser() {
                               <>
                               <TableRow 
                                 key={domain.id}
-                                className={`cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50 hover:bg-blue-100' : 'hover:bg-slate-50'}`}
-                                onClick={() => toggleRowExpansion(domain.name)}
+                                className="cursor-pointer transition-colors hover:bg-slate-50"
+                                onClick={() => setSelectedDomain(domain)}
                               >
                                 <TableCell className="font-medium">
                                   <div className="flex items-center gap-2">
-                                    {isExpanded ? (
-                                      <ChevronDown className="h-5 w-5 text-slate-400" />
-                                    ) : (
-                                      <ChevronRight className="h-5 w-5 text-slate-400" />
-                                    )}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleRowExpansion(domain.name);
+                                      }}
+                                      className="h-5 w-5 flex items-center justify-center hover:bg-slate-200 rounded transition-colors"
+                                    >
+                                      {isExpanded ? (
+                                        <ChevronDown className="h-5 w-5 text-slate-400" />
+                                      ) : (
+                                        <ChevronRight className="h-5 w-5 text-slate-400" />
+                                      )}
+                                    </button>
                                     {domain.name}
                                   </div>
                                 </TableCell>
@@ -1196,7 +1303,7 @@ export function NameBrowser() {
 
                     {/* Notes Dialog */}
                     {notesOpen && (
-                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                      <div className="fixed inset-0 bg-slate-200/30 backdrop-blur-sm flex items-center justify-center z-50">
                         <Card className="w-full max-w-md">
                           <CardHeader>
                             <CardTitle>Notes for {notesOpen}</CardTitle>
@@ -1273,6 +1380,18 @@ export function NameBrowser() {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Domain Profile Dialog */}
+      {selectedDomain && (
+        <DomainProfile
+          domain={selectedDomain}
+          onClose={() => setSelectedDomain(null)}
+          onUpdate={() => {
+            // Refresh domains if needed
+            loadDomains(true);
+          }}
+        />
+      )}
     </div>
   );
 }

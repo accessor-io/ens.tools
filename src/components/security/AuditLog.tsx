@@ -381,7 +381,7 @@ export function AuditLog() {
                                       View Full
                                     </Button>
                                   </div>
-                                  <div className="bg-slate-900 text-green-400 p-3 rounded font-mono text-xs overflow-x-auto">
+                                  <div className="bg-slate-100 text-slate-900 p-3 rounded font-mono text-xs overflow-x-auto border border-slate-200">
                                     <code>{formatCallData(entry.transaction!.callData)}</code>
                                   </div>
                                 </div>
@@ -468,7 +468,7 @@ export function AuditLog() {
                       Copy
                     </Button>
                   </div>
-                  <div className="bg-slate-900 text-green-400 p-4 rounded font-mono text-xs break-all">
+                  <div className="bg-slate-100 text-slate-900 p-4 rounded font-mono text-xs break-all border border-slate-200">
                     <code>{selectedEntry.transaction.callData}</code>
                   </div>
                 </div>

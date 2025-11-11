@@ -39,13 +39,17 @@ import {
   Database,
   Code,
   Network,
+  Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
+import { useTransactionManager } from '../../lib/hooks/useTransactionManager';
 import { ENSDomain, formatAddress, getAllTextRecords, reverseResolveAddress } from '../../lib/ens';
 import { addressDisplayService } from '../../lib/services';
 import { eventTracker } from '../../lib/services';
 import { auditLogService } from '../../lib/security';
+import { GranularPermissions } from '../delegation/GranularPermissions';
+import { TransactionConfirmationDialog } from '../TransactionConfirmationDialog';
 import { 
   setTextRecord,
   setAddressRecord,
@@ -53,6 +57,15 @@ import {
   setFuses,
   wrapName,
   unwrapName,
+  setResolver,
+  setReverseRecord,
+  setContentHash,
+  getContentHash,
+  setTTL,
+  getTTL,
+  setABI,
+  getABI,
+  renewDomain,
   FUSES,
   combineFuses,
   getActiveFuses,
@@ -60,6 +73,7 @@ import {
 } from '../../lib/ens';
 import { getENSStatus, validateExternalUrl, sanitizeInput } from '../../lib/ens';
 import { transferDomainViaRegistry, transferWrappedName } from '../../lib/ens';
+import { premiumPriceService } from '../../lib/services/premium-price-service';
 import {
   ALL_SCHEMAS,
   getRecommendedSchema,
@@ -76,13 +90,73 @@ interface DomainProfileProps {
 
 export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps) {
   const { walletClient, publicClient, address } = useWeb3();
+  const txManager = useTransactionManager();
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Confirmation dialog state
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    open: boolean;
+    type: 'transfer' | 'wrap' | 'unwrap' | 'resolver' | 'reverse' | 'fuses' | 'metadata' | null;
+    data?: any;
+  }>({ open: false, type: null });
 
   useEffect(() => {
     eventTracker.trackDomainView(domain.name, address || undefined);
   }, [domain.name, address]);
+
+  useEffect(() => {
+    if (publicClient) {
+      loadContentHash();
+      loadTTL();
+      loadABI();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [domain.name, publicClient]);
+
+  const loadContentHash = async () => {
+    if (!publicClient) return;
+    try {
+      const hash = await getContentHash(publicClient, domain.name);
+      if (hash) {
+        setContentHashValue(hash);
+      }
+    } catch (error) {
+      console.error('Error loading content hash:', error);
+    }
+  };
+
+  const loadTTL = async () => {
+    if (!publicClient) return;
+    try {
+      const ttl = await getTTL(publicClient, domain.name);
+      setTtlValue(ttl);
+      if (ttl !== null) {
+        setNewTTL(ttl.toString());
+      }
+    } catch (error) {
+      console.error('Error loading TTL:', error);
+    }
+  };
+
+  const loadABI = async () => {
+    if (!publicClient) return;
+    try {
+      const abi = await getABI(publicClient, domain.name, abiContentType);
+      if (abi) {
+        setAbiValue(abi);
+        setNewABI(abi);
+      } else {
+        setAbiValue(null);
+        setNewABI('');
+      }
+    } catch (error) {
+      console.error('Error loading ABI:', error);
+      setAbiValue(null);
+      setNewABI('');
+    }
+  };
   
   // Metadata state
   const [metadata, setMetadata] = useState<Record<string, string>>({});
@@ -98,9 +172,33 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
   const [showTransfer, setShowTransfer] = useState(false);
   const [transferAddress, setTransferAddress] = useState('');
   
+  // Resolver and reverse record state
+  const [resolverAddress, setResolverAddress] = useState('');
+  const [reverseName, setReverseName] = useState('');
+  
   // Fuses state
   const [selectedFuses, setSelectedFuses] = useState<string[]>([]);
   const [showFuseManager, setShowFuseManager] = useState(false);
+
+  // Content hash state
+  const [contentHashValue, setContentHashValue] = useState<string>('');
+  const [isEditingContentHash, setIsEditingContentHash] = useState(false);
+
+  // Renewal state
+  const [showRenewDialog, setShowRenewDialog] = useState(false);
+  const [renewPrice, setRenewPrice] = useState<{ base: string; premium: string; total: string; hasPremium: boolean } | null>(null);
+  const [isLoadingRenewPrice, setIsLoadingRenewPrice] = useState(false);
+
+  // TTL state
+  const [ttlValue, setTtlValue] = useState<number | null>(null);
+  const [isEditingTTL, setIsEditingTTL] = useState(false);
+  const [newTTL, setNewTTL] = useState<string>('');
+
+  // ABI state
+  const [abiValue, setAbiValue] = useState<string | null>(null);
+  const [isEditingABI, setIsEditingABI] = useState(false);
+  const [newABI, setNewABI] = useState<string>('');
+  const [abiContentType, setAbiContentType] = useState<number>(1); // 1 = JSON, 2 = CBOR
 
   // ENS name resolution state
   const [ownerENSName, setOwnerENSName] = useState<string | null>(null);
@@ -180,13 +278,19 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
   };
 
   const loadSubdomains = async () => {
-    // Mock subdomain loading - in production, query The Graph for subdomains
-    const mockSubdomains = [
-      `app.${domain.name}`,
-      `api.${domain.name}`,
-      `dao.${domain.name}`,
-    ];
-    setSubdomains(mockSubdomains);
+    if (!publicClient) return;
+    
+    try {
+      // Use dynamic import to avoid blocking initial render
+      const subdomainService = await import('../../lib/ens/subdomain-service');
+      const subdomainInfos = await subdomainService.fetchSubdomains(domain.name, publicClient);
+      const subdomainNames = subdomainInfos.map(sub => sub.name);
+      setSubdomains(subdomainNames);
+    } catch (error) {
+      console.error('Error loading subdomains:', error);
+      // Fallback to empty array on error
+      setSubdomains([]);
+    }
   };
 
   const handleSaveMetadata = async () => {
@@ -211,39 +315,53 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
 
     setIsSaving(true);
     try {
-      // Save each text record
+      const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
+      const builder = new TransactionBuilder(publicClient, walletClient);
+      
+      // Add all text records to builder
       const savedKeys: string[] = [];
       for (const [key, value] of Object.entries(metadata)) {
         if (value) {
-          await setTextRecord(walletClient, publicClient, {
-            name: domain.name,
-            key,
-            value,
-          });
+          builder.addTextRecord(domain.name, key, value);
           savedKeys.push(key);
         }
       }
 
-      for (const key of savedKeys) {
-        eventTracker.trackTextRecordSet(domain.name, key, metadata[key], address || undefined);
-        
-        // Track name edits when display name or key name-related fields are changed
-        if (key === 'name' || key === 'displayName' || key === 'eth.name') {
-          auditLogService.trackAction('name_edited', `Name edited for ${domain.name}: ${key}`, {
-            domain: domain.name,
-            actor: address,
-            status: 'success',
-            metadata: {
-              field: key,
-              value: metadata[key],
-            },
-          });
-        }
+      if (builder.getOperationCount() === 0) {
+        toast.error('No records to save');
+        setIsSaving(false);
+        return;
       }
 
-      toast.success('Metadata saved successfully');
-      setIsEditing(false);
-      onUpdate();
+      // Execute using transaction manager
+      const operationCount = builder.getOperationCount();
+      const executeFn = async () => {
+        const hashes = await builder.execute();
+        return hashes[0]; // Return first hash for tracking
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Save metadata for ${domain.name} (${operationCount} record${operationCount !== 1 ? 's' : ''})`,
+        onSuccess: () => {
+          for (const key of savedKeys) {
+            eventTracker.trackTextRecordSet(domain.name, key, metadata[key], address || undefined);
+            
+            if (key === 'name' || key === 'displayName' || key === 'eth.name') {
+              auditLogService.trackAction('name_edited', `Name edited for ${domain.name}: ${key}`, {
+                domain: domain.name,
+                actor: address,
+                status: 'success',
+                metadata: {
+                  field: key,
+                  value: metadata[key],
+                },
+              });
+            }
+          }
+          setIsEditing(false);
+          onUpdate();
+        },
+      });
     } catch (error) {
       console.error('Error saving metadata:', error);
       eventTracker.trackTransactionFailed(error instanceof Error ? error.message : 'Unknown error', address || undefined);
@@ -300,33 +418,190 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
       return;
     }
 
-    try {
-      let hash: string;
-      
-      if (domain.isWrapped) {
-        hash = await transferWrappedName(walletClient, publicClient, {
-          name: domain.name,
-          newOwner: transferAddress as `0x${string}`,
-        });
-      } else {
-        hash = await transferDomainViaRegistry(walletClient, publicClient, {
-          name: domain.name,
-          newOwner: transferAddress as `0x${string}`,
-        });
-      }
+    setConfirmationDialog({
+      open: true,
+      type: 'transfer',
+      data: { address: transferAddress },
+    });
+  };
 
-      toast.success('Transfer initiated', {
+  const executeTransfer = async () => {
+    if (!walletClient || !publicClient || !confirmationDialog.data?.address) return;
+
+    const transferAddress = confirmationDialog.data.address;
+    
+    try {
+      const executeFn = async () => {
+        if (domain.isWrapped) {
+          return await transferWrappedName(walletClient, publicClient, {
+            name: domain.name,
+            newOwner: transferAddress as `0x${string}`,
+          });
+        } else {
+          return await transferDomainViaRegistry(walletClient, publicClient, {
+            name: domain.name,
+            newOwner: transferAddress as `0x${string}`,
+          });
+        }
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Transfer ${domain.name} to ${transferAddress.slice(0, 10)}...`,
+        onSuccess: () => {
+          setShowTransfer(false);
+          setTransferAddress('');
+          onUpdate();
+        },
+      });
+    } catch (error) {
+      console.error('Error transferring domain:', error);
+      throw error;
+    }
+  };
+
+  const handleSetResolver = async () => {
+    if (!walletClient || !publicClient || !resolverAddress) {
+      toast.error('Please enter a valid resolver address');
+      return;
+    }
+
+    if (!/^0x[a-fA-F0-9]{40}$/.test(resolverAddress)) {
+      toast.error('Invalid resolver address format');
+      return;
+    }
+
+    setConfirmationDialog({
+      open: true,
+      type: 'resolver',
+      data: { address: resolverAddress },
+    });
+  };
+
+  const executeSetResolver = async () => {
+    if (!walletClient || !publicClient || !confirmationDialog.data?.address) return;
+
+    const resolverAddress = confirmationDialog.data.address;
+
+    try {
+      const executeFn = async () => {
+        return await setResolver(walletClient, publicClient, {
+          name: domain.name,
+          resolverAddress,
+        });
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Set resolver for ${domain.name}`,
+        onSuccess: () => {
+          setResolverAddress('');
+          onUpdate();
+        },
+      });
+    } catch (error) {
+      console.error('Error setting resolver:', error);
+      throw error;
+    }
+  };
+
+  const handleSetReverseRecord = async () => {
+    if (!walletClient || !publicClient || !reverseName) {
+      toast.error('Please enter a valid ENS name');
+      return;
+    }
+
+    try {
+      const hash = await setReverseRecord(walletClient, publicClient, {
+        address: domain.owner,
+        name: reverseName,
+      });
+
+      toast.success('Reverse record set', {
         description: `Transaction: ${hash.slice(0, 10)}...`,
       });
       
-      setShowTransfer(false);
-      setTransferAddress('');
+      setReverseName('');
       onUpdate();
     } catch (error) {
-      console.error('Error transferring domain:', error);
-      toast.error('Failed to transfer domain', {
+      console.error('Error setting reverse record:', error);
+      toast.error('Failed to set reverse record', {
         description: error instanceof Error ? error.message : 'Unknown error',
       });
+    }
+  };
+
+  const handleWrap = async () => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    setConfirmationDialog({
+      open: true,
+      type: 'wrap',
+    });
+  };
+
+  const executeWrap = async () => {
+    if (!walletClient || !publicClient) return;
+
+    try {
+      const expiry = domain.expiryDate 
+        ? BigInt(Math.floor(domain.expiryDate.getTime() / 1000))
+        : BigInt(Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60);
+
+      const executeFn = async () => {
+        return await wrapName(walletClient, {
+          name: domain.name,
+          owner: domain.owner as `0x${string}`,
+          fuses: 0,
+          expiry,
+        });
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Wrap ${domain.name}`,
+        onSuccess: () => {
+          onUpdate();
+        },
+      });
+    } catch (error) {
+      console.error('Error wrapping name:', error);
+      throw error;
+    }
+  };
+
+  const handleUnwrap = async () => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    setConfirmationDialog({
+      open: true,
+      type: 'unwrap',
+    });
+  };
+
+  const executeUnwrap = async () => {
+    if (!walletClient || !publicClient) return;
+
+    try {
+      const executeFn = async () => {
+        return await unwrapName(walletClient, publicClient, {
+          name: domain.name,
+          newController: domain.owner as `0x${string}`,
+        });
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Unwrap ${domain.name}`,
+        onSuccess: () => {
+          onUpdate();
+        },
+      });
+    } catch (error) {
+      console.error('Error unwrapping name:', error);
+      throw error;
     }
   };
 
@@ -360,9 +635,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
     toast.success('Copied to clipboard');
   };
 
-  const viewOnENSApp = () => {
-    window.open(`https://app.ens.domains/${domain.name}`, '_blank');
-  };
+  // Removed external link - all actions are now native
 
   const updateMetadataField = (key: string, value: string) => {
     setMetadata(prev => ({ ...prev, [key]: value }));
@@ -377,7 +650,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-slate-200/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
@@ -389,9 +662,6 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={viewOnENSApp}>
-              <ExternalLink className="h-4 w-4" />
-            </Button>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -410,6 +680,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
               <TabsTrigger value="wrapper">Wrapper</TabsTrigger>
               <TabsTrigger value="subdomains">Subdomains</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions</TabsTrigger>
               <TabsTrigger value="transfer">Transfer</TabsTrigger>
             </TabsList>
 
@@ -491,9 +762,41 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                     {domain.expiryDate && (
                       <div>
                         <Label className="text-slate-600">Expiration</Label>
-                        <p className="text-slate-900 mt-1">
-                          {domain.expiryDate.toLocaleDateString()}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-slate-900">
+                            {domain.expiryDate.toLocaleDateString()}
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              setShowRenewDialog(true);
+                              setIsLoadingRenewPrice(true);
+                              setRenewPrice(null);
+                              
+                              if (publicClient) {
+                                try {
+                                  const duration = 365 * 24 * 60 * 60; // 1 year in seconds
+                                  const priceInfo = await premiumPriceService.getPremiumPrice(
+                                    publicClient,
+                                    domain.name,
+                                    duration
+                                  );
+                                  setRenewPrice(priceInfo || null);
+                                } catch (error) {
+                                  console.error('Error fetching renewal price:', error);
+                                  toast.error('Failed to fetch renewal price');
+                                } finally {
+                                  setIsLoadingRenewPrice(false);
+                                }
+                              }
+                            }}
+                            disabled={!walletClient || !publicClient}
+                          >
+                            <Calendar className="h-3 w-3 mr-1" />
+                            Renew
+                          </Button>
+                        </div>
                       </div>
                     )}
 
@@ -730,14 +1033,99 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                   <Separator />
 
                   <div className="space-y-4">
-                    <h3 className="text-slate-900">Contenthash</h3>
-                    <Input placeholder="/ipfs/Qm..." disabled />
-                    <Alert>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        Contenthash configuration coming soon
-                      </AlertDescription>
-                    </Alert>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-slate-900">Contenthash</h3>
+                      {!isEditingContentHash && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsEditingContentHash(true)}
+                          disabled={!walletClient || !publicClient}
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          {contentHashValue ? 'Edit' : 'Set'}
+                        </Button>
+                      )}
+                    </div>
+                    {isEditingContentHash ? (
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label>Content Hash</Label>
+                          <Input
+                            placeholder="/ipfs/Qm..., /ipns/..., /bzz/..., or hex string"
+                            value={contentHashValue}
+                            onChange={(e) => setContentHashValue(e.target.value)}
+                          />
+                          <p className="text-xs text-slate-500">
+                            Supports IPFS (/ipfs/...), IPNS (/ipns/...), Swarm (/bzz/...), or hex string
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              if (!walletClient || !publicClient || !contentHashValue.trim()) {
+                                toast.error('Please enter a content hash');
+                                return;
+                              }
+
+                              try {
+                                const executeFn = async () => {
+                                  return await setContentHash(walletClient, publicClient, {
+                                    name: domain.name,
+                                    contentHash: contentHashValue.trim(),
+                                  });
+                                };
+
+                                await txManager.addTransaction(executeFn, {
+                                  description: `Set content hash for ${domain.name}`,
+                                  onSuccess: () => {
+                                    setIsEditingContentHash(false);
+                                    onUpdate();
+                                    loadContentHash();
+                                  },
+                                });
+                              } catch (error) {
+                                console.error('Error setting content hash:', error);
+                                toast.error('Failed to set content hash', {
+                                  description: error instanceof Error ? error.message : 'Unknown error',
+                                });
+                              }
+                            }}
+                            disabled={!contentHashValue.trim()}
+                          >
+                            <Save className="h-3 w-3 mr-1" />
+                            Save
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setIsEditingContentHash(false);
+                              loadContentHash(); // Reset to current value
+                            }}
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {contentHashValue ? (
+                          <div className="p-3 bg-slate-50 rounded-lg border">
+                            <code className="text-sm break-all">{contentHashValue}</code>
+                          </div>
+                        ) : (
+                          <Alert>
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>
+                              No content hash set. Set one to enable decentralized website hosting.
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -757,9 +1145,13 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                   </div>
                   <div className="space-y-2">
                     <Label>New Resolver Address</Label>
-                    <Input placeholder="0x..." />
+                    <Input 
+                      placeholder="0x..." 
+                      value={resolverAddress}
+                      onChange={(e) => setResolverAddress(e.target.value)}
+                    />
                   </div>
-                  <Button onClick={() => toast.info('Resolver change functionality coming soon')}>
+                  <Button onClick={handleSetResolver} disabled={!resolverAddress || !walletClient || !publicClient}>
                     <Save className="h-4 w-4 mr-2" />
                     Set Resolver
                   </Button>
@@ -769,6 +1161,250 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                       Changing resolver will require migrating existing records. Backup recommended.
                     </AlertDescription>
                   </Alert>
+                </CardContent>
+              </Card>
+
+              {/* TTL Configuration */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>TTL (Time To Live)</CardTitle>
+                      <CardDescription>Set resolver cache TTL for {domain.name}</CardDescription>
+                    </div>
+                    {!isEditingTTL && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditingTTL(true)}
+                        disabled={!walletClient || !publicClient}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        {ttlValue !== null ? 'Edit' : 'Set'}
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isEditingTTL ? (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label>TTL (seconds)</Label>
+                        <Input
+                          type="number"
+                          placeholder="300"
+                          value={newTTL}
+                          onChange={(e) => setNewTTL(e.target.value)}
+                        />
+                        <p className="text-xs text-slate-500">
+                          TTL controls how long resolvers cache records. Common values: 300 (5 min), 3600 (1 hour), 86400 (1 day).
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            if (!walletClient || !publicClient || !newTTL) {
+                              toast.error('Please enter a TTL value');
+                              return;
+                            }
+
+                            const ttl = parseInt(newTTL);
+                            if (isNaN(ttl) || ttl < 0) {
+                              toast.error('TTL must be a positive number');
+                              return;
+                            }
+
+                            try {
+                              const executeFn = async () => {
+                                return await setTTL(walletClient, publicClient, {
+                                  name: domain.name,
+                                  ttl,
+                                });
+                              };
+
+                              await txManager.addTransaction(executeFn, {
+                                description: `Set TTL for ${domain.name} to ${ttl} seconds`,
+                                onSuccess: () => {
+                                  setIsEditingTTL(false);
+                                  onUpdate();
+                                  loadTTL();
+                                },
+                              });
+                            } catch (error) {
+                              console.error('Error setting TTL:', error);
+                              toast.error('Failed to set TTL', {
+                                description: error instanceof Error ? error.message : 'Unknown error',
+                              });
+                            }
+                          }}
+                          disabled={!newTTL}
+                        >
+                          <Save className="h-3 w-3 mr-1" />
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsEditingTTL(false);
+                            loadTTL(); // Reset to current value
+                          }}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {ttlValue !== null ? (
+                        <div className="p-3 bg-slate-50 rounded-lg border">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-slate-700">Current TTL:</span>
+                            <span className="text-sm font-mono text-slate-900">{ttlValue} seconds</span>
+                          </div>
+                          <div className="text-xs text-slate-500 mt-1">
+                            {ttlValue < 60 ? `${ttlValue}s` : ttlValue < 3600 ? `${Math.floor(ttlValue / 60)} minutes` : `${Math.floor(ttlValue / 3600)} hours`}
+                          </div>
+                        </div>
+                      ) : (
+                        <Alert>
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            No TTL set. Default resolver TTL will be used.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* ABI Configuration */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>ABI (Application Binary Interface)</CardTitle>
+                      <CardDescription>Attach contract ABI to {domain.name}</CardDescription>
+                    </div>
+                    {!isEditingABI && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditingABI(true)}
+                        disabled={!walletClient || !publicClient}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        {abiValue ? 'Edit' : 'Set'}
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isEditingABI ? (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label>Content Type</Label>
+                        <Select value={abiContentType.toString()} onValueChange={(v) => setAbiContentType(parseInt(v))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">JSON (1)</SelectItem>
+                            <SelectItem value="2">CBOR (2)</SelectItem>
+                            <SelectItem value="4">URI (4)</SelectItem>
+                            <SelectItem value="8">ZIP (8)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>ABI Data (JSON or hex string)</Label>
+                        <Textarea
+                          placeholder='[{"type":"function","name":"transfer",...}] or 0x...'
+                          value={newABI}
+                          onChange={(e) => setNewABI(e.target.value)}
+                          rows={8}
+                          className="font-mono text-sm"
+                        />
+                        <p className="text-xs text-slate-500">
+                          Paste your contract ABI as JSON array or hex-encoded bytes. JSON is recommended for readability.
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            if (!walletClient || !publicClient || !newABI.trim()) {
+                              toast.error('Please enter ABI data');
+                              return;
+                            }
+
+                            try {
+                              const executeFn = async () => {
+                                return await setABI(walletClient, publicClient, {
+                                  name: domain.name,
+                                  contentType: abiContentType,
+                                  data: newABI.trim(),
+                                });
+                              };
+
+                              await txManager.addTransaction(executeFn, {
+                                description: `Set ABI for ${domain.name} (contentType: ${abiContentType})`,
+                                onSuccess: () => {
+                                  setIsEditingABI(false);
+                                  onUpdate();
+                                  loadABI();
+                                },
+                              });
+                            } catch (error) {
+                              console.error('Error setting ABI:', error);
+                              toast.error('Failed to set ABI', {
+                                description: error instanceof Error ? error.message : 'Unknown error',
+                              });
+                            }
+                          }}
+                          disabled={!newABI.trim()}
+                        >
+                          <Save className="h-3 w-3 mr-1" />
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsEditingABI(false);
+                            loadABI(); // Reset to current value
+                          }}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {abiValue ? (
+                        <div className="p-3 bg-slate-50 rounded-lg border">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-slate-700">Current ABI</span>
+                            <Badge variant="outline">ContentType: {abiContentType}</Badge>
+                          </div>
+                          <pre className="text-xs overflow-auto max-h-48 p-2 bg-white rounded border">
+                            {abiValue.length > 200 ? `${abiValue.slice(0, 200)}...` : abiValue}
+                          </pre>
+                        </div>
+                      ) : (
+                        <Alert>
+                          <Code className="h-4 w-4" />
+                          <AlertDescription>
+                            No ABI set. Attach a contract ABI to enable dApp integration.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -783,9 +1419,13 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label>ENS Name</Label>
-                    <Input placeholder={domain.name} />
+                    <Input 
+                      placeholder={domain.name} 
+                      value={reverseName}
+                      onChange={(e) => setReverseName(e.target.value)}
+                    />
                   </div>
-                  <Button onClick={() => toast.info('Reverse record functionality coming soon')}>
+                  <Button onClick={handleSetReverseRecord} disabled={!reverseName}>
                     <Save className="h-4 w-4 mr-2" />
                     Set Reverse Name
                   </Button>
@@ -816,7 +1456,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                           This name has enhanced security features enabled
                         </AlertDescription>
                       </Alert>
-                      <Button variant="outline" onClick={() => toast.info('Unwrap functionality coming soon')}>
+                      <Button variant="outline" onClick={handleUnwrap} disabled={!walletClient || !publicClient}>
                         <Unlock className="h-4 w-4 mr-2" />
                         Unwrap Name
                       </Button>
@@ -829,7 +1469,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                           Wrapping provides enhanced security features and finer-grained permissions
                         </AlertDescription>
                       </Alert>
-                      <Button onClick={() => toast.info('Wrap functionality coming soon')}>
+                      <Button onClick={handleWrap} disabled={!walletClient || !publicClient}>
                         <Lock className="h-4 w-4 mr-2" />
                         Wrap Name
                       </Button>
@@ -968,6 +1608,11 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
               </Card>
             </TabsContent>
 
+            {/* Permissions Tab */}
+            <TabsContent value="permissions" className="space-y-6 mt-6">
+              <GranularPermissions domainName={domain.name} />
+            </TabsContent>
+
             {/* Transfer Tab */}
             <TabsContent value="transfer" className="space-y-6 mt-6">
               <Card>
@@ -1087,7 +1732,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
             <Button variant="outline" onClick={() => setShowTransfer(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleTransfer}>
+            <Button variant="destructive" onClick={executeTransfer} disabled={!walletClient || !publicClient}>
               Confirm Transfer
             </Button>
           </DialogFooter>
@@ -1124,6 +1769,183 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
               Cancel
             </Button>
             <Button onClick={handleSetFuses}>Apply Fuses</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transaction Confirmation Dialogs */}
+      {confirmationDialog.type === 'transfer' && (
+        <TransactionConfirmationDialog
+          open={confirmationDialog.open}
+          onOpenChange={(open) => setConfirmationDialog({ ...confirmationDialog, open })}
+          title="Transfer Domain Ownership"
+          description={`You are about to transfer ${domain.name} to a new owner.`}
+          action="Confirm Transfer"
+          details={`Transferring to: ${confirmationDialog.data?.address || ''}`}
+          warning="This action is permanent and cannot be undone. You will lose all control over this domain."
+          destructive
+          requiresConfirmation
+          onConfirm={executeTransfer}
+        />
+      )}
+
+      {confirmationDialog.type === 'wrap' && (
+        <TransactionConfirmationDialog
+          open={confirmationDialog.open}
+          onOpenChange={(open) => setConfirmationDialog({ ...confirmationDialog, open })}
+          title="Wrap ENS Name"
+          description={`You are about to wrap ${domain.name} using the NameWrapper contract.`}
+          action="Wrap Name"
+          details="Wrapping provides enhanced security features and finer-grained permissions through fuses."
+          requiresConfirmation
+          onConfirm={executeWrap}
+        />
+      )}
+
+      {confirmationDialog.type === 'unwrap' && (
+        <TransactionConfirmationDialog
+          open={confirmationDialog.open}
+          onOpenChange={(open) => setConfirmationDialog({ ...confirmationDialog, open })}
+          title="Unwrap ENS Name"
+          description={`You are about to unwrap ${domain.name} and return it to the registry.`}
+          action="Unwrap Name"
+          warning="Unwrapping will remove enhanced security features. This action cannot be undone."
+          destructive
+          requiresConfirmation
+          onConfirm={executeUnwrap}
+        />
+      )}
+
+      {confirmationDialog.type === 'resolver' && (
+        <TransactionConfirmationDialog
+          open={confirmationDialog.open}
+          onOpenChange={(open) => setConfirmationDialog({ ...confirmationDialog, open })}
+          title="Change Resolver"
+          description={`You are about to change the resolver for ${domain.name}.`}
+          action="Set Resolver"
+          details={`New resolver: ${confirmationDialog.data?.address || ''}`}
+          warning="Changing resolver will require migrating existing records. Make sure to backup your records first."
+          requiresConfirmation
+          onConfirm={executeSetResolver}
+        />
+      )}
+
+      {/* Renewal Dialog */}
+      <Dialog open={showRenewDialog} onOpenChange={setShowRenewDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renew Domain</DialogTitle>
+            <DialogDescription>
+              Renew {domain.name} for 1 year
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {domain.expiryDate && (
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-slate-700">Current Expiry</span>
+                  <span className="text-sm text-slate-900">
+                    {domain.expiryDate.toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-slate-700">New Expiry</span>
+                  <span className="text-sm text-slate-900">
+                    {domain.expiryDate ? new Date(new Date(domain.expiryDate).getTime() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString() : '1 year from now'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-slate-700">Renewal Cost</span>
+                {isLoadingRenewPrice ? (
+                  <div className="h-4 w-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                ) : renewPrice ? (
+                  <span className="text-lg font-semibold text-slate-900">
+                    {premiumPriceService.formatPrice(renewPrice.total)}
+                  </span>
+                ) : (
+                  <span className="text-sm text-slate-500">Loading...</span>
+                )}
+              </div>
+              {renewPrice && (
+                <div className="text-xs text-slate-500 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Base price:</span>
+                    <span className="text-slate-700">{premiumPriceService.formatPrice(renewPrice.base)}</span>
+                  </div>
+                  {renewPrice.hasPremium && (
+                    <div className="flex justify-between">
+                      <span>Premium:</span>
+                      <span className="text-amber-600">{premiumPriceService.formatPrice(renewPrice.premium)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-1 border-t">
+                    <span className="font-semibold text-slate-900">Total:</span>
+                    <span className="font-semibold text-slate-900">{premiumPriceService.formatPrice(renewPrice.total)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {renewPrice?.hasPremium && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  This domain has a premium renewal fee. The premium portion is non-refundable.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Alert>
+              <AlertDescription>
+                Renewing will extend your domain registration by 1 year. Make sure you have enough ETH to cover the renewal cost plus gas fees.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRenewDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!walletClient || !publicClient) {
+                  toast.error('Wallet not connected');
+                  return;
+                }
+
+                try {
+                  const executeFn = async () => {
+                    return await renewDomain(walletClient, publicClient, {
+                      name: domain.name,
+                      duration: 365 * 24 * 60 * 60, // 1 year in seconds
+                    });
+                  };
+
+                  await txManager.addTransaction(executeFn, {
+                    description: `Renew ${domain.name} for 1 year`,
+                    onSuccess: () => {
+                      setShowRenewDialog(false);
+                      onUpdate();
+                    },
+                  });
+                } catch (error) {
+                  console.error('Error renewing domain:', error);
+                  toast.error('Failed to renew domain', {
+                    description: error instanceof Error ? error.message : 'Unknown error',
+                  });
+                }
+              }}
+              disabled={isLoadingRenewPrice || !renewPrice}
+            >
+              {isLoadingRenewPrice ? (
+                'Loading...'
+              ) : (
+                `Renew for ${renewPrice ? premiumPriceService.formatPrice(renewPrice.total) : '...'}`
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

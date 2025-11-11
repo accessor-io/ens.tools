@@ -5,6 +5,7 @@ import { Progress } from './ui/progress';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
+import { EmptyState } from './ui/empty-state';
 import { 
   Globe, 
   Shield, 
@@ -24,12 +25,14 @@ import { useWeb3 } from '../lib/services/web3-provider';
 import { fetchENSNames, getExpirationStatus, getDaysUntilExpiration, ENSDomain } from '../lib/ens';
 import { wrapName, unwrapName, FUSES } from '../lib/ens';
 import { toast } from 'sonner';
+import { DomainProfile } from './domains/DomainProfile';
 
 export function Dashboard() {
   const { address, isConnected, publicClient, walletClient } = useWeb3();
   const [domains, setDomains] = useState<ENSDomain[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [processingDomain, setProcessingDomain] = useState<string | null>(null);
+  const [selectedDomain, setSelectedDomain] = useState<ENSDomain | null>(null);
 
   useEffect(() => {
     if (isConnected && address) {
@@ -320,11 +323,15 @@ export function Dashboard() {
                   const daysUntilExpiry = getDaysUntilExpiration(domain.expiryDate);
                   
                   return (
-                    <div key={index} className="rounded-lg border bg-white hover:bg-slate-50 transition-colors">
+                    <div 
+                      key={index} 
+                      className="rounded-lg border bg-white hover:bg-slate-50 hover:shadow-md transition-all duration-200 cursor-pointer"
+                      onClick={() => setSelectedDomain(domain)}
+                    >
                       <div className="flex items-center justify-between p-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-slate-900">{domain.name}</p>
+                          <p className="text-slate-900 font-medium">{domain.name}</p>
                           {domain.isWrapped && (
                             <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-300">
                               Wrapped
@@ -349,39 +356,15 @@ export function Dashboard() {
                         )}
                         </div>
                       </div>
-                      <div className="border-t border-slate-200 p-3 flex items-center gap-2 flex-wrap">
+                      <div className="border-t border-slate-200 p-3 flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="outline"
                           size="sm"
                           className="flex-1 sm:flex-none"
-                          onClick={() => {
-                            window.open(`https://app.ens.domains/${domain.name}`, '_blank');
-                          }}
+                          onClick={() => setSelectedDomain(domain)}
                         >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 sm:flex-none"
-                          onClick={() => {
-                            window.open(`https://app.ens.domains/${domain.name}/extend`, '_blank');
-                          }}
-                        >
-                          <Zap className="h-3 w-3 mr-1" />
-                          Renew
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 sm:flex-none"
-                          onClick={() => {
-                            window.open(`https://app.ens.domains/${domain.name}/resolve`, '_blank');
-                          }}
-                        >
-                          <Settings className="h-3 w-3 mr-1" />
-                          Resolver
+                          <Globe className="h-3 w-3 mr-1" />
+                          View Profile
                         </Button>
                         <Button
                           variant="outline"
@@ -415,13 +398,15 @@ export function Dashboard() {
                 })}
               </div>
             ) : (
-              <Alert>
-                <Globe className="h-4 w-4" />
-                <AlertTitle>No ENS Names Found</AlertTitle>
-                <AlertDescription>
-                  This address doesn't own any ENS names yet.
-                </AlertDescription>
-              </Alert>
+              <EmptyState
+                icon={<Globe className="h-8 w-8" />}
+                title="No ENS Names Found"
+                description="This address doesn't own any ENS names yet. Connect a different wallet or register your first domain."
+                action={{
+                  label: 'Load Domains',
+                  onClick: loadDomains,
+                }}
+              />
             )}
           </CardContent>
         </Card>
@@ -509,6 +494,15 @@ export function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Domain Profile Dialog */}
+      {selectedDomain && (
+        <DomainProfile
+          domain={selectedDomain}
+          onClose={() => setSelectedDomain(null)}
+          onUpdate={loadDomains}
+        />
       )}
     </div>
   );

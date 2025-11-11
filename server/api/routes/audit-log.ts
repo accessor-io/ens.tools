@@ -1,6 +1,8 @@
 import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { db } from '../../db';
+import { validate, schemas } from '../middleware/validation';
+import { validate as uuidValidate } from 'uuid';
 
 export const auditLogRouter = Router();
 
@@ -8,7 +10,18 @@ auditLogRouter.use(authMiddleware);
 
 auditLogRouter.get('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { limit = 100, offset = 0, risk_level } = req.query;
+    // Validate query parameters
+    const querySchema = schemas.queryParams;
+    const validated = querySchema.safeParse(req.query);
+
+    if (!validated.success) {
+      return res.status(400).json({
+        error: 'Invalid query parameters',
+        details: validated.error.errors,
+      });
+    }
+
+    const { limit = 100, offset = 0, risk_level } = validated.data;
 
     let query = 'SELECT * FROM audit_logs WHERE user_id = $1';
     const params: any[] = [req.userId];
@@ -30,9 +43,9 @@ auditLogRouter.get('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
-auditLogRouter.post('/', async (req: AuthRequest, res: Response) => {
+auditLogRouter.post('/', validate(schemas.auditLog), async (req: any, res: Response) => {
   try {
-    const { action, target, category, risk_level, details, metadata } = req.body;
+    const { action, target, category, risk_level, details, metadata } = req.validatedData;
 
     const result = await db.query(
       `INSERT INTO audit_logs (
@@ -60,6 +73,11 @@ auditLogRouter.post('/', async (req: AuthRequest, res: Response) => {
 auditLogRouter.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
+    
+    // Validate UUID format
+    if (!uuidValidate(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
 
     const result = await db.query(
       'DELETE FROM audit_logs WHERE id = $1 AND user_id = $2 RETURNING id',

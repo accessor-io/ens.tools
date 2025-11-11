@@ -118,6 +118,34 @@ class AuditLogService {
 
     this.saveToStorage();
     this.notifyListeners();
+
+    // Sync to master database
+    this.syncToMasterDatabase(newEntry);
+  }
+
+  /**
+   * Sync entry to master database
+   */
+  private async syncToMasterDatabase(entry: AuditEntry) {
+    try {
+      const { masterDatabase } = await import('../database/master-database');
+      await masterDatabase.init();
+      
+      // Get current chain ID and account from global state if available
+      // This will be set by the web3 provider
+      const chainId = (window as any).__ENS_CHAIN_ID__;
+      const accountAddress = (window as any).__ENS_ACCOUNT_ADDRESS__;
+      
+      await masterDatabase.addEntry({
+        ...entry,
+        accountAddress,
+        chainId,
+        sessionId: (window as any).__ENS_SESSION_ID__ || `session-${Date.now()}`,
+      });
+    } catch (error) {
+      // Silently fail - master database is optional
+      console.debug('Failed to sync to master database:', error);
+    }
   }
 
   trackAction(

@@ -26,6 +26,8 @@ import {
   ShoppingCart,
   Search,
   Lock,
+  Coins,
+  Server,
 } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -154,6 +156,19 @@ export function BottomToolbar({
     },
   ];
 
+  const adminItems = [
+    {
+      id: "fee-management" as ViewType,
+      label: "Fee Management",
+      icon: Coins,
+    },
+    {
+      id: "master-database" as ViewType,
+      label: "Master Database",
+      icon: Server,
+    },
+  ];
+
   const systemItems = [
     {
       id: "settings" as ViewType,
@@ -170,6 +185,7 @@ export function BottomToolbar({
     ...workflowItems,
     ...toolsItems,
     ...referenceItems,
+    ...adminItems,
     ...systemItems,
   ];
 
@@ -210,7 +226,7 @@ export function BottomToolbar({
                       )}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-slate-900 text-white border-slate-700 text-xs px-2.5 py-1.5 rounded-lg shadow-lg">
+                  <TooltipContent side="top" className="bg-white text-slate-900 border border-slate-200 text-xs px-2.5 py-1.5 rounded-lg shadow-lg">
                     <p className="font-medium">{item.label}</p>
                   </TooltipContent>
                 </Tooltip>

@@ -90,6 +90,17 @@ export function Web3Provider({ children }: Web3ProviderProps) {
     setPublicClient(client);
   }, [chainId]);
 
+  // Set global variables for master database sync
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__ENS_ACCOUNT_ADDRESS__ = address;
+      (window as any).__ENS_CHAIN_ID__ = chainId;
+      if (!(window as any).__ENS_SESSION_ID__) {
+        (window as any).__ENS_SESSION_ID__ = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
+    }
+  }, [address, chainId]);
+
   // Store the current provider reference
   const [currentProvider, setCurrentProvider] = useState<any>(null);
 

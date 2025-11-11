@@ -4,9 +4,10 @@ import { PermissionCheckResult } from './permission-service';
 import { ENS_REGISTRY_ABI, NAME_WRAPPER_ABI, PUBLIC_RESOLVER_ABI } from '../ens/ens-contracts';
 import { ENS_REGISTRY_ADDRESS, NAME_WRAPPER_ADDRESS, ENS_PUBLIC_RESOLVER } from '../ens/ens-write-operations';
 import { namehash } from '../ens/ens-helpers';
+import { granularPermissionService, GRANULAR_PERMISSIONS } from '../services/granular-permission-service';
 
 export interface DelegationAction {
-  type: 'transfer' | 'approval' | 'setResolver' | 'setText' | 'setAddr';
+  type: 'transfer' | 'approval' | 'granular' | 'setResolver' | 'setText' | 'setAddr';
   contract: Address;
   functionName: string;
   args: any[];
@@ -49,7 +50,20 @@ export class DelegationPlanner {
     const node = ensControl.node;
     const domainName = ensControl.existingName!;
 
-    if (ensControl.isWrapped) {
+    // Handle granular permissions delegation
+    if (permissionCheck.recommendation === 'granular' && permissionCheck.granularDelegateAddress) {
+      // If granular permissions already exist, no delegation action needed
+      // The delegate can already manage the domain with their assigned permissions
+      actions.push({
+        type: 'granular',
+        contract: '0x0000000000000000000000000000000000000000' as Address, // Placeholder
+        functionName: 'granular_delegation',
+        args: [],
+        description: `Delegate ${permissionCheck.granularDelegateAddress} already has granular permissions for ${domainName}`,
+        critical: false,
+      });
+      estimatedGas += 0n; // No gas needed, permissions already exist
+    } else if (ensControl.isWrapped) {
       if (permissionCheck.recommendation === 'transfer') {
         actions.push({
           type: 'transfer',
@@ -121,6 +135,19 @@ export class DelegationPlanner {
       key: 'ens.permissions',
       value: permissionCheck.recommendation,
     });
+
+    if (permissionCheck.hasGranularPermissions && permissionCheck.granularDelegateAddress) {
+      metadataRecords.push({
+        key: 'ens.granular.delegate',
+        value: permissionCheck.granularDelegateAddress,
+      });
+      if (permissionCheck.granularPermissions) {
+        metadataRecords.push({
+          key: 'ens.granular.permissions',
+          value: permissionCheck.granularPermissions.toString(),
+        });
+      }
+    }
 
     if (permissionCheck.contractOwnership.isSafe) {
       requiresSafe = true;

@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Separator } from '../ui/separator';
 import { Progress } from '../ui/progress';
+import { Breadcrumb } from '../ui/breadcrumb';
 import {
   Globe,
   ChevronRight,
@@ -322,16 +323,26 @@ export function GuidedWorkflow() {
       switch (selectedAction) {
         case 'edit-metadata':
         case 'batch-metadata':
-          for (const domainName of domainArray) {
-            for (const record of metadataRecords) {
-              await setTextRecord(walletClient, publicClient, {
-                name: domainName,
-                key: record.key,
-                value: record.value,
+          {
+            const { TransactionBuilder } = await import('../../lib/ens/transaction-builder');
+            const builder = new TransactionBuilder(publicClient, walletClient);
+            
+            for (const domainName of domainArray) {
+              for (const record of metadataRecords) {
+                if (record.key && record.value) {
+                  builder.addTextRecord(domainName, record.key, record.value);
+                }
+              }
+            }
+            
+            const operationCount = builder.getOperationCount();
+            if (operationCount > 0) {
+              await builder.execute();
+              toast.success('Metadata updated successfully', {
+                description: `Updated ${operationCount} record${operationCount !== 1 ? 's' : ''} in batched transaction${operationCount > 1 ? 's' : ''}`,
               });
             }
           }
-          toast.success('Metadata updated successfully');
           break;
 
         case 'set-address':
@@ -350,7 +361,7 @@ export function GuidedWorkflow() {
             await createSubdomain(walletClient, publicClient, {
               parentName: domainArray[0],
               label: subdomainLabel,
-              owner: subdomainOwner,
+              owner: subdomainOwner as `0x${string}`,
               fuses: 0,
               expiry: BigInt(0),
             });
@@ -821,6 +832,31 @@ export function GuidedWorkflow() {
 
       <Card>
         <CardHeader>
+          <Breadcrumb
+            items={[
+              {
+                label: 'Select Domains',
+                onClick: () => setCurrentStep('select-domains'),
+                disabled: false,
+              },
+              {
+                label: 'Choose Action',
+                onClick: () => currentStep !== 'select-domains' && setCurrentStep('select-action'),
+                disabled: currentStep === 'select-domains',
+              },
+              {
+                label: 'Configure',
+                onClick: () => ['schedule', 'configure-action'].includes(currentStep) && setCurrentStep('configure-action'),
+                disabled: !['configure-action', 'schedule'].includes(currentStep),
+              },
+              {
+                label: 'Schedule',
+                onClick: undefined,
+                disabled: currentStep !== 'schedule',
+              },
+            ]}
+            className="mb-4"
+          />
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Step {['1', '2', '3', '4'][['select-domains', 'select-action', 'configure-action', 'schedule'].indexOf(currentStep)]} of 4</CardTitle>

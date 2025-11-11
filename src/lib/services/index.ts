@@ -8,11 +8,10 @@ export * from './etherscan-service';
 export * from './opensea-marketplace-service';
 export * from './base-metadata-service';
 export * from './seaport-service';
-export * from './seaport-signer';
-export * from './seaport-advanced';
-export * from './seaport-error-handler';
 export * from './ens-marketplace-service';
 export * from './name-browser-service';
 export * from './name-watching-service';
 export * from './premium-price-service';
+export * from './granular-permission-service';
+export * from './transaction-manager';
 

@@ -20,6 +20,7 @@ import {
   Lightbulb
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { DomainSelector } from '../ui/domain-selector';
 
 interface ValidationResult {
   isValid: boolean;
@@ -41,7 +42,7 @@ interface NamingTemplate {
 
 export function NamingToolkit() {
   const [domainInput, setDomainInput] = useState('');
-  const [parentDomain, setParentDomain] = useState('company.eth');
+  const [parentDomain, setParentDomain] = useState('');
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [bulkGeneratedNames, setBulkGeneratedNames] = useState('');
 
@@ -420,17 +421,13 @@ export function NamingToolkit() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="parent-select">Parent Domain</Label>
-                <Select value={parentDomain} onValueChange={setParentDomain}>
-                  <SelectTrigger id="parent-select">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="company.eth">company.eth</SelectItem>
-                    <SelectItem value="protocol.eth">protocol.eth</SelectItem>
-                    <SelectItem value="dao.eth">dao.eth</SelectItem>
-                    <SelectItem value="project.eth">project.eth</SelectItem>
-                  </SelectContent>
-                </Select>
+                <DomainSelector
+                  value={parentDomain}
+                  onValueChange={setParentDomain}
+                  placeholder="Select your domain"
+                  filterSubdomains={true}
+                  allowCustom={true}
+                />
               </div>
 
               <div className="space-y-3 mt-6">
@@ -618,11 +615,12 @@ export function NamingToolkit() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="bulk-parent">Parent Domain</Label>
-                <Input
-                  id="bulk-parent"
-                  placeholder="company.eth"
+                <DomainSelector
                   value={parentDomain}
-                  onChange={(e) => setParentDomain(e.target.value)}
+                  onValueChange={setParentDomain}
+                  placeholder="Select your domain"
+                  filterSubdomains={true}
+                  allowCustom={true}
                 />
               </div>
 

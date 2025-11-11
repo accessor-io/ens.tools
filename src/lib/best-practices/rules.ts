@@ -3,7 +3,7 @@
  * These rules define the validation criteria for contract naming and metadata best practices
  */
 
-export type BestPracticeCategory = 'naming' | 'metadata' | 'security' | 'management';
+export type BestPracticeCategory = 'naming' | 'metadata' | 'security' | 'management' | 'permissions';
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
 
 export interface ValidationContext {
@@ -19,6 +19,10 @@ export interface ValidationContext {
   chainId?: number;
   ownerAddress?: string;
   resolverAddress?: string;
+  hasGranularPermissions?: boolean;
+  granularDelegateAddress?: string;
+  granularPermissions?: bigint;
+  delegationExpiration?: number;
 }
 
 export interface ValidationResult {
@@ -491,6 +495,163 @@ export const managementRules: BestPracticeRule[] = [
 ];
 
 /**
+ * Granular Permissions Best Practices
+ */
+export const permissionsRules: BestPracticeRule[] = [
+  {
+    id: 'permissions-use-granular',
+    category: 'permissions',
+    severity: 'high',
+    recommendation: 'Use granular permissions instead of full ownership transfer when possible',
+    linkToSection: '#permissions-permission-delegation',
+    check: (context) => {
+      if (context.hasGranularPermissions) {
+        return {
+          passed: true,
+          severity: 'high',
+          message: 'Using granular permissions',
+          recommendation: 'Good - granular permissions provide better security than full transfer',
+          linkToSection: '#permissions-permission-delegation',
+        };
+      }
+
+      return {
+        passed: false,
+        severity: 'high',
+        message: 'Consider using granular permissions for delegation',
+        recommendation: 'Instead of transferring full ownership, use granular permissions to grant only the specific operations needed',
+        linkToSection: '#permissions-permission-delegation',
+      };
+    },
+  },
+  {
+    id: 'permissions-expiration',
+    category: 'permissions',
+    severity: 'critical',
+    recommendation: 'Always set expiration dates for granular permissions',
+    linkToSection: '#permissions-permission-delegation',
+    check: (context) => {
+      if (!context.hasGranularPermissions) {
+        return {
+          passed: true,
+          severity: 'critical',
+          message: 'N/A - no granular permissions configured',
+          recommendation: 'N/A',
+          linkToSection: '#permissions-permission-delegation',
+        };
+      }
+
+      if (!context.delegationExpiration || context.delegationExpiration === 0) {
+        return {
+          passed: false,
+          severity: 'critical',
+          message: 'Granular permissions should have expiration dates',
+          recommendation: 'Set an expiration date (90 days or less recommended) to prevent forgotten permissions from becoming security risks',
+          linkToSection: '#permissions-permission-delegation',
+        };
+      }
+
+      const expirationDate = new Date(context.delegationExpiration * 1000);
+      const daysUntilExpiration = (expirationDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+
+      if (daysUntilExpiration > 365) {
+        return {
+          passed: false,
+          severity: 'high',
+          message: 'Expiration date is too far in the future',
+          recommendation: 'Set expiration to 90 days or less. Long expiration periods increase security risk.',
+          linkToSection: '#permissions-permission-delegation',
+        };
+      }
+
+      return {
+        passed: true,
+        severity: 'critical',
+        message: 'Expiration date is set appropriately',
+        recommendation: 'Good - expiration date prevents forgotten permissions',
+        linkToSection: '#permissions-permission-delegation',
+      };
+    },
+  },
+  {
+    id: 'permissions-least-privilege',
+    category: 'permissions',
+    severity: 'critical',
+    recommendation: 'Grant only the minimum permissions required',
+    linkToSection: '#permissions-permission-types',
+    check: (context) => {
+      if (!context.hasGranularPermissions || !context.granularPermissions) {
+        return {
+          passed: true,
+          severity: 'critical',
+          message: 'N/A - no granular permissions configured',
+          recommendation: 'N/A',
+          linkToSection: '#permissions-permission-types',
+        };
+      }
+
+      // Check if SET_OWNER permission is granted (most powerful)
+      const SET_OWNER = 512n;
+      if ((context.granularPermissions & SET_OWNER) === SET_OWNER) {
+        return {
+          passed: false,
+          severity: 'critical',
+          message: 'SET_OWNER permission granted - use with extreme caution',
+          recommendation: 'SET_OWNER is the most powerful permission. Only grant to highly trusted parties with short expiration dates.',
+          linkToSection: '#permissions-permission-types',
+        };
+      }
+
+      // Check if too many permissions are granted
+      const permissionCount = context.granularPermissions.toString(2).split('1').length - 1;
+      if (permissionCount > 5) {
+        return {
+          passed: false,
+          severity: 'high',
+          message: 'Too many permissions granted',
+          recommendation: 'Consider if all permissions are necessary. Follow principle of least privilege.',
+          linkToSection: '#permissions-permission-types',
+        };
+      }
+
+      return {
+        passed: true,
+        severity: 'critical',
+        message: 'Permissions follow least privilege principle',
+        recommendation: 'Good - only necessary permissions are granted',
+        linkToSection: '#permissions-permission-types',
+      };
+    },
+  },
+  {
+    id: 'permissions-monitoring',
+    category: 'permissions',
+    severity: 'high',
+    recommendation: 'Monitor delegate activity and set up alerts',
+    linkToSection: '#permissions-security-and-monitoring',
+    check: (context) => {
+      if (!context.hasGranularPermissions) {
+        return {
+          passed: true,
+          severity: 'high',
+          message: 'N/A - no granular permissions configured',
+          recommendation: 'N/A',
+          linkToSection: '#permissions-security-and-monitoring',
+        };
+      }
+
+      return {
+        passed: true,
+        severity: 'high',
+        message: 'Set up monitoring for delegate activity',
+        recommendation: 'Use blockchain monitoring tools to track all operations performed by delegates',
+        linkToSection: '#permissions-security-and-monitoring',
+      };
+    },
+  },
+];
+
+/**
  * All rules combined
  */
 export const allRules: BestPracticeRule[] = [
@@ -498,6 +659,7 @@ export const allRules: BestPracticeRule[] = [
   ...metadataRules,
   ...securityRules,
   ...managementRules,
+  ...permissionsRules,
 ];
 
 /**
@@ -523,5 +685,6 @@ export function getRelevantRules(context: ValidationContext): BestPracticeRule[]
     return !result.passed || result.severity === 'critical' || result.severity === 'high';
   });
 }
+
 
 

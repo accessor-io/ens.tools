@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -43,6 +42,10 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useDomainContext } from '../../lib/contexts/DomainContext';
+import { useWeb3 } from '../../lib/services/web3-provider';
+import { fetchENSNames, type ENSDomain } from '../../lib/ens/ens-utils';
+import { useEffect, useState } from 'react';
 
 interface MetadataField {
   key: string;
@@ -61,7 +64,40 @@ interface MetadataTemplate {
 }
 
 export function MetadataTools() {
-  const [selectedDomain, setSelectedDomain] = useState('app.company.eth');
+  const { selectedDomain, selectDomain } = useDomainContext();
+  const { address, isConnected } = useWeb3();
+  const [availableDomains, setAvailableDomains] = useState<ENSDomain[]>([]);
+  const [localSelectedDomain, setLocalSelectedDomain] = useState(selectedDomain?.name || '');
+  
+  useEffect(() => {
+    if (selectedDomain) {
+      setLocalSelectedDomain(selectedDomain.name);
+    }
+  }, [selectedDomain]);
+  
+  useEffect(() => {
+    if (isConnected && address) {
+      loadDomains();
+    }
+  }, [isConnected, address]);
+  
+  const loadDomains = async () => {
+    if (!address) return;
+    try {
+      const domains = await fetchENSNames(address);
+      setAvailableDomains(domains);
+    } catch (error) {
+      console.error('Error loading domains:', error);
+    }
+  };
+  
+  const handleDomainSelect = (domainName: string) => {
+    setLocalSelectedDomain(domainName);
+    const domain = availableDomains.find(d => d.name === domainName);
+    if (domain) {
+      selectDomain(domain);
+    }
+  };
   const [metadataFields, setMetadataFields] = useState<MetadataField[]>([
     {
       key: 'avatar',
@@ -311,16 +347,20 @@ export function MetadataTools() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Select Domain</Label>
-                <Select value={selectedDomain} onValueChange={setSelectedDomain}>
+                <Select value={localSelectedDomain} onValueChange={handleDomainSelect}>
                 <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                  <SelectItem value="company.eth">company.eth</SelectItem>
-                  <SelectItem value="app.company.eth">app.company.eth</SelectItem>
-                  <SelectItem value="dao.company.eth">dao.company.eth</SelectItem>
-                  <SelectItem value="vault.company.eth">vault.company.eth</SelectItem>
-                  <SelectItem value="token.company.eth">token.company.eth</SelectItem>
+                    {availableDomains.length > 0 ? (
+                      availableDomains.map((domain) => (
+                        <SelectItem key={domain.name} value={domain.name}>
+                          {domain.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>No domains available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
             </div>

@@ -783,8 +783,8 @@ export function ENSContractsRegistry() {
                                   <FileText className="h-4 w-4 text-blue-600" />
                                   <h4 className="font-semibold text-slate-900">Source Code</h4>
                                 </div>
-                                <div className="border rounded-lg bg-slate-900 p-4 overflow-x-auto">
-                                  <pre className="text-slate-100 text-xs">
+                                <div className="border rounded-lg bg-slate-100 p-4 overflow-x-auto">
+                                  <pre className="text-slate-900 text-xs">
                                     <code>{contract.sourceCode}</code>
                                   </pre>
                                 </div>

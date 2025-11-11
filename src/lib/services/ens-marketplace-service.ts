@@ -4,6 +4,8 @@
  */
 
 import { SeaportService } from './seaport-service';
+import { feeCollectionService } from './fee-collection-service';
+import { premiumPriceService } from './premium-price-service';
 import { Address } from 'viem';
 import { ENS_ADDRESSES } from '../ens/ens-addresses';
 
@@ -141,6 +143,8 @@ export class ENSMarketplaceService {
 
   /**
    * Create a listing for an ENS domain
+   * For premium names, sale proceeds go to ENS DAO (minus marketplace fee)
+   * For regular names, sale proceeds go to seller (minus marketplace fee)
    */
   async createDomainListing(params: {
     name: string;
@@ -157,11 +161,35 @@ export class ENSMarketplaceService {
 
     const address = await params.walletClient.getAddresses();
     const ensAddresses = ENS_ADDRESSES[params.chainId as keyof typeof ENS_ADDRESSES] || ENS_ADDRESSES[1];
+    
+    // Check if this is a premium name
+    const premiumInfo = await premiumPriceService.getPremiumPrice(
+      params.publicClient,
+      params.name
+    );
+    const isPremium = premiumInfo?.hasPremium ?? false;
+    
+    // Get fee collection config for marketplace fees
+    const feeConfig = feeCollectionService['config'];
+    const feeRecipient = feeConfig.contractAddress !== '0x0000000000000000000000000000000000000000' 
+      ? feeConfig.contractAddress 
+      : undefined;
+    const feeBps = feeConfig.marketplaceFeeBps || 250; // Default 2.5%
+    
+    // For premium names, seller payment goes to ENS DAO treasury
+    // For regular names, seller payment goes to the seller
+    const sellerRecipient = isPremium && ensAddresses.daoTreasury
+      ? ensAddresses.daoTreasury
+      : address[0];
+    
     const orderParameters = await this.seaportService!.createERC721ListingOrder({
       offerer: address[0],
       tokenAddress: ensAddresses.nameWrapper as `0x${string}`,
       tokenId: params.tokenId,
       price: params.price,
+      recipient: sellerRecipient,
+      feeRecipient,
+      feeBps: feeRecipient ? feeBps : undefined,
     });
 
     return orderParameters;
@@ -185,11 +213,21 @@ export class ENSMarketplaceService {
 
     const address = await params.walletClient.getAddresses();
     const ensAddresses = ENS_ADDRESSES[params.chainId as keyof typeof ENS_ADDRESSES] || ENS_ADDRESSES[1];
+    
+    // Get fee collection config for marketplace fees
+    const feeConfig = feeCollectionService['config'];
+    const feeRecipient = feeConfig.contractAddress !== '0x0000000000000000000000000000000000000000' 
+      ? feeConfig.contractAddress 
+      : undefined;
+    const feeBps = feeConfig.marketplaceFeeBps || 250; // Default 2.5%
+    
     const orderParameters = await this.seaportService!.createERC721OfferOrder({
       offerer: address[0],
       tokenAddress: ensAddresses.nameWrapper as `0x${string}`,
       tokenId: params.tokenId,
       price: params.price,
+      feeRecipient,
+      feeBps: feeRecipient ? feeBps : undefined,
     });
 
     return orderParameters;

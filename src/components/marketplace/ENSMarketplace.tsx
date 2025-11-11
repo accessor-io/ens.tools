@@ -50,10 +50,19 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
+import { useTransactionManager } from '../../lib/hooks/useTransactionManager';
 import { ensMarketplaceService, type ENSListing, type ENSOffer, type ENSCollectionStats } from '../../lib/services/ens-marketplace-service';
+import { premiumPriceService } from '../../lib/services/premium-price-service';
+import { TransactionConfirmationDialog } from '../TransactionConfirmationDialog';
+import { getErrorMessage } from '../../lib/utils/error-handler';
+import { Sparkles, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Skeleton } from '../ui/skeleton';
+import { EmptyState } from '../ui/empty-state';
 
 export function ENSMarketplace() {
   const { address, isConnected, publicClient, walletClient, chainId } = useWeb3();
+  const txManager = useTransactionManager();
   const [activeTab, setActiveTab] = useState<'listings' | 'offers' | 'stats'>('listings');
   const [searchQuery, setSearchQuery] = useState('');
   const [listings, setListings] = useState<ENSListing[]>([]);
@@ -72,6 +81,11 @@ export function ENSMarketplace() {
   });
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [expandedListings, setExpandedListings] = useState<Set<string>>(new Set());
+  const [isPremiumName, setIsPremiumName] = useState(false);
+  const [premiumPriceInfo, setPremiumPriceInfo] = useState<{ name: string; hasPremium: boolean } | null>(null);
+  const [showPremiumConfirmDialog, setShowPremiumConfirmDialog] = useState(false);
+  const [pendingListingParams, setPendingListingParams] = useState<{ name: string; price: string } | null>(null);
+  const [buyConfirmation, setBuyConfirmation] = useState<{ open: boolean; listing: ENSListing | null }>({ open: false, listing: null });
 
   useEffect(() => {
     loadMarketplaceData();
@@ -128,6 +142,31 @@ export function ENSMarketplace() {
     }
   };
 
+  const checkPremiumName = async (name: string) => {
+    if (!publicClient || !name) {
+      setIsPremiumName(false);
+      setPremiumPriceInfo(null);
+      return;
+    }
+
+    try {
+      const normalizedName = name.toLowerCase().trim();
+      const priceInfo = await premiumPriceService.getPremiumPrice(publicClient, normalizedName);
+      
+      if (priceInfo && priceInfo.hasPremium) {
+        setIsPremiumName(true);
+        setPremiumPriceInfo({ name: normalizedName, hasPremium: true });
+      } else {
+        setIsPremiumName(false);
+        setPremiumPriceInfo({ name: normalizedName, hasPremium: false });
+      }
+    } catch (error) {
+      console.error('Error checking premium name:', error);
+      setIsPremiumName(false);
+      setPremiumPriceInfo(null);
+    }
+  };
+
   const handleCreateListing = async () => {
     if (!isConnected || !walletClient || !publicClient) {
       toast.error('Please connect your wallet');
@@ -139,17 +178,33 @@ export function ENSMarketplace() {
       return;
     }
 
+    // Check if name is premium
+    const normalizedName = createListingParams.name.toLowerCase().trim();
+    const priceInfo = await premiumPriceService.getPremiumPrice(publicClient, normalizedName);
+    
+    if (priceInfo && priceInfo.hasPremium) {
+      // Show confirmation dialog for premium names
+      setPendingListingParams({ name: normalizedName, price: createListingParams.price });
+      setShowPremiumConfirmDialog(true);
+      return;
+    }
+
+    // Proceed with regular listing
+    await proceedWithListing(normalizedName, createListingParams.price);
+  };
+
+  const proceedWithListing = async (name: string, price: string) => {
+    if (!walletClient || !publicClient) return;
+
     setIsCreatingOrder(true);
     try {
-      // Get domain token ID from namehash
-      const normalizedName = createListingParams.name.toLowerCase().trim();
-      const namehash = `0x${Buffer.from(normalizedName).toString('hex')}`;
+      const namehash = `0x${Buffer.from(name).toString('hex')}`;
       
       const orderParams = await ensMarketplaceService.createDomainListing({
-        name: normalizedName,
+        name,
         namehash,
         tokenId: namehash,
-        price: createListingParams.price,
+        price,
         publicClient,
         walletClient,
         chainId: chainId || 1,
@@ -159,12 +214,22 @@ export function ENSMarketplace() {
       console.log('Order parameters:', orderParams);
       setIsCreateListingOpen(false);
       setCreateListingParams({ name: '', price: '' });
+      setIsPremiumName(false);
+      setPremiumPriceInfo(null);
+      setShowPremiumConfirmDialog(false);
+      setPendingListingParams(null);
       loadMarketplaceData();
     } catch (error: any) {
       console.error('Error creating listing:', error);
       toast.error(error.message || 'Failed to create listing');
     } finally {
       setIsCreatingOrder(false);
+    }
+  };
+
+  const handlePremiumConfirm = async () => {
+    if (pendingListingParams) {
+      await proceedWithListing(pendingListingParams.name, pendingListingParams.price);
     }
   };
 
@@ -213,14 +278,62 @@ export function ENSMarketplace() {
       return;
     }
 
+    if (!address) {
+      toast.error('Wallet address not available');
+      return;
+    }
+
+    // Check if user is trying to buy their own listing
+    if (listing.seller.toLowerCase() === address.toLowerCase()) {
+      toast.error('You cannot buy your own listing');
+      return;
+    }
+
+    setBuyConfirmation({ open: true, listing });
+  };
+
+  const executeBuyDomain = async () => {
+    const listing = buyConfirmation.listing;
+    if (!listing || !walletClient || !publicClient || !chainId) {
+      return;
+    }
+
     try {
-      toast.info('Preparing purchase...');
-      // In a real implementation, you would use the actual order from the listing
-      // For now, we'll show a message
-      toast.success('Purchase initiated. Please confirm in your wallet.');
+      // Fetch or reconstruct the Seaport order for this listing
+      // In production, you'd fetch the actual order from the marketplace API
+      // For now, we'll create a basic order structure
+      const orderParams = {
+        name: listing.name,
+        namehash: listing.namehash,
+        tokenId: listing.tokenId,
+        price: listing.price,
+        seller: listing.seller,
+      };
+
+      const executeFn = async () => {
+        // The buyDomain method will handle Seaport order fulfillment
+        return await ensMarketplaceService.buyDomain(
+          orderParams,
+          publicClient,
+          walletClient,
+          chainId
+        );
+      };
+
+      await txManager.addTransaction(executeFn, {
+        description: `Buy ${listing.name} for ${listing.price} ${listing.currency}`,
+        onSuccess: () => {
+          setBuyConfirmation({ open: false, listing: null });
+          loadMarketplaceData();
+        },
+      });
     } catch (error: any) {
       console.error('Error buying domain:', error);
-      toast.error(error.message || 'Failed to buy domain');
+      const errorMessage = getErrorMessage(error);
+      toast.error('Failed to buy domain', {
+        description: errorMessage,
+      });
+      throw error;
     }
   };
 
@@ -273,12 +386,45 @@ export function ENSMarketplace() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <Label>Domain Name</Label>
+                      <Label className="flex items-center gap-2">
+                        Domain Name
+                        {isPremiumName && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  Premium
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>This is a premium name. Sale proceeds will go to ENS DAO.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </Label>
                       <Input
                         placeholder="example.eth"
                         value={createListingParams.name}
-                        onChange={(e) => setCreateListingParams({ ...createListingParams, name: e.target.value })}
+                        onChange={(e) => {
+                          setCreateListingParams({ ...createListingParams, name: e.target.value });
+                          if (e.target.value) {
+                            checkPremiumName(e.target.value);
+                          } else {
+                            setIsPremiumName(false);
+                            setPremiumPriceInfo(null);
+                          }
+                        }}
                       />
+                      {isPremiumName && (
+                        <Alert className="mt-2 bg-purple-50 border-purple-200">
+                          <AlertTriangle className="h-4 w-4 text-purple-600" />
+                          <AlertDescription className="text-purple-800">
+                            This is a premium name. When sold, the full amount (minus our marketplace fee) will go to ENS DAO. You will receive 0 ETH.
+                          </AlertDescription>
+                        </Alert>
+                      )}
                     </div>
                     <div>
                       <Label>Price (ETH)</Label>
@@ -356,16 +502,17 @@ export function ENSMarketplace() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1">
               <Input
                 placeholder="example.eth"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-full"
               />
             </div>
-            <Button onClick={handleSearch} disabled={loading}>
+            <Button onClick={handleSearch} disabled={loading} className="w-full sm:w-auto">
               <Search className="h-5 w-5 mr-2" />
               Search
             </Button>
@@ -399,13 +546,21 @@ export function ENSMarketplace() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                <div className="space-y-3 py-8">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
                 </div>
               ) : filteredListings.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  No domains listed. Try searching for a domain.
-                </div>
+                <EmptyState
+                  icon={<ShoppingCart className="h-8 w-8" />}
+                  title="No Listings Found"
+                  description="No ENS domains match your search. Try a different search term or create a new listing."
+                  action={{
+                    label: 'Search Again',
+                    onClick: handleSearch,
+                  }}
+                />
               ) : (
                 <Table>
                   <TableHeader>
@@ -425,7 +580,7 @@ export function ENSMarketplace() {
                         <>
                         <TableRow 
                           key={listing.id}
-                          className="cursor-pointer hover:bg-slate-50"
+                          className="cursor-pointer hover:bg-slate-50 transition-colors duration-200"
                           onClick={() => toggleListingExpansion(listing.id)}
                         >
                         <TableCell>
@@ -439,6 +594,8 @@ export function ENSMarketplace() {
                               ENS
                             </Badge>
                             <div className="font-medium">{listing.name}</div>
+                            {/* Note: Premium detection would require async check per listing */}
+                            {/* For performance, premium status is checked during listing creation */}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -647,13 +804,21 @@ export function ENSMarketplace() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                <div className="space-y-3 py-8">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
                 </div>
               ) : filteredOffers.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  No active offers. Make an offer on a domain!
-                </div>
+                <EmptyState
+                  icon={<Tag className="h-8 w-8" />}
+                  title="No Active Offers"
+                  description="There are no active offers on ENS domains. Make an offer on a domain to get started."
+                  action={{
+                    label: 'Browse Listings',
+                    onClick: () => setActiveTab('listings'),
+                  }}
+                />
               ) : (
                 <Table>
                   <TableHeader>
@@ -667,7 +832,7 @@ export function ENSMarketplace() {
                   </TableHeader>
                   <TableBody>
                     {filteredOffers.map((offer) => (
-                      <TableRow key={offer.id}>
+                      <TableRow key={offer.id} className="hover:bg-slate-50 transition-colors duration-200">
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
@@ -805,6 +970,91 @@ export function ENSMarketplace() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Premium Name Confirmation Dialog */}
+      <Dialog open={showPremiumConfirmDialog} onOpenChange={setShowPremiumConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              Premium Name Listing
+            </DialogTitle>
+            <DialogDescription>
+              Important information about listing a premium name
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Alert className="bg-purple-50 border-purple-200">
+              <AlertTriangle className="h-4 w-4 text-purple-600" />
+              <AlertTitle className="text-purple-900">Sale Proceeds Go to ENS DAO</AlertTitle>
+              <AlertDescription className="text-purple-800">
+                This is a premium ENS name. When this domain is sold:
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>The full sale amount (minus our 2.5% marketplace fee) will go to ENS DAO</li>
+                  <li>You will receive <strong>0 ETH</strong> from the sale</li>
+                  <li>Our marketplace fee will still be collected</li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+            {pendingListingParams && (
+              <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Domain:</span>
+                  <span className="font-semibold">{pendingListingParams.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">Listing Price:</span>
+                  <span className="font-semibold">{pendingListingParams.price} ETH</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-600">You will receive:</span>
+                  <span className="font-semibold text-red-600">0 ETH</span>
+                </div>
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowPremiumConfirmDialog(false);
+                  setPendingListingParams(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePremiumConfirm}
+                disabled={isCreatingOrder}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {isCreatingOrder ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Yes, List Anyway'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Buy Domain Confirmation Dialog */}
+      {buyConfirmation.listing && (
+        <TransactionConfirmationDialog
+          open={buyConfirmation.open}
+          onOpenChange={(open) => setBuyConfirmation({ ...buyConfirmation, open })}
+          title="Purchase ENS Domain"
+          description={`You are about to purchase ${buyConfirmation.listing.name} from the marketplace.`}
+          action="Confirm Purchase"
+          details={`Price: ${buyConfirmation.listing.price} ${buyConfirmation.listing.currency}\nSeller: ${buyConfirmation.listing.seller.slice(0, 10)}...${buyConfirmation.listing.seller.slice(-8)}`}
+          warning="This transaction will transfer the domain to your address and send payment to the seller."
+          requiresConfirmation
+          onConfirm={executeBuyDomain}
+        />
+      )}
     </div>
   );
 }

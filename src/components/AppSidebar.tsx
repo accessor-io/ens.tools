@@ -31,6 +31,8 @@ import {
   FileCheck,
   ShoppingCart,
   Search,
+  Coins,
+  Server,
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -155,6 +157,19 @@ export function AppSidebar({
       id: "best-practices" as ViewType,
       label: "Best Practices",
       icon: Lightbulb,
+    },
+  ];
+
+  const adminItems = [
+    {
+      id: "fee-management" as ViewType,
+      label: "Fee Management",
+      icon: Coins,
+    },
+    {
+      id: "master-database" as ViewType,
+      label: "Master Database",
+      icon: Server,
     },
   ];
 
@@ -320,6 +335,28 @@ export function AppSidebar({
           <SidebarGroupContent>
             <SidebarMenu className="space-y-0.5">
               {referenceItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => onViewChange(item.id)}
+                    isActive={currentView === item.id}
+                    className="transition-all duration-200 hover:translate-x-0.5"
+                  >
+                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                    <span className="font-medium">{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mb-2">
+          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+            Admin
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-0.5">
+              {adminItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
