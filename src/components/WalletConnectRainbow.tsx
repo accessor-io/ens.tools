@@ -1,13 +1,10 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useChainId, useDisconnect, useSwitchChain } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import { useEffect } from 'react';
 
 export function WalletConnectRainbow() {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const chainId = useChainId();
-  const { disconnect } = useDisconnect();
-  const { switchChain } = useSwitchChain();
-
   // Set global variables for master database sync (maintain compatibility)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -21,7 +18,7 @@ export function WalletConnectRainbow() {
 
   // Debug: Log wallet detection when component mounts
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
       const ethereum = (window as any).ethereum;
       if (ethereum) {
         console.log('Wallet detection:', {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWeb3 } from '../../lib/services';
 import { fetchENSNames, type ENSDomain } from '../../lib/ens/ens-utils';
 import {
@@ -34,15 +34,7 @@ export function DomainSelector({
   const [isLoading, setIsLoading] = useState(false);
   const [customValue, setCustomValue] = useState('');
 
-  useEffect(() => {
-    if (isConnected && address) {
-      loadDomains();
-    } else {
-      setDomains([]);
-    }
-  }, [isConnected, address]);
-
-  const loadDomains = async () => {
+  const loadDomains = useCallback(async () => {
     if (!address) return;
     
     setIsLoading(true);
@@ -50,8 +42,12 @@ export function DomainSelector({
       const fetchedDomains = await fetchENSNames(address);
       
       // Filter out subdomains if requested (only show root domains)
+      // Root domains have exactly 2 parts (label.eth), subdomains have 3+ parts
       const filteredDomains = filterSubdomains
-        ? fetchedDomains.filter(d => !d.name.includes('.'))
+        ? fetchedDomains.filter(d => {
+            const parts = d.name.split('.');
+            return parts.length === 2; // Only root domains like "company.eth"
+          })
         : fetchedDomains;
       
       setDomains(filteredDomains);
@@ -60,7 +56,15 @@ export function DomainSelector({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [address, filterSubdomains]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      loadDomains();
+    } else {
+      setDomains([]);
+    }
+  }, [isConnected, address, loadDomains]);
 
   // Check if current value is a custom value (not in the list)
   const isCustomValue = value && !domains.some(d => d.name === value);

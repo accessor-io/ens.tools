@@ -10,7 +10,7 @@ import { ProtocolReference, BestPracticesView, NamingToolkit } from './component
 import { DAORegistry, IntegrationRegistry, ContractRegistry } from './components/registry';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { ContractRegistration, PreflightChecker } from './components/workflows';
-import { ENSMarketplace } from './components/marketplace';
+import { KamikoMarketplace } from './components/marketplace';
 import { DNSSECConfig } from './components/dnssec';
 import { FeeManagement } from './components/admin/FeeManagement';
 import { MasterDatabaseView } from './components/admin/MasterDatabaseView';
@@ -74,7 +74,7 @@ export default function App() {
       case 'preflight-checker':
         return <PreflightChecker />;
       case 'marketplace':
-        return <ENSMarketplace />;
+        return <KamikoMarketplace />;
       case 'dnssec':
         return <DNSSECConfig />;
       case 'fee-management':
@@ -109,23 +109,34 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setViewMode(viewMode === 'normal' ? 'console' : 'normal')}
-                      className="h-8 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 flex items-center gap-2 text-sm text-slate-700 transition-colors"
-                      title={viewMode === 'normal' ? 'Switch to Console View' : 'Switch to Normal View'}
-                    >
-                      {viewMode === 'normal' ? (
-                        <>
-                          <Terminal className="h-4 w-4" />
-                          <span>Console View</span>
-                        </>
-                      ) : (
-                        <>
-                          <Layout className="h-4 w-4" />
-                          <span>Normal View</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex rounded-lg border border-slate-300 bg-white shadow-sm overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('normal')}
+                        className={`h-8 px-3 flex items-center gap-2 text-sm font-medium transition-colors ${
+                          viewMode === 'normal'
+                            ? 'bg-slate-900 text-white'
+                            : 'text-slate-600 hover:text-slate-800'
+                        }`}
+                        aria-pressed={viewMode === 'normal'}
+                      >
+                        <Layout className="h-4 w-4" />
+                        <span>App View</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('console')}
+                        className={`h-8 px-3 flex items-center gap-2 text-sm font-medium transition-colors ${
+                          viewMode === 'console'
+                            ? 'bg-slate-900 text-white'
+                            : 'text-slate-600 hover:text-slate-800'
+                        }`}
+                        aria-pressed={viewMode === 'console'}
+                      >
+                        <Terminal className="h-4 w-4" />
+                        <span>Console View</span>
+                      </button>
+                    </div>
                     <WalletConnectRainbow />
                   </div>
                 </div>

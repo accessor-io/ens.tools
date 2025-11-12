@@ -1,0 +1,43 @@
+{
+  "name": "@ens-granular/cli",
+  "version": "1.0.0",
+  "description": "Command-line interface for ENS granular delegation",
+  "main": "dist/index.js",
+  "bin": {
+    "ens-delegate": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "viem": "^2.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/jest": "^29.5.8",
+    "typescript": "^5.3.3",
+    "tsx": "^4.6.0",
+    "jest": "^29.7.0",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0"
+  },
+  "keywords": [
+    "ens",
+    "ethereum",
+    "delegation",
+    "cli",
+    "web3"
+  ],
+  "author": "ENS Granular Team",
+  "license": "MIT"
+}

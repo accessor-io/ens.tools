@@ -8,6 +8,7 @@ import { feeCollectionService } from './fee-collection-service';
 import { premiumPriceService } from './premium-price-service';
 import { Address } from 'viem';
 import { ENS_ADDRESSES } from '../ens/ens-addresses';
+import { marketplaceCacheService, CacheKeys, CacheTTL } from './marketplace-cache-service';
 
 export interface ENSListing {
   id: string;
@@ -66,79 +67,87 @@ export class ENSMarketplaceService {
    * Search for ENS domains by name
    */
   async searchDomains(query: string, chainId: number = 1): Promise<ENSListing[]> {
-    try {
-      const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/nfts?search=${encodeURIComponent(query)}`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
+    const cacheKey = CacheKeys.domainSearch(query, chainId);
+    
+    return marketplaceCacheService.getOrFetch(
+      cacheKey,
+      async () => {
+        const chain = this.getChainName(chainId);
+        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/nfts?search=${encodeURIComponent(query)}`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ENS domains: ${response.statusText}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ENS domains: ${response.statusText}`);
+        }
 
-      const data = await response.json();
-      return this.transformENSListings(data.nfts || [], query);
-    } catch (error) {
-      console.error('Error searching ENS domains:', error);
-      return [];
-    }
+        const data = await response.json();
+        return this.transformENSListings(data.nfts || [], query);
+      },
+      { ttl: CacheTTL.search }
+    );
   }
 
   /**
    * Get active listings for ENS domains
    */
   async getActiveListings(chainId: number = 1): Promise<ENSListing[]> {
-    try {
-      const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/listings?limit=50`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
+    const cacheKey = CacheKeys.ensListings(chainId);
+    
+    return marketplaceCacheService.getOrFetch(
+      cacheKey,
+      async () => {
+        const chain = this.getChainName(chainId);
+        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/listings?limit=50`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch listings: ${response.statusText}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch listings: ${response.statusText}`);
+        }
 
-      const data = await response.json();
-      return this.transformENSListings(data.listings || []);
-    } catch (error) {
-      console.error('Error fetching ENS listings:', error);
-      // Fallback to The Graph subgraph
-      return this.fetchListingsFromGraph();
-    }
+        const data = await response.json();
+        return this.transformENSListings(data.listings || []);
+      },
+      { ttl: CacheTTL.listings }
+    );
   }
 
   /**
    * Get active offers for ENS domains
    */
   async getActiveOffers(chainId: number = 1): Promise<ENSOffer[]> {
-    try {
-      const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/offers?limit=50`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
+    const cacheKey = CacheKeys.ensOffers(chainId);
+    
+    return marketplaceCacheService.getOrFetch(
+      cacheKey,
+      async () => {
+        const chain = this.getChainName(chainId);
+        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/offers?limit=50`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch offers: ${response.statusText}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch offers: ${response.statusText}`);
+        }
 
-      const data = await response.json();
-      return this.transformENSOffers(data.offers || []);
-    } catch (error) {
-      console.error('Error fetching ENS offers:', error);
-      return [];
-    }
+        const data = await response.json();
+        return this.transformENSOffers(data.offers || []);
+      },
+      { ttl: CacheTTL.offers }
+    );
   }
 
   /**
@@ -250,26 +259,29 @@ export class ENSMarketplaceService {
    * Get collection statistics for ENS
    */
   async getCollectionStats(chainId: number = 1): Promise<ENSCollectionStats> {
-    try {
-      const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/stats`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
+    const cacheKey = CacheKeys.ensStats(chainId);
+    
+    return marketplaceCacheService.getOrFetch(
+      cacheKey,
+      async () => {
+        const chain = this.getChainName(chainId);
+        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/stats`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stats: ${response.statusText}`);
-      }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch stats: ${response.statusText}`);
+        }
 
-      const data = await response.json();
-      return this.transformStats(data);
-    } catch (error) {
-      console.error('Error fetching ENS stats:', error);
-      return this.fetchStatsFromGraph();
-    }
+        const data = await response.json();
+        return this.transformStats(data);
+      },
+      { ttl: CacheTTL.stats }
+    );
   }
 
   /**

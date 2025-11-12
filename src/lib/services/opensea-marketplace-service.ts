@@ -222,7 +222,7 @@ export class OpenSeaMarketplaceService {
       return this.transformListings(data.listings || []);
     } catch (error) {
       console.error('Error fetching listings:', error);
-      return this.getMockListings(tokenAddress);
+      throw new Error(`Failed to fetch listings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -248,7 +248,7 @@ export class OpenSeaMarketplaceService {
       return this.transformOffers(data.offers || []);
     } catch (error) {
       console.error('Error fetching offers:', error);
-      return this.getMockOffers(tokenAddress);
+      throw new Error(`Failed to fetch offers: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -274,7 +274,7 @@ export class OpenSeaMarketplaceService {
       return this.transformStats(data);
     } catch (error) {
       console.error('Error fetching collection stats:', error);
-      return this.getMockStats();
+      throw new Error(`Failed to fetch collection stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -472,7 +472,7 @@ export class OpenSeaMarketplaceService {
       return this.transformListings(data.nfts || [], true);
     } catch (error) {
       console.error('Error fetching ENS listings:', error);
-      return this.getMockENSListings();
+      throw new Error(`Failed to fetch ENS listings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -538,100 +538,6 @@ export class OpenSeaMarketplaceService {
     };
   }
 
-  private getMockListings(tokenAddress: string): Listing[] {
-    return [
-      {
-        id: '1',
-        tokenAddress,
-        tokenId: '1234',
-        tokenName: 'ENS Domain #1234',
-        tokenImage: '',
-        seller: '0x742d35Cc6634C0532925a3b844Bc9e7595f0f35a3',
-        price: '0.5',
-        currency: 'ETH',
-        platform: 'opensea',
-        listingDate: new Date().toISOString(),
-        status: 'active',
-      },
-      {
-        id: '2',
-        tokenAddress,
-        tokenId: '5678',
-        tokenName: 'ENS Domain #5678',
-        tokenImage: '',
-        seller: '0x8a2f91b4Cc8C9A5E6B0c2D3e4F5a6B7c8D9e0F1a2',
-        price: '1.2',
-        currency: 'ETH',
-        platform: 'opensea',
-        listingDate: new Date().toISOString(),
-        status: 'active',
-      },
-    ];
-  }
-
-  private getMockOffers(tokenAddress: string): Offer[] {
-    return [
-      {
-        id: '1',
-        tokenAddress,
-        tokenId: '1234',
-        tokenName: 'ENS Domain #1234',
-        tokenImage: '',
-        buyer: '0x9a2f91b4Cc8C9A5E6B0c2D3e4F5a6B7c8D9e0F1a2',
-        price: '0.45',
-        currency: 'ETH',
-        offerDate: new Date().toISOString(),
-        status: 'active',
-      },
-    ];
-  }
-
-  private getMockENSListings(): Listing[] {
-    return [
-      {
-        id: '1',
-        tokenAddress: '0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85',
-        tokenId: '123456789',
-        tokenName: 'vitalik.eth',
-        tokenImage: '',
-        seller: '0x742d35Cc6634C0532925a3b844Bc9e7595f0f35a3',
-        price: '25',
-        currency: 'ETH',
-        platform: 'opensea',
-        listingDate: new Date().toISOString(),
-        status: 'active',
-        isENS: true,
-        ensName: 'vitalik.eth',
-      },
-      {
-        id: '2',
-        tokenAddress: '0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85',
-        tokenId: '987654321',
-        tokenName: 'company.eth',
-        tokenImage: '',
-        seller: '0x8a2f91b4Cc8C9A5E6B0c2D3e4F5a6B7c8D9e0F1a2',
-        price: '15',
-        currency: 'ETH',
-        platform: 'opensea',
-        listingDate: new Date().toISOString(),
-        status: 'active',
-        isENS: true,
-        ensName: 'company.eth',
-      },
-    ];
-  }
-
-  private getMockStats(): CollectionStats {
-    return {
-      floorPrice: '0.01',
-      totalVolume: '1250.5',
-      totalSales: 1234,
-      owners: 567,
-      items: 10000,
-      listedCount: 123,
-      avgPrice: '1.02',
-    };
-  }
 }
 
 export const marketplaceService = new OpenSeaMarketplaceService();

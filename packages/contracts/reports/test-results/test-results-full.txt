@@ -1,0 +1,95 @@
+
+> @ens-granular/contracts@1.0.0 test
+> hardhat test test/FullControllerAutomated.test.js
+
+WARNING: You are currently using Node.js v18.19.1, which is not supported by Hardhat. This can lead to unexpected behavior. See https://hardhat.org/nodejs-versions
+
+
+
+
+  Full Automated Controller Test Suite
+    Complete Controller Lifecycle
+      ✔ Should complete full delegation workflow (40ms)
+      ✔ Should handle multiple delegates simultaneously
+    All Permission Types
+      ✔ Should authorize MANAGE_SUBDOMAINS permission
+      ✔ Should authorize SET_ADDR_RECORD permission
+      ✔ Should authorize SET_TEXT_RECORD permission
+      ✔ Should authorize SET_CONTENT_HASH permission
+      ✔ Should authorize SET_PUBKEY permission
+      ✔ Should authorize SET_ABI permission
+      ✔ Should authorize SET_ZONEHASH permission
+      ✔ Should authorize SET_TTL permission
+      ✔ Should authorize SET_RESOLVER permission
+      ✔ Should authorize SET_OWNER permission
+      ✔ Should authorize SET_FUSES permission
+    Resolver Operations Through Controller
+      ✔ Should allow delegate to set address record (303ms)
+      ✔ Should allow delegate to set text record
+      ✔ Should allow delegate to set content hash
+      ✔ Should allow delegate to set public key
+      ✔ Should allow delegate to set ABI
+      ✔ Should allow delegate to set zone hash
+      ✔ Should allow delegate to set TTL
+      ✔ Should reject unauthorized delegate (40ms)
+      ✔ Should reject delegate with wrong permission
+    Subdomain Operations
+      - Should allow delegate to create subdomain
+      - Should allow delegate to transfer subdomain
+      - Should reject unauthorized subdomain creation
+    Delegation Locking Mechanism
+      ✔ Should lock delegate and prevent removal
+      ✔ Should unlock delegate and allow removal
+      ✔ Should allow permission updates while locked
+    Enable/Disable Delegates
+      ✔ Should disable delegate and revoke access
+      ✔ Should enable delegate and restore access
+    Whitelist and Blacklist
+      ✔ Should enforce whitelist when enabled
+      ✔ Should enforce blacklist when enabled
+      ✔ Should toggle whitelist on/off
+    Expiration Handling
+      ✔ Should reject expired delegations
+      ✔ Should reject delegation after expiration
+      ✔ Should allow no expiration (0)
+      ✔ Should enforce maximum delegation duration
+    Emergency Controls
+      ✔ Should emergency pause node and revoke all access
+      ✔ Should emergency unpause node and restore access
+      ✔ Should emergency revoke all delegations
+      ✔ Should trigger security alert
+    Contract-Level Pause
+      ✔ Should pause contract and prevent operations (73ms)
+      ✔ Should unpause contract and restore operations (39ms)
+    Permission Combinations
+      ✔ Should handle combined permissions correctly
+      ✔ Should support legacy operation constants
+    View Functions
+      ✔ Should return correct delegate info
+      ✔ Should return correct permissions
+      ✔ Should return zero permissions for non-existent delegate
+      ✔ Should return false for hasPermission when not authorized
+      ✔ Should return true for hasPermission when authorized
+    Error Handling
+      ✔ Should reject adding delegate with zero address
+      ✔ Should reject adding delegate with zero operations
+      ✔ Should reject adding duplicate delegate
+      ✔ Should reject removing non-existent delegate
+      ✔ Should reject updating non-existent delegate
+      ✔ Should reject operations when node is emergency paused
+      ✔ Should reject adding delegate when node is emergency paused
+    Owner Override in Resolver
+      ✔ Should allow owner to bypass GNA when override enabled
+      ✔ Should prevent owner bypass when override disabled
+      ✔ Should allow owner to toggle override
+      ✔ Should reject non-owner from toggling override
+    Multi-Coin Address Support
+      ✔ Should allow delegate to set multi-coin address
+    Complex Scenarios
+      ✔ Should handle complete workflow: delegate, operate, expire, remove (41ms)
+      ✔ Should handle multiple nodes independently
+
+
+  61 passing (12s)
+  3 pending
+

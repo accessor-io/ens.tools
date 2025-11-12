@@ -1,0 +1,54 @@
+{
+  "name": "@ens-granular/contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for ENS granular delegation",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "hardhat compile",
+    "test": "hardhat test",
+    "test:fork": "FORK_MAINNET=true hardhat test",
+    "test:fork:full": "FORK_MAINNET=true hardhat test test/FullControllerAutomated.test.js",
+    "test:tx": "hardhat test test/FullControllerAutomated.test.js",
+    "deploy": "hardhat run scripts/deployment/deploy-gna.js",
+    "deploy:mainnet": "hardhat run scripts/deployment/deploy-gna.js --network mainnet",
+    "deploy:goerli": "hardhat run scripts/deployment/deploy-gna.js --network goerli",
+    "deploy:sepolia": "hardhat run scripts/deployment/deploy-gna.js --network sepolia",
+    "verify": "hardhat verify",
+    "coverage": "hardhat coverage",
+    "size": "hardhat size-contracts",
+    "gas-report": "REPORT_GAS=true hardhat test",
+    "clean": "hardhat clean",
+    "lint": "solhint 'contracts/**/*.sol'",
+    "lint:fix": "solhint 'contracts/**/*.sol' --fix"
+  },
+  "dependencies": {
+    "@ensdomains/ens-contracts": "^0.0.8",
+    "@openzeppelin/contracts": "^4.9.3"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
+    "@nomicfoundation/hardhat-ethers": "^3.1.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.1.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@typechain/ethers-v6": "^0.5.0",
+    "@typechain/hardhat": "^9.0.0",
+    "@types/mocha": "^10.0.10",
+    "hardhat": "^2.19.0",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solhint": "^4.0.0",
+    "solidity-coverage": "^0.8.5",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.1",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "ens",
+    "ethereum",
+    "delegation",
+    "smart-contracts",
+    "solidity"
+  ],
+  "author": "ENS Granular Team",
+  "license": "MIT"
+}

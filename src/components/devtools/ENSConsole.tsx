@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useDisconnect } from 'wagmi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -53,6 +55,7 @@ import { useWeb3 } from '../../lib/services';
 import { userConfigService } from '../../lib/services/user-config-service';
 import { ConsoleLogItem } from './ConsoleLogItem';
 import { formatAddress, getAllTextRecords } from '../../lib/ens/ens-utils';
+import { isValidENSName } from '../../lib/ens/ens-helpers';
 import { Badge } from '../ui/badge';
 import {
   CommandDialog,
@@ -69,7 +72,6 @@ import { MetadataEditor, MetadataTools } from '../metadata';
 import { SecurityMonitor, AuditLog } from '../security';
 import { GovernancePanel } from '../governance';
 import { Settings } from '../Settings';
-import { WalletSelectionModal } from '../WalletSelectionModal';
 import { ProtocolReference, BestPracticesView, NamingToolkit } from '../reference';
 import { DAORegistry, IntegrationRegistry, ContractRegistry } from '../registry';
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
@@ -157,35 +159,37 @@ interface ENSConsoleProps {
 }
 
 export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
-  const { address, isConnected, publicClient, walletClient, connect, disconnect, switchNetwork, chainId } = useWeb3();
+  const { address, isConnected, publicClient, walletClient, chainId } = useWeb3();
+  const { openConnectModal } = useConnectModal();
+  const { disconnectAsync } = useDisconnect();
   const [activeTab, setActiveTab] = useState('console');
   
   // Get console colors from user config
   const consoleColors = React.useMemo(() => {
     if (!address) {
       return {
-        background: '#1e293b',
-        headerBackground: '#334155',
-        border: '#475569',
-        text: '#ffffff',
-        textSecondary: '#cbd5e1',
-        activeTab: '#1e293b',
-        inactiveTab: '#475569',
-        inputBackground: '#0f172a',
-        inputBorder: '#475569',
+        background: '#3a3a3a',
+        headerBackground: '#4a4a4a',
+        border: '#5a5a5a',
+        text: '#f5f5f5',
+        textSecondary: '#d0d0d0',
+        activeTab: '#3a3a3a',
+        inactiveTab: '#5a5a5a',
+        inputBackground: '#2d2d2d',
+        inputBorder: '#5a5a5a',
       };
     }
     const config = userConfigService.getUserConfig(address);
     return config.consoleColors || {
-      background: '#1e293b',
-      headerBackground: '#334155',
-      border: '#475569',
-      text: '#ffffff',
-      textSecondary: '#cbd5e1',
-      activeTab: '#1e293b',
-      inactiveTab: '#475569',
-      inputBackground: '#0f172a',
-      inputBorder: '#475569',
+      background: '#3a3a3a',
+      headerBackground: '#4a4a4a',
+      border: '#5a5a5a',
+      text: '#f5f5f5',
+      textSecondary: '#d0d0d0',
+      activeTab: '#3a3a3a',
+      inactiveTab: '#5a5a5a',
+      inputBackground: '#2d2d2d',
+      inputBorder: '#5a5a5a',
     };
   }, [address]);
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([]);
@@ -208,8 +212,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
   const [appView, setAppView] = useState<ViewType | null>(null);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showQuickMenu, setShowQuickMenu] = useState(false);
-  const [showWalletModal, setShowWalletModal] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const previousConnectionStatus = useRef<boolean | null>(null);
   const consoleEndRef = useRef<HTMLDivElement>(null);
   const [networkRequests, setNetworkRequests] = useState<NetworkRequest[]>([]);
   const [watchedDomains, setWatchedDomains] = useState<WatchedDomain[]>([]);
@@ -814,76 +817,49 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
     { id: 'settings', label: 'Settings', icon: SettingsIcon, view: 'settings' as ViewType },
   ];
 
-  const handleWalletConnect = useCallback(async () => {
+  const handleWalletConnect = useCallback(() => {
     if (isConnected) {
       return;
     }
-    setShowWalletModal(true);
-  }, [isConnected]);
+    if (openConnectModal) {
+      trackENSOperation({
+        type: 'transaction',
+        operation: 'connectWallet',
+        result: 'modal-opened',
+        details: { source: 'console' },
+      });
+      openConnectModal();
+    } else {
+      trackENSOperation({
+        type: 'transaction',
+        operation: 'connectWallet',
+        error: 'Connect modal unavailable',
+        details: { source: 'console' },
+      });
+      console.warn('RainbowKit connect modal is not available.');
+    }
+  }, [isConnected, openConnectModal, trackENSOperation]);
 
   const handleWalletDisconnect = useCallback(async () => {
     try {
-      disconnect();
-      trackENSOperation({
-        type: 'transaction',
-        operation: 'disconnectWallet',
-        result: 'success',
-      });
-    } catch (error: any) {
-      trackENSOperation({
-        type: 'transaction',
-        operation: 'disconnectWallet',
-        error: error.message,
-      });
-    }
-  }, [disconnect, trackENSOperation]);
-
-  const handleWalletSelect = async (provider: any, walletId: string) => {
-    if (!provider || !provider.request) {
-      trackENSOperation({
-        type: 'transaction',
-        operation: 'connectWallet',
-        error: 'Invalid provider',
-      });
-      return;
-    }
-
-    setIsConnecting(true);
-    try {
-      await connect(provider);
-      setShowWalletModal(false);
-      trackENSOperation({
-        type: 'transaction',
-        operation: 'connectWallet',
-        result: 'success',
-        details: { walletId },
-      });
-    } catch (error: any) {
-      // Only track errors, don't log expected ones to console
-      const isExpectedError =
-        error?.code === 4001 ||
-        error?.code === -32002 ||
-        error?.message?.includes('already pending') ||
-        error?.message?.includes('rejected');
-      
-      trackENSOperation({
-        type: 'transaction',
-        operation: 'connectWallet',
-        error: error.message,
-        details: { walletId },
-      });
-      
-      // Don't log expected errors to console
-      if (!isExpectedError) {
-        console.error('Error connecting wallet:', error);
+      if (disconnectAsync) {
+        await disconnectAsync();
       }
-      
-      // Re-throw to allow WalletSelectionModal to handle it
-      throw error;
-    } finally {
-      setIsConnecting(false);
+      trackENSOperation({
+        type: 'transaction',
+        operation: 'disconnectWallet',
+        result: 'success',
+        details: { source: 'console' },
+      });
+    } catch (error: any) {
+      trackENSOperation({
+        type: 'transaction',
+        operation: 'disconnectWallet',
+        error: error.message,
+        details: { source: 'console' },
+      });
     }
-  };
+  }, [disconnectAsync, trackENSOperation]);
 
   const getNetworkName = (chainId: number | null): string => {
     switch (chainId) {
@@ -1314,6 +1290,25 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
     }
   }, [consoleLogs]);
 
+  useEffect(() => {
+    if (previousConnectionStatus.current === null) {
+      previousConnectionStatus.current = isConnected;
+      return;
+    }
+    if (!previousConnectionStatus.current && isConnected) {
+      trackENSOperation({
+        type: 'transaction',
+        operation: 'connectWallet',
+        result: 'success',
+        details: {
+          source: 'console',
+          address: address ? formatAddress(address) : undefined,
+        },
+      });
+    }
+    previousConnectionStatus.current = isConnected;
+  }, [isConnected, address, trackENSOperation]);
+
   if (isMinimized && !isFullScreen) {
     return (
       <div 
@@ -1620,9 +1615,17 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                   <div className="relative flex-1">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3" style={{ color: consoleColors.textSecondary }} />
                     <Input
-                      placeholder="Search logs or domains..."
+                      placeholder="Search logs or ENS names (e.g., example.eth)..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                          const trimmedQuery = searchQuery.trim();
+                          if (isValidENSName(trimmedQuery)) {
+                            inspectDomain(trimmedQuery);
+                          }
+                        }
+                      }}
                       className="h-7 pl-7 text-xs"
                       style={{
                         backgroundColor: consoleColors.inputBackground,
@@ -3778,13 +3781,6 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
           )}
         </CommandList>
       </CommandDialog>
-
-      {/* Wallet Selection Modal */}
-      <WalletSelectionModal
-        open={showWalletModal}
-        onOpenChange={setShowWalletModal}
-        onWalletSelect={handleWalletSelect}
-      />
 
       {/* Resize Handle */}
       <div

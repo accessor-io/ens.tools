@@ -2,6 +2,9 @@
       "name": "ens.tools",
       "version": "0.1.0",
       "private": true,
+      "workspaces": [
+            "packages/*"
+      ],
       "dependencies": {
             "@opensea/seaport-js": "^4.0.5",
             "@radix-ui/react-accordion": "^1.2.3",
@@ -70,8 +73,14 @@
       "scripts": {
             "dev": "vite",
             "build": "vite build",
+            "build:all": "npm run build --workspaces --if-present && npm run build",
             "test": "vitest",
             "test:ui": "vitest --ui",
+            "test:all": "npm run test --workspaces --if-present && npm test",
+            "contracts:build": "npm run build --workspace=@ens-granular/contracts",
+            "contracts:test": "npm run test --workspace=@ens-granular/contracts",
+            "cli:build": "npm run build --workspace=@ens-granular/cli",
+            "cli:dev": "npm run dev --workspace=@ens-granular/cli",
             "docs:generate": "node scripts/generate-documentation.js",
             "docs:populate": "node scripts/populate-documentation.js",
             "docs:compile": "node scripts/compile-documentation.js",

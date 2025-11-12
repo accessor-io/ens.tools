@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Hardhat files
+cache/
+artifacts/
+typechain-types/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Test results (optional - uncomment if you don't want to commit reports)
+# reports/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Coverage
+coverage/
+.coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+
+
+

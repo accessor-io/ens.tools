@@ -728,7 +728,7 @@ export function Settings() {
                     <Input
                       id="console-bg"
                       type="color"
-                      value={userConfig?.consoleColors?.background || '#1e293b'}
+                      value={userConfig?.consoleColors?.background || '#3a3a3a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -744,7 +744,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.background || '#1e293b'}
+                      value={userConfig?.consoleColors?.background || '#3a3a3a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -757,7 +757,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#1e293b"
+                      placeholder="#3a3a3a"
                     />
                   </div>
                 </div>
@@ -768,7 +768,7 @@ export function Settings() {
                     <Input
                       id="console-header-bg"
                       type="color"
-                      value={userConfig?.consoleColors?.headerBackground || '#334155'}
+                      value={userConfig?.consoleColors?.headerBackground || '#4a4a4a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -784,7 +784,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.headerBackground || '#334155'}
+                      value={userConfig?.consoleColors?.headerBackground || '#4a4a4a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -797,7 +797,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#334155"
+                      placeholder="#4a4a4a"
                     />
                   </div>
                 </div>
@@ -808,7 +808,7 @@ export function Settings() {
                     <Input
                       id="console-border"
                       type="color"
-                      value={userConfig?.consoleColors?.border || '#475569'}
+                      value={userConfig?.consoleColors?.border || '#5a5a5a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -824,7 +824,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.border || '#475569'}
+                      value={userConfig?.consoleColors?.border || '#5a5a5a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -837,7 +837,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#475569"
+                      placeholder="#5a5a5a"
                     />
                   </div>
                 </div>
@@ -848,7 +848,7 @@ export function Settings() {
                     <Input
                       id="console-text"
                       type="color"
-                      value={userConfig?.consoleColors?.text || '#ffffff'}
+                      value={userConfig?.consoleColors?.text || '#f5f5f5'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -864,7 +864,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.text || '#ffffff'}
+                      value={userConfig?.consoleColors?.text || '#f5f5f5'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -877,7 +877,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#ffffff"
+                      placeholder="#f5f5f5"
                     />
                   </div>
                 </div>
@@ -888,7 +888,7 @@ export function Settings() {
                     <Input
                       id="console-text-secondary"
                       type="color"
-                      value={userConfig?.consoleColors?.textSecondary || '#cbd5e1'}
+                      value={userConfig?.consoleColors?.textSecondary || '#d0d0d0'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -904,7 +904,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.textSecondary || '#cbd5e1'}
+                      value={userConfig?.consoleColors?.textSecondary || '#d0d0d0'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -917,7 +917,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#cbd5e1"
+                      placeholder="#d0d0d0"
                     />
                   </div>
                 </div>
@@ -928,7 +928,7 @@ export function Settings() {
                     <Input
                       id="console-active-tab"
                       type="color"
-                      value={userConfig?.consoleColors?.activeTab || '#1e293b'}
+                      value={userConfig?.consoleColors?.activeTab || '#3a3a3a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -944,7 +944,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.activeTab || '#1e293b'}
+                      value={userConfig?.consoleColors?.activeTab || '#3a3a3a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -957,7 +957,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#1e293b"
+                      placeholder="#3a3a3a"
                     />
                   </div>
                 </div>
@@ -968,7 +968,7 @@ export function Settings() {
                     <Input
                       id="console-input-bg"
                       type="color"
-                      value={userConfig?.consoleColors?.inputBackground || '#0f172a'}
+                      value={userConfig?.consoleColors?.inputBackground || '#2d2d2d'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -984,7 +984,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.inputBackground || '#0f172a'}
+                      value={userConfig?.consoleColors?.inputBackground || '#2d2d2d'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -997,7 +997,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#0f172a"
+                      placeholder="#2d2d2d"
                     />
                   </div>
                 </div>
@@ -1008,7 +1008,7 @@ export function Settings() {
                     <Input
                       id="console-input-border"
                       type="color"
-                      value={userConfig?.consoleColors?.inputBorder || '#475569'}
+                      value={userConfig?.consoleColors?.inputBorder || '#5a5a5a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -1024,7 +1024,7 @@ export function Settings() {
                     />
                     <Input
                       type="text"
-                      value={userConfig?.consoleColors?.inputBorder || '#475569'}
+                      value={userConfig?.consoleColors?.inputBorder || '#5a5a5a'}
                       onChange={(e) => {
                         if (userConfig) {
                           setUserConfig({
@@ -1037,7 +1037,7 @@ export function Settings() {
                         }
                       }}
                       className="flex-1 font-mono text-sm"
-                      placeholder="#475569"
+                      placeholder="#5a5a5a"
                     />
                   </div>
                 </div>
@@ -1052,15 +1052,15 @@ export function Settings() {
                       setUserConfig({
                         ...userConfig,
                         consoleColors: {
-                          background: '#1e293b',
-                          headerBackground: '#334155',
-                          border: '#475569',
-                          text: '#ffffff',
-                          textSecondary: '#cbd5e1',
-                          activeTab: '#1e293b',
-                          inactiveTab: '#475569',
-                          inputBackground: '#0f172a',
-                          inputBorder: '#475569',
+                          background: '#3a3a3a',
+                          headerBackground: '#4a4a4a',
+                          border: '#5a5a5a',
+                          text: '#f5f5f5',
+                          textSecondary: '#d0d0d0',
+                          activeTab: '#3a3a3a',
+                          inactiveTab: '#5a5a5a',
+                          inputBackground: '#2d2d2d',
+                          inputBorder: '#5a5a5a',
                         },
                       });
                     }

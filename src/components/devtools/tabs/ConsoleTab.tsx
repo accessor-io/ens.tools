@@ -52,7 +52,7 @@ export function ConsoleTab({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="h-10 bg-slate-700 border-b border-slate-500 flex items-center gap-2 px-3 flex-shrink-0" style={{ backgroundColor: '#334155' }}>
+      <div className="h-10 bg-slate-700 border-b border-slate-500 flex items-center gap-2 px-3 flex-shrink-0" style={{ backgroundColor: '#4a4a4a' }}>
         <div className="flex items-center gap-2 flex-1">
           <div className="relative flex-1">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-white" />
@@ -60,7 +60,8 @@ export function ConsoleTab({
               placeholder="Search logs or domains..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-7 pl-7 text-xs bg-slate-800 border-slate-500 text-white placeholder:text-slate-400"
+              className="h-7 pl-7 text-xs bg-slate-700 border-slate-500 text-white placeholder:text-slate-300"
+              style={{ backgroundColor: '#2d2d2d', borderColor: '#5a5a5a' }}
             />
           </div>
           <Input
@@ -68,11 +69,13 @@ export function ConsoleTab({
             value={domainFilter}
             onChange={(e) => setDomainFilter(e.target.value)}
             className="h-7 w-32 text-xs bg-slate-900 border-slate-600 text-white placeholder:text-slate-400"
+            style={{ backgroundColor: '#2d2d2d', borderColor: '#5a5a5a' }}
           />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
             className="h-7 text-xs bg-slate-800 border border-slate-500 text-white rounded px-2"
+            style={{ backgroundColor: '#2d2d2d', borderColor: '#5a5a5a' }}
           >
             <option value="all">All</option>
             <option value="log">Log</option>
@@ -92,6 +95,7 @@ export function ConsoleTab({
                   if (filter) onLoadFilter(filter);
                 }}
                 className="h-6 text-[10px] bg-slate-800 border border-slate-500 text-white rounded px-1"
+                style={{ backgroundColor: '#2d2d2d', borderColor: '#5a5a5a' }}
               >
                 <option value="">Saved filters...</option>
                 {savedFilters.map((f, i) => (
@@ -148,13 +152,13 @@ export function ConsoleTab({
           </Button>
         </div>
       </div>
-      <ScrollArea className="flex-1 bg-slate-800">
+      <ScrollArea className="flex-1 bg-slate-800" style={{ backgroundColor: '#3a3a3a' }}>
         <div className="font-mono text-xs">
           {filteredLogs.length === 0 ? (
             <div className="text-white text-center py-8">No logs</div>
           ) : (
             filteredLogs.map((log) => (
-              <div key={log.id} className="border-l-2 border-slate-800/50 hover:bg-slate-800/30">
+              <div key={log.id} className="border-l-2 hover:bg-opacity-30" style={{ borderLeftColor: '#5a5a5a', backgroundColor: 'transparent' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4a4a4a'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <ConsoleLogItem
                   log={log}
                   onCopy={(text) => navigator.clipboard.writeText(text)}
