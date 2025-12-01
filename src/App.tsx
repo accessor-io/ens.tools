@@ -289,63 +289,49 @@ export default function App() {
       <RainbowKitWrapper>
         <Web3ProviderCompat>
           <DomainProvider>
-            <div className="flex min-h-screen w-full relative">
+            <div className="flex min-h-screen w-full relative bg-[#09090b]">
               <JazzCupBackground />
               <div className="flex-1 relative z-10 flex flex-col">
-                <div className="fixed top-0 left-0 right-0 z-[100] glass border-b border-slate-200/40 px-5 py-3 flex items-center justify-between gap-4" style={{ marginLeft: '64px' }}>
+                {/* Header */}
+                <header className="fixed top-0 left-0 right-0 z-[100] glass-dark border-b border-zinc-800/50 px-6 py-4 flex items-center justify-between gap-4" style={{ marginLeft: '64px' }}>
                   <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 flex items-center justify-center shadow-lg shadow-slate-900/20 ring-1 ring-slate-700/30 transition-transform hover:scale-105">
-                      <Network className="h-5 w-5 text-cyan-400" />
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-lime-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-lime-500/20">
+                      <Network className="h-5 w-5 text-zinc-900" />
                     </div>
                     <div>
-                      <h1 className="text-slate-900 font-semibold text-base leading-tight tracking-tight">ens.tools</h1>
-                      <p className="text-slate-500 text-xs leading-tight">ENS management and marketplace</p>
+                      <h1 className="text-white font-semibold text-lg leading-tight tracking-tight">ens.tools</h1>
+                      <p className="text-zinc-500 text-xs leading-tight">ENS management platform</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="text-xs text-slate-400 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200/60 font-mono">
-                            1-7 nav | ESC home
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-slate-900 text-slate-100 border-slate-700">
-                          <div className="text-xs space-y-1">
-                            <p className="font-semibold">Keyboard Shortcuts:</p>
-                            <p>1 - Dashboard</p>
-                            <p>2 - Domains</p>
-                            <p>3 - Marketplace</p>
-                            <p>4 - Metadata</p>
-                            <p>5 - Analytics</p>
-                            <p>6 - Security</p>
-                            <p>7 - Settings</p>
-                            <p className="pt-1 border-t border-slate-700 mt-1">ESC - Dashboard</p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div className="flex items-center gap-4">
+                    <div className="hidden md:flex items-center gap-2 text-xs text-zinc-600 px-3 py-1.5 bg-zinc-900 rounded border border-zinc-800 font-mono">
+                      <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">1-7</kbd>
+                      <span>navigate</span>
+                      <span className="text-zinc-700">|</span>
+                      <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">esc</kbd>
+                      <span>home</span>
+                    </div>
                     <WalletConnectRainbow />
                   </div>
-                </div>
+                </header>
+                
+                {/* Main content */}
                 <main 
-                  className="flex-1 overflow-y-auto overflow-x-hidden relative scroll-smooth" 
+                  className="flex-1 overflow-y-auto overflow-x-hidden relative" 
                   style={{ 
-                    marginTop: '64px', 
+                    marginTop: '72px', 
                     marginLeft: '64px', 
-                    height: 'calc(100vh - 64px)', 
-                    paddingBottom: '120px',
-                    WebkitOverflowScrolling: 'touch',
-                    scrollBehavior: 'smooth'
+                    height: 'calc(100vh - 72px)', 
+                    paddingBottom: '100px',
                   }}
                 >
-                  <div className="p-8 max-w-7xl mx-auto w-full" style={{ minHeight: '100%' }}>
+                  <div className="px-8 py-6 max-w-7xl mx-auto w-full">
                     <ErrorBoundary>
                       <Suspense fallback={
                         <div className="flex items-center justify-center min-h-[400px]">
                           <div className="flex flex-col items-center gap-4">
-                            <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-                            <p className="text-sm text-slate-600">Loading view...</p>
+                            <Loader2 className="h-6 w-6 animate-spin text-lime-500" />
+                            <p className="text-sm text-zinc-500">Loading...</p>
                           </div>
                         </div>
                       }>

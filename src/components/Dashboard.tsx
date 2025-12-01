@@ -129,39 +129,39 @@ export function Dashboard() {
 
   const stats = [
     {
-      title: 'Total Domains',
+      title: 'TOTAL DOMAINS',
       value: isConnected ? domains.length.toString() : '-',
       icon: Globe,
       trend: isConnected ? `${domains.length} owned` : 'Connect wallet',
-      color: 'bg-gradient-to-br from-slate-800 to-slate-900',
-      accent: 'cyan'
+      color: 'bg-lime-500',
+      iconColor: 'text-zinc-900'
     },
     {
-      title: 'Wrapped Names',
+      title: 'WRAPPED',
       value: isConnected ? domains.filter(d => d.isWrapped).length.toString() : '-',
       icon: Activity,
       trend: isConnected ? `${Math.round((domains.filter(d => d.isWrapped).length / Math.max(domains.length, 1)) * 100)}% wrapped` : 'N/A',
-      color: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
-      accent: 'cyan'
+      color: 'bg-cyan-500',
+      iconColor: 'text-zinc-900'
     },
     {
-      title: 'Expiring Soon',
+      title: 'EXPIRING',
       value: isConnected ? domains.filter(d => {
         const days = getDaysUntilExpiration(d.expiryDate);
         return days !== null && days < 90 && days > 0;
       }).length.toString() : '-',
       icon: Clock,
       trend: isConnected ? '< 90 days' : 'N/A',
-      color: 'bg-gradient-to-br from-amber-500 to-orange-500',
-      accent: 'amber'
+      color: 'bg-amber-500',
+      iconColor: 'text-zinc-900'
     },
     {
-      title: 'Active Resolvers',
+      title: 'RESOLVERS',
       value: isConnected ? domains.filter(d => d.resolver).length.toString() : '-',
       icon: Shield,
       trend: isConnected ? 'Configured' : 'N/A',
-      color: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
-      accent: 'emerald'
+      color: 'bg-emerald-500',
+      iconColor: 'text-zinc-900'
     }
   ];
 
@@ -200,71 +200,67 @@ export function Dashboard() {
 
   if (!isConnected) {
     return (
-      <div className="space-y-6">
-        <Alert className="border-slate-200 bg-white">
-          <Wallet className="h-4 w-4 text-cyan-600" />
-          <AlertTitle className="text-slate-900">Welcome to ens.tools</AlertTitle>
-          <AlertDescription className="text-slate-700">
-            Connect your wallet to view and manage your ENS domains. Click the "Connect Wallet" button in the top right corner to get started.
-          </AlertDescription>
-        </Alert>
+      <div className="space-y-8">
+        {/* Hero section */}
+        <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 p-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 via-transparent to-cyan-500/10" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-12 w-12 rounded-xl bg-lime-500 flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-zinc-900" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Welcome to ens.tools</h2>
+                <p className="text-zinc-400">Connect your wallet to get started</p>
+              </div>
+            </div>
+            <p className="text-zinc-500 max-w-2xl">
+              Your command center for ENS domain management. View portfolios, track expirations, 
+              manage metadata, and access the marketplace - all in one place.
+            </p>
+          </div>
+        </div>
 
-        {/* Preview Stats */}
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        {/* Stats preview */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
-            <Card key={index} className="bg-white border border-slate-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-slate-600 font-medium text-sm">{stat.title}</CardTitle>
-                <div className={`h-9 w-9 rounded-lg bg-slate-200 flex items-center justify-center`}>
-                  <stat.icon className="h-4 w-4 text-slate-400" />
+            <div key={index} className="group relative bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-semibold tracking-wider text-zinc-600">{stat.title}</span>
+                <div className={`h-8 w-8 rounded-lg ${stat.color} flex items-center justify-center`}>
+                  <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-semibold text-slate-400">{stat.value}</div>
-                <p className="text-slate-500 text-sm mt-1">
-                  <TrendingUp className="h-3 w-3 inline mr-1" />
-                  {stat.trend}
-                </p>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="text-3xl font-bold text-zinc-500 mb-1">{stat.value}</div>
+              <p className="text-xs text-zinc-600">{stat.trend}</p>
+            </div>
           ))}
         </div>
 
-        <Card className="bg-white border border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-slate-900">Getting Started</CardTitle>
-            <CardDescription className="text-slate-600">What you can do with ens.tools</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-start gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center flex-shrink-0">
-                <Globe className="h-5 w-5 text-cyan-400" />
-              </div>
-              <div>
-                <p className="text-slate-900 font-medium">Manage Your Domains</p>
-                <p className="text-slate-600 text-sm mt-0.5">View, configure, and manage all your ENS names in one place</p>
-              </div>
+        {/* Features */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-lime-500/30 transition-colors group">
+            <div className="h-10 w-10 rounded-lg bg-lime-500/10 flex items-center justify-center mb-4 group-hover:bg-lime-500/20 transition-colors">
+              <Globe className="h-5 w-5 text-lime-500" />
             </div>
-            <div className="flex items-start gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
-                <Shield className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <p className="text-slate-900 font-medium">Security Monitoring</p>
-                <p className="text-slate-600 text-sm mt-0.5">Track expiration dates, resolver configurations, and security settings</p>
-              </div>
+            <h3 className="text-white font-semibold mb-2">Domain Management</h3>
+            <p className="text-zinc-500 text-sm">View, configure, and manage all your ENS names in one unified interface.</p>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-cyan-500/30 transition-colors group">
+            <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
+              <Shield className="h-5 w-5 text-cyan-500" />
             </div>
-            <div className="flex items-start gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-                <Activity className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <p className="text-slate-900 font-medium">Advanced Tools</p>
-                <p className="text-slate-600 text-sm mt-0.5">Access naming conventions, metadata tools, and analytics</p>
-              </div>
+            <h3 className="text-white font-semibold mb-2">Security Monitoring</h3>
+            <p className="text-zinc-500 text-sm">Track expirations, resolver configs, and get alerts for important changes.</p>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-violet-500/30 transition-colors group">
+            <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center mb-4 group-hover:bg-violet-500/20 transition-colors">
+              <Activity className="h-5 w-5 text-violet-500" />
             </div>
-          </CardContent>
-        </Card>
+            <h3 className="text-white font-semibold mb-2">Advanced Tools</h3>
+            <p className="text-zinc-500 text-sm">Access metadata editors, analytics dashboards, and marketplace features.</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -272,51 +268,47 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat, index) => (
-            <Card key={index} className="bg-white border border-slate-200 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 hover:-translate-y-0.5 overflow-hidden relative group">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                <CardTitle className="text-slate-700 font-medium text-sm">{stat.title}</CardTitle>
-                <div className={`h-9 w-9 rounded-lg ${stat.color} flex items-center justify-center shadow-md`}>
-                  <stat.icon className="h-4 w-4 text-white" />
-                </div>
-              </CardHeader>
-            <CardContent className="relative z-10">
-              <div className="text-3xl font-semibold text-slate-900 tracking-tight">{stat.value}</div>
-              <p className="text-slate-600 flex items-center mt-1.5 text-sm">
-                <TrendingUp className="h-3 w-3 inline mr-1.5 text-slate-500" />
-                {stat.trend}
-              </p>
-            </CardContent>
-          </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat, index) => (
+          <div key={index} className="group relative bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-all duration-200">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-semibold tracking-wider text-zinc-500">{stat.title}</span>
+              <div className={`h-8 w-8 rounded-lg ${stat.color} flex items-center justify-center`}>
+                <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
+              </div>
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+            <p className="text-xs text-zinc-500 flex items-center">
+              <TrendingUp className="h-3 w-3 inline mr-1.5 text-zinc-600" />
+              {stat.trend}
+            </p>
+          </div>
         ))}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Recent Domains */}
-        <Card className="bg-white border border-slate-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-slate-900 font-semibold">Your ENS Names</CardTitle>
-                <CardDescription className="text-slate-600">Recently loaded domains</CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadDomains}
-                disabled={isLoading}
-                className="border-slate-300 hover:bg-slate-50"
-              >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              </Button>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+          <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
+            <div>
+              <h3 className="text-white font-semibold">Your ENS Names</h3>
+              <p className="text-zinc-500 text-sm">Recently loaded domains</p>
             </div>
-          </CardHeader>
-          <CardContent>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadDomains}
+              disabled={isLoading}
+              className="border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
+          <div className="p-5">
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
+                  <Skeleton key={i} className="h-20 w-full bg-zinc-800" />
                 ))}
               </div>
             ) : recentDomains.length > 0 ? (
@@ -328,42 +320,42 @@ export function Dashboard() {
                   return (
                     <div 
                       key={index} 
-                      className="rounded-lg border bg-white hover:bg-slate-50 hover:shadow-md transition-all duration-200 cursor-pointer"
+                      className="rounded-lg border border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all duration-200 cursor-pointer"
                       onClick={() => setSelectedDomain(domain)}
                     >
-                      <div className="flex items-center justify-between p-3">
-                      <div className="flex-1">
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-white font-medium">{domain.name}</p>
+                            {domain.isWrapped && (
+                              <Badge className="bg-lime-500/10 text-lime-500 border-lime-500/20 text-xs">
+                                Wrapped
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-zinc-500 text-sm mt-1">
+                            {domain.expiryDate 
+                              ? `Expires: ${domain.expiryDate.toLocaleDateString()} (${daysUntilExpiry} days)`
+                              : 'No expiration data'}
+                          </p>
+                        </div>
                         <div className="flex items-center gap-2">
-                          <p className="text-slate-900 font-medium">{domain.name}</p>
-                          {domain.isWrapped && (
-                            <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-slate-300">
-                              Wrapped
-                            </Badge>
+                          {expirationStatus === 'active' && (
+                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                          )}
+                          {expirationStatus === 'expiring-soon' && (
+                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                          )}
+                          {expirationStatus === 'expired' && (
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
                           )}
                         </div>
-                        <p className="text-slate-600">
-                          {domain.expiryDate 
-                            ? `Expires: ${domain.expiryDate.toLocaleDateString()} (${daysUntilExpiry} days)`
-                            : 'No expiration data'}
-                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {expirationStatus === 'active' && (
-                          <CheckCircle2 className="h-5 w-5 text-slate-700" />
-                        )}
-                        {expirationStatus === 'expiring-soon' && (
-                          <AlertTriangle className="h-5 w-5 text-slate-500" />
-                        )}
-                        {expirationStatus === 'expired' && (
-                          <AlertTriangle className="h-5 w-5 text-slate-900" />
-                        )}
-                        </div>
-                      </div>
-                      <div className="border-t border-slate-200 p-3 flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                      <div className="border-t border-zinc-800 p-3 flex items-center gap-2 flex-wrap" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 sm:flex-none"
+                          className="flex-1 sm:flex-none border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300"
                           onClick={() => setSelectedDomain(domain)}
                         >
                           <Globe className="h-3 w-3 mr-1" />
@@ -372,9 +364,9 @@ export function Dashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1 sm:flex-none"
+                          className="flex-1 sm:flex-none border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300"
                           disabled={processingDomain === domain.name}
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
                             if (domain.isWrapped) {
                               handleUnwrap(domain);
@@ -402,35 +394,35 @@ export function Dashboard() {
               </div>
             ) : (
               <EmptyState
-                icon={<Globe className="h-8 w-8" />}
+                icon={<Globe className="h-8 w-8 text-zinc-600" />}
                 title="No ENS Names Found"
-                description="This address doesn't own any ENS names yet. Connect a different wallet or register your first domain."
+                description="This address doesn't own any ENS names yet."
                 action={{
                   label: 'Load Domains',
                   onClick: loadDomains,
                 }}
               />
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Security Alerts */}
-        <Card className="bg-white border border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-slate-900 font-semibold">Alerts & Notifications</CardTitle>
-            <CardDescription className="text-slate-600">Important updates for your domains</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+          <div className="p-5 border-b border-zinc-800">
+            <h3 className="text-white font-semibold">Alerts & Notifications</h3>
+            <p className="text-zinc-500 text-sm">Important updates for your domains</p>
+          </div>
+          <div className="p-5">
             {securityAlerts.length > 0 ? (
               <div className="space-y-3">
                 {securityAlerts.map((alert, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg border bg-white">
-                    {alert.type === 'warning' && <AlertTriangle className="h-5 w-5 text-slate-500 flex-shrink-0 mt-0.5" />}
-                    {alert.type === 'error' && <AlertTriangle className="h-5 w-5 text-slate-900 flex-shrink-0 mt-0.5" />}
-                    {alert.type === 'info' && <Activity className="h-5 w-5 text-slate-700 flex-shrink-0 mt-0.5" />}
+                  <div key={index} className="flex items-start gap-3 p-4 rounded-lg border border-zinc-800 bg-zinc-800/50">
+                    {alert.type === 'warning' && <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />}
+                    {alert.type === 'error' && <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />}
+                    {alert.type === 'info' && <Activity className="h-5 w-5 text-cyan-500 flex-shrink-0 mt-0.5" />}
                     <div className="flex-1">
-                      <p className="text-slate-900">{alert.message}</p>
-                      <p className="text-slate-600 flex items-center gap-1 mt-1">
+                      <p className="text-white text-sm">{alert.message}</p>
+                      <p className="text-zinc-500 text-xs flex items-center gap-1 mt-1">
                         <Clock className="h-3 w-3" />
                         {alert.time}
                       </p>
@@ -439,64 +431,70 @@ export function Dashboard() {
                 ))}
               </div>
             ) : (
-              <Alert className="border-slate-200 bg-slate-50">
-                <CheckCircle2 className="h-4 w-4 text-slate-700" />
-                <AlertTitle className="text-slate-900">All Clear!</AlertTitle>
-                <AlertDescription className="text-slate-700">
-                  No alerts or warnings for your ENS names.
-                </AlertDescription>
-              </Alert>
+              <div className="flex items-center gap-3 p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <div>
+                  <p className="text-white font-medium">All Clear!</p>
+                  <p className="text-zinc-500 text-sm">No alerts for your ENS names.</p>
+                </div>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Domain Statistics */}
       {domains.length > 0 && (
-        <Card className="bg-white border border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-slate-900">Domain Statistics</CardTitle>
-            <CardDescription className="text-slate-600">Overview of your ENS portfolio</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+          <div className="p-5 border-b border-zinc-800">
+            <h3 className="text-white font-semibold">Portfolio Overview</h3>
+            <p className="text-zinc-500 text-sm">Statistics for your ENS names</p>
+          </div>
+          <div className="p-5 space-y-5">
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-700">Wrapped Names</span>
-                <span className="text-slate-900">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-400">Wrapped Names</span>
+                <span className="text-white font-medium">
                   {domains.filter(d => d.isWrapped).length} / {domains.length}
                 </span>
               </div>
-              <Progress 
-                value={(domains.filter(d => d.isWrapped).length / domains.length) * 100} 
-                className="h-2" 
-              />
+              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-lime-500 rounded-full transition-all duration-500"
+                  style={{ width: `${(domains.filter(d => d.isWrapped).length / domains.length) * 100}%` }}
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-700">With Resolvers</span>
-                <span className="text-slate-900">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-400">With Resolvers</span>
+                <span className="text-white font-medium">
                   {domains.filter(d => d.resolver).length} / {domains.length}
                 </span>
               </div>
-              <Progress 
-                value={(domains.filter(d => d.resolver).length / domains.length) * 100} 
-                className="h-2" 
-              />
+              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                  style={{ width: `${(domains.filter(d => d.resolver).length / domains.length) * 100}%` }}
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-700">Active (Not Expiring Soon)</span>
-                <span className="text-slate-900">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-zinc-400">Active (Not Expiring)</span>
+                <span className="text-white font-medium">
                   {domains.filter(d => getExpirationStatus(d.expiryDate) === 'active').length} / {domains.length}
                 </span>
               </div>
-              <Progress 
-                value={(domains.filter(d => getExpirationStatus(d.expiryDate) === 'active').length / domains.length) * 100} 
-                className="h-2" 
-              />
+              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                  style={{ width: `${(domains.filter(d => getExpirationStatus(d.expiryDate) === 'active').length / domains.length) * 100}%` }}
+                />
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Domain Profile Dialog */}

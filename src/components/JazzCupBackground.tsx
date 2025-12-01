@@ -11,39 +11,34 @@ export function JazzCupBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const drawResponsive = () => {
+    const resize = () => {
       const dpr = window.devicePixelRatio || 1;
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.scale(dpr, dpr);
     };
 
-    drawResponsive();
+    resize();
     
-    const animate = (timestamp: number) => {
-      const dpr = window.devicePixelRatio || 1;
+    const animate = (time: number) => {
       const width = window.innerWidth;
       const height = window.innerHeight;
       
-      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-        drawResponsive();
-      }
-      
       ctx.setTransform(1, 0, 0, 1, 0, 0);
+      const dpr = window.devicePixelRatio || 1;
       ctx.scale(dpr, dpr);
       
-      drawPattern(ctx, width, height, timestamp);
+      drawBackground(ctx, width, height, time);
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
     animationFrameRef.current = requestAnimationFrame(animate);
-    window.addEventListener('resize', drawResponsive);
+    window.addEventListener('resize', resize);
     
     return () => {
-      window.removeEventListener('resize', drawResponsive);
+      window.removeEventListener('resize', resize);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -54,78 +49,93 @@ export function JazzCupBackground() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-0"
-      style={{ background: '#f8fafc' }}
       aria-hidden="true"
     />
   );
 }
 
-function drawPattern(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
-  // Base background - subtle warm gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-  bgGradient.addColorStop(0, '#f8fafc');
-  bgGradient.addColorStop(0.5, '#f1f5f9');
-  bgGradient.addColorStop(1, '#faf5ff');
-  ctx.fillStyle = bgGradient;
+function drawBackground(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
+  // Deep dark background
+  ctx.fillStyle = '#09090b';
   ctx.fillRect(0, 0, width, height);
 
-  // Draw subtle aurora gradient orbs
-  drawAuroraOrbs(ctx, width, height, time);
+  // Subtle radial gradient from center
+  const centerX = width * 0.5;
+  const centerY = height * 0.3;
+  const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) * 0.8);
+  gradient.addColorStop(0, 'rgba(132, 204, 22, 0.03)');
+  gradient.addColorStop(0.5, 'rgba(34, 211, 238, 0.01)');
+  gradient.addColorStop(1, 'transparent');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Draw grid
+  drawGrid(ctx, width, height, time);
   
-  // Draw floating grid dots
-  drawFloatingDots(ctx, width, height, time);
+  // Draw glow orbs
+  drawGlowOrbs(ctx, width, height, time);
 }
 
-function drawAuroraOrbs(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
+function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
+  const gridSize = 60;
+  const lineWidth = 0.5;
+  
   ctx.save();
+  ctx.strokeStyle = 'rgba(39, 39, 42, 0.8)';
+  ctx.lineWidth = lineWidth;
   
-  // Orb 1 - Cyan/Sky (top right) - very subtle
-  const orb1X = width * 0.8 + Math.sin(time * 0.0003) * 30;
-  const orb1Y = height * 0.15 + Math.cos(time * 0.0004) * 20;
-  const gradient1 = ctx.createRadialGradient(orb1X, orb1Y, 0, orb1X, orb1Y, 500);
-  gradient1.addColorStop(0, 'rgba(14, 165, 233, 0.04)');
-  gradient1.addColorStop(0.5, 'rgba(14, 165, 233, 0.015)');
-  gradient1.addColorStop(1, 'rgba(14, 165, 233, 0)');
-  ctx.fillStyle = gradient1;
-  ctx.fillRect(0, 0, width, height);
+  // Vertical lines
+  for (let x = 0; x <= width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
   
-  // Orb 2 - Pink/Rose (bottom left) - very subtle
-  const orb2X = width * 0.15 + Math.cos(time * 0.00025) * 25;
-  const orb2Y = height * 0.85 + Math.sin(time * 0.00035) * 20;
-  const gradient2 = ctx.createRadialGradient(orb2X, orb2Y, 0, orb2X, orb2Y, 400);
-  gradient2.addColorStop(0, 'rgba(236, 72, 153, 0.03)');
-  gradient2.addColorStop(0.5, 'rgba(236, 72, 153, 0.01)');
-  gradient2.addColorStop(1, 'rgba(236, 72, 153, 0)');
-  ctx.fillStyle = gradient2;
-  ctx.fillRect(0, 0, width, height);
+  // Horizontal lines
+  for (let y = 0; y <= height; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  
+  // Intersection dots
+  ctx.fillStyle = 'rgba(63, 63, 70, 0.5)';
+  for (let x = 0; x <= width; x += gridSize) {
+    for (let y = 0; y <= height; y += gridSize) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
   
   ctx.restore();
 }
 
-function drawFloatingDots(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
+function drawGlowOrbs(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
   ctx.save();
+  ctx.globalCompositeOperation = 'screen';
   
-  const gridSize = 100;
-  const dotRadius = 1;
+  // Lime glow - top area
+  const orb1X = width * 0.7 + Math.sin(time * 0.0002) * 50;
+  const orb1Y = height * 0.2 + Math.cos(time * 0.00015) * 30;
+  const gradient1 = ctx.createRadialGradient(orb1X, orb1Y, 0, orb1X, orb1Y, 400);
+  gradient1.addColorStop(0, 'rgba(132, 204, 22, 0.08)');
+  gradient1.addColorStop(0.4, 'rgba(132, 204, 22, 0.02)');
+  gradient1.addColorStop(1, 'transparent');
+  ctx.fillStyle = gradient1;
+  ctx.fillRect(0, 0, width, height);
   
-  for (let x = 0; x < width + gridSize; x += gridSize) {
-    for (let y = 0; y < height + gridSize; y += gridSize) {
-      // Very subtle offset
-      const offsetX = Math.sin(time * 0.0003 + y * 0.008) * 2;
-      const offsetY = Math.cos(time * 0.0002 + x * 0.008) * 2;
-      
-      const dotX = x + offsetX;
-      const dotY = y + offsetY;
-      
-      // Very subtle, uniform opacity
-      const opacity = 0.08;
-      
-      ctx.beginPath();
-      ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(148, 163, 184, ${opacity})`;
-      ctx.fill();
-    }
-  }
+  // Cyan glow - bottom area
+  const orb2X = width * 0.2 + Math.cos(time * 0.00018) * 40;
+  const orb2Y = height * 0.75 + Math.sin(time * 0.00022) * 25;
+  const gradient2 = ctx.createRadialGradient(orb2X, orb2Y, 0, orb2X, orb2Y, 350);
+  gradient2.addColorStop(0, 'rgba(34, 211, 238, 0.06)');
+  gradient2.addColorStop(0.4, 'rgba(34, 211, 238, 0.015)');
+  gradient2.addColorStop(1, 'transparent');
+  ctx.fillStyle = gradient2;
+  ctx.fillRect(0, 0, width, height);
   
   ctx.restore();
 }

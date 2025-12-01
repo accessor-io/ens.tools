@@ -201,9 +201,9 @@ export function BottomToolbar({
   return (
     <div className="fixed left-0 top-0 bottom-0 z-50 flex items-center justify-center pl-3">
       <div className="h-full mx-auto py-4">
-        <div className="relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-slate-900/30 px-2 h-full flex flex-col">
-          {/* Subtle top accent */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-pink-500 rounded-full opacity-60" />
+        <div className="relative bg-zinc-950/95 backdrop-blur-xl border border-zinc-800/80 rounded-xl shadow-2xl shadow-black/50 px-2 h-full flex flex-col">
+          {/* Top accent line */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-lime-500 to-cyan-500 rounded-full" />
           
           <div className="relative flex flex-col items-center justify-between overflow-y-auto scrollbar-hide flex-1 py-5 gap-0.5">
             {allItemsWithSection.map((item, index) => {
@@ -217,7 +217,7 @@ export function BottomToolbar({
               return (
                 <div key={item.id} className="flex flex-col items-center">
                   {showSeparator && (
-                    <div className="w-6 h-px bg-slate-700/60 my-2" />
+                    <div className="w-5 h-px bg-zinc-800 my-2" />
                   )}
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -225,28 +225,25 @@ export function BottomToolbar({
                         onClick={() => onViewChange(item.id)}
                         variant="ghost"
                         className={cn(
-                          "relative h-10 w-10 rounded-xl transition-all duration-200 flex-shrink-0 p-0",
+                          "relative h-9 w-9 rounded-lg transition-all duration-150 flex-shrink-0 p-0",
                           isActive
-                            ? "bg-gradient-to-br from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
-                            : "hover:bg-slate-800/80 text-slate-400 hover:text-slate-200",
+                            ? "bg-lime-500 text-zinc-900 shadow-md shadow-lime-500/30"
+                            : "hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300",
                           "flex items-center justify-center"
                         )}
                       >
                         <Icon 
-                          className={cn(
-                            "transition-colors duration-200",
-                            isActive ? "text-white" : ""
-                          )} 
-                          style={{ width: '18px', height: '18px' }} 
+                          className="transition-colors duration-150"
+                          style={{ width: '16px', height: '16px' }} 
                         />
                         {isActive && (
-                          <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-cyan-400" />
+                          <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-full bg-lime-400" />
                         )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent 
                       side="right" 
-                      className="bg-slate-900 text-slate-100 border border-slate-700 text-xs px-3 py-1.5 rounded-lg shadow-xl"
+                      className="bg-zinc-900 text-zinc-100 border border-zinc-800 text-xs px-3 py-1.5 rounded shadow-xl"
                     >
                       <p className="font-medium">{item.label}</p>
                     </TooltipContent>
