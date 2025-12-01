@@ -20,13 +20,11 @@ import { RainbowKitWrapper } from './lib/providers/RainbowKitProvider';
 import { Web3ProviderCompat } from './lib/services';
 import { DomainProvider } from './lib/contexts/DomainContext';
 import { Toaster } from './components/ui/sonner';
-import { JazzCupBackground } from './components/JazzCupBackground';
 import { TransactionStatusPanel } from './components/TransactionStatusPanel';
 import { ENSConsole } from './components/devtools/ENSConsole';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Network, Terminal, Loader2 } from 'lucide-react';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './components/ui/tooltip';
 import { buildConfig, isViewEnabled } from './config/feature-flags.config';
 
 // =============================================================================
@@ -256,16 +254,16 @@ export default function App() {
         <RainbowKitWrapper>
           <Web3ProviderCompat>
             <DomainProvider>
-              <div className="flex min-h-screen w-full relative">
+              <div className="flex min-h-screen w-full relative bg-[#09090b]">
                 <div className="flex-1 relative z-10 flex flex-col">
-                  <div className="fixed top-0 left-0 right-0 z-[100] bg-slate-950 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between gap-4">
+                  <div className="fixed top-0 left-0 right-0 z-[100] glass border-b border-zinc-800/50 px-4 py-2.5 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-teal-500/25">
                         <Terminal className="h-4 w-4 text-white" />
                       </div>
                       <div>
                         <h1 className="text-white font-semibold text-sm leading-tight">ens.tools</h1>
-                        <p className="text-slate-500 text-xs leading-tight font-mono">Console Mode</p>
+                        <p className="text-zinc-500 text-[10px] leading-tight font-mono tracking-wider">CONSOLE MODE</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -289,50 +287,33 @@ export default function App() {
       <RainbowKitWrapper>
         <Web3ProviderCompat>
           <DomainProvider>
-            <div className="flex min-h-screen w-full relative bg-[#09090b]">
-              <JazzCupBackground />
-              <div className="flex-1 relative z-10 flex flex-col">
+            <div className="flex min-h-screen w-full bg-[#0a0a0b]">
+              <div className="flex-1 flex flex-col">
                 {/* Header */}
-                <header className="fixed top-0 left-0 right-0 z-[100] glass-dark border-b border-zinc-800/50 px-6 py-4 flex items-center justify-between gap-4" style={{ marginLeft: '64px' }}>
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-lime-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-lime-500/20">
-                      <Network className="h-5 w-5 text-zinc-900" />
+                <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0a0a0b] border-b border-zinc-800 px-6 h-14 flex items-center justify-between" style={{ marginLeft: '56px' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                      <Network className="h-4 w-4 text-zinc-400" />
                     </div>
-                    <div>
-                      <h1 className="text-white font-semibold text-lg leading-tight tracking-tight">ens.tools</h1>
-                      <p className="text-zinc-500 text-xs leading-tight">ENS management platform</p>
-                    </div>
+                    <span className="text-white font-medium">ens.tools</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="hidden md:flex items-center gap-2 text-xs text-zinc-600 px-3 py-1.5 bg-zinc-900 rounded border border-zinc-800 font-mono">
-                      <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">1-7</kbd>
-                      <span>navigate</span>
-                      <span className="text-zinc-700">|</span>
-                      <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-400">esc</kbd>
-                      <span>home</span>
-                    </div>
-                    <WalletConnectRainbow />
-                  </div>
+                  <WalletConnectRainbow />
                 </header>
                 
                 {/* Main content */}
                 <main 
-                  className="flex-1 overflow-y-auto overflow-x-hidden relative" 
+                  className="flex-1 overflow-y-auto" 
                   style={{ 
-                    marginTop: '72px', 
-                    marginLeft: '64px', 
-                    height: 'calc(100vh - 72px)', 
-                    paddingBottom: '100px',
+                    marginTop: '56px', 
+                    marginLeft: '56px', 
+                    height: 'calc(100vh - 56px)',
                   }}
                 >
-                  <div className="px-8 py-6 max-w-7xl mx-auto w-full">
+                  <div className="p-6 max-w-6xl mx-auto">
                     <ErrorBoundary>
                       <Suspense fallback={
                         <div className="flex items-center justify-center min-h-[400px]">
-                          <div className="flex flex-col items-center gap-4">
-                            <Loader2 className="h-6 w-6 animate-spin text-lime-500" />
-                            <p className="text-sm text-zinc-500">Loading...</p>
-                          </div>
+                          <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
                         </div>
                       }>
                         {renderView()}

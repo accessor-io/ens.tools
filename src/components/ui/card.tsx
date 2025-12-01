@@ -2,36 +2,19 @@ import * as React from "react";
 
 import { cn } from './utils';
 
-const CardDepthContext = React.createContext<number>(0);
-
 function Card({ className, children, ...props }: React.ComponentProps<"div">) {
-  const depth = React.useContext(CardDepthContext);
-  
-  const depthClasses = [
-    "bg-white",
-    "bg-slate-50",
-    "bg-slate-100",
-    "bg-slate-200",
-    "bg-slate-300",
-  ];
-  
-  const backgroundClass = depthClasses[Math.min(depth, depthClasses.length - 1)] || depthClasses[depthClasses.length - 1];
-  
   return (
-    <CardDepthContext.Provider value={depth + 1}>
-      <div
-        data-slot="card"
-        className={cn(
-          backgroundClass,
-          "text-card-foreground flex flex-col gap-6 rounded-xl border border-slate-200/40",
-          "depth-elevated transition-shadow duration-200 hover:shadow-lg hover:shadow-violet-200/30",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </div>
-    </CardDepthContext.Provider>
+    <div
+      data-slot="card"
+      className={cn(
+        "bg-zinc-900/50 text-card-foreground flex flex-col gap-6 rounded-xl border border-zinc-800/60",
+        "transition-all duration-300 hover:border-zinc-700/60",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
   );
 }
 

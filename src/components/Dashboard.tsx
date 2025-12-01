@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
 import { EmptyState } from './ui/empty-state';
@@ -16,14 +13,11 @@ import {
   Wallet,
   Activity,
   RefreshCw,
-  ExternalLink,
-  Settings,
-  Zap,
   Link as LinkIcon,
 } from 'lucide-react';
 import { useWeb3 } from '../lib/services';
 import { fetchENSNames, getExpirationStatus, getDaysUntilExpiration, ENSDomain } from '../lib/ens';
-import { wrapName, unwrapName, FUSES } from '../lib/ens';
+import { wrapName, unwrapName } from '../lib/ens';
 import { toast } from 'sonner';
 import { DomainProfile } from './domains/DomainProfile';
 
@@ -129,39 +123,31 @@ export function Dashboard() {
 
   const stats = [
     {
-      title: 'TOTAL DOMAINS',
+      title: 'Total Domains',
       value: isConnected ? domains.length.toString() : '-',
       icon: Globe,
-      trend: isConnected ? `${domains.length} owned` : 'Connect wallet',
-      color: 'bg-lime-500',
-      iconColor: 'text-zinc-900'
+      change: isConnected ? `${domains.length} owned` : 'Connect wallet',
     },
     {
-      title: 'WRAPPED',
+      title: 'Wrapped',
       value: isConnected ? domains.filter(d => d.isWrapped).length.toString() : '-',
       icon: Activity,
-      trend: isConnected ? `${Math.round((domains.filter(d => d.isWrapped).length / Math.max(domains.length, 1)) * 100)}% wrapped` : 'N/A',
-      color: 'bg-cyan-500',
-      iconColor: 'text-zinc-900'
+      change: isConnected ? `${Math.round((domains.filter(d => d.isWrapped).length / Math.max(domains.length, 1)) * 100)}%` : '-',
     },
     {
-      title: 'EXPIRING',
+      title: 'Expiring Soon',
       value: isConnected ? domains.filter(d => {
         const days = getDaysUntilExpiration(d.expiryDate);
         return days !== null && days < 90 && days > 0;
       }).length.toString() : '-',
       icon: Clock,
-      trend: isConnected ? '< 90 days' : 'N/A',
-      color: 'bg-amber-500',
-      iconColor: 'text-zinc-900'
+      change: '< 90 days',
     },
     {
-      title: 'RESOLVERS',
+      title: 'With Resolver',
       value: isConnected ? domains.filter(d => d.resolver).length.toString() : '-',
       icon: Shield,
-      trend: isConnected ? 'Configured' : 'N/A',
-      color: 'bg-emerald-500',
-      iconColor: 'text-zinc-900'
+      change: 'Configured',
     }
   ];
 
@@ -200,65 +186,52 @@ export function Dashboard() {
 
   if (!isConnected) {
     return (
-      <div className="space-y-8">
-        {/* Hero section */}
-        <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800 p-8">
-          <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 via-transparent to-cyan-500/10" />
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-12 w-12 rounded-xl bg-lime-500 flex items-center justify-center">
-                <Wallet className="h-6 w-6 text-zinc-900" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">Welcome to ens.tools</h2>
-                <p className="text-zinc-400">Connect your wallet to get started</p>
-              </div>
+      <div className="space-y-6">
+        {/* Welcome */}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+          <div className="flex items-start gap-4">
+            <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
+              <Wallet className="h-5 w-5 text-zinc-400" />
             </div>
-            <p className="text-zinc-500 max-w-2xl">
-              Your command center for ENS domain management. View portfolios, track expirations, 
-              manage metadata, and access the marketplace - all in one place.
-            </p>
+            <div>
+              <h2 className="text-lg font-medium text-white mb-1">Connect your wallet</h2>
+              <p className="text-zinc-400 text-sm">
+                Connect to view and manage your ENS domains, track expirations, and access all features.
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Stats preview */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
-            <div key={index} className="group relative bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-colors">
+            <div key={index} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-semibold tracking-wider text-zinc-600">{stat.title}</span>
-                <div className={`h-8 w-8 rounded-lg ${stat.color} flex items-center justify-center`}>
-                  <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
-                </div>
+                <span className="text-xs text-zinc-500">{stat.title}</span>
+                <stat.icon className="h-4 w-4 text-zinc-600" />
               </div>
-              <div className="text-3xl font-bold text-zinc-500 mb-1">{stat.value}</div>
-              <p className="text-xs text-zinc-600">{stat.trend}</p>
+              <div className="text-2xl font-semibold text-zinc-600">{stat.value}</div>
+              <p className="text-xs text-zinc-600 mt-1">{stat.change}</p>
             </div>
           ))}
         </div>
 
-        {/* Features */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-lime-500/30 transition-colors group">
-            <div className="h-10 w-10 rounded-lg bg-lime-500/10 flex items-center justify-center mb-4 group-hover:bg-lime-500/20 transition-colors">
-              <Globe className="h-5 w-5 text-lime-500" />
-            </div>
-            <h3 className="text-white font-semibold mb-2">Domain Management</h3>
-            <p className="text-zinc-500 text-sm">View, configure, and manage all your ENS names in one unified interface.</p>
+        {/* Features grid */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <Globe className="h-5 w-5 text-zinc-400 mb-3" />
+            <h3 className="text-white font-medium mb-1">Domain Management</h3>
+            <p className="text-zinc-500 text-sm">View and manage all your ENS names.</p>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-cyan-500/30 transition-colors group">
-            <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
-              <Shield className="h-5 w-5 text-cyan-500" />
-            </div>
-            <h3 className="text-white font-semibold mb-2">Security Monitoring</h3>
-            <p className="text-zinc-500 text-sm">Track expirations, resolver configs, and get alerts for important changes.</p>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <Shield className="h-5 w-5 text-zinc-400 mb-3" />
+            <h3 className="text-white font-medium mb-1">Security Monitoring</h3>
+            <p className="text-zinc-500 text-sm">Track expirations and get alerts.</p>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-violet-500/30 transition-colors group">
-            <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center mb-4 group-hover:bg-violet-500/20 transition-colors">
-              <Activity className="h-5 w-5 text-violet-500" />
-            </div>
-            <h3 className="text-white font-semibold mb-2">Advanced Tools</h3>
-            <p className="text-zinc-500 text-sm">Access metadata editors, analytics dashboards, and marketplace features.</p>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <Activity className="h-5 w-5 text-zinc-400 mb-3" />
+            <h3 className="text-white font-medium mb-1">Advanced Tools</h3>
+            <p className="text-zinc-500 text-sm">Metadata, analytics, and more.</p>
           </div>
         </div>
       </div>
@@ -270,17 +243,18 @@ export function Dashboard() {
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, index) => (
-          <div key={index} className="group relative bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition-all duration-200">
+          <div 
+            key={index} 
+            className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 hover:border-zinc-700 transition-colors"
+          >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-semibold tracking-wider text-zinc-500">{stat.title}</span>
-              <div className={`h-8 w-8 rounded-lg ${stat.color} flex items-center justify-center`}>
-                <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
-              </div>
+              <span className="text-xs text-zinc-500">{stat.title}</span>
+              <stat.icon className="h-4 w-4 text-zinc-500" />
             </div>
-            <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+            <div className="text-3xl font-semibold text-white mb-1">{stat.value}</div>
             <p className="text-xs text-zinc-500 flex items-center">
               <TrendingUp className="h-3 w-3 inline mr-1.5 text-zinc-600" />
-              {stat.trend}
+              {stat.change}
             </p>
           </div>
         ))}
@@ -288,18 +262,17 @@ export function Dashboard() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Recent Domains */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
           <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
             <div>
-              <h3 className="text-white font-semibold">Your ENS Names</h3>
+              <h3 className="text-white font-medium">Your ENS Names</h3>
               <p className="text-zinc-500 text-sm">Recently loaded domains</p>
             </div>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={loadDomains}
               disabled={isLoading}
-              className="border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
@@ -320,7 +293,7 @@ export function Dashboard() {
                   return (
                     <div 
                       key={index} 
-                      className="rounded-lg border border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all duration-200 cursor-pointer"
+                      className="rounded-lg border border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer"
                       onClick={() => setSelectedDomain(domain)}
                     >
                       <div className="flex items-center justify-between p-4">
@@ -328,9 +301,7 @@ export function Dashboard() {
                           <div className="flex items-center gap-2">
                             <p className="text-white font-medium">{domain.name}</p>
                             {domain.isWrapped && (
-                              <Badge className="bg-lime-500/10 text-lime-500 border-lime-500/20 text-xs">
-                                Wrapped
-                              </Badge>
+                              <Badge variant="default">Wrapped</Badge>
                             )}
                           </div>
                           <p className="text-zinc-500 text-sm mt-1">
@@ -353,18 +324,16 @@ export function Dashboard() {
                       </div>
                       <div className="border-t border-zinc-800 p-3 flex items-center gap-2 flex-wrap" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="flex-1 sm:flex-none border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300"
                           onClick={() => setSelectedDomain(domain)}
                         >
                           <Globe className="h-3 w-3 mr-1" />
                           View Profile
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="flex-1 sm:flex-none border-zinc-700 bg-transparent hover:bg-zinc-800 text-zinc-300"
                           disabled={processingDomain === domain.name}
                           onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
@@ -407,9 +376,9 @@ export function Dashboard() {
         </div>
 
         {/* Security Alerts */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
           <div className="p-5 border-b border-zinc-800">
-            <h3 className="text-white font-semibold">Alerts & Notifications</h3>
+            <h3 className="text-white font-medium">Alerts & Notifications</h3>
             <p className="text-zinc-500 text-sm">Important updates for your domains</p>
           </div>
           <div className="p-5">
@@ -445,9 +414,9 @@ export function Dashboard() {
 
       {/* Domain Statistics */}
       {domains.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
           <div className="p-5 border-b border-zinc-800">
-            <h3 className="text-white font-semibold">Portfolio Overview</h3>
+            <h3 className="text-white font-medium">Portfolio Overview</h3>
             <p className="text-zinc-500 text-sm">Statistics for your ENS names</p>
           </div>
           <div className="p-5 space-y-5">
@@ -460,7 +429,7 @@ export function Dashboard() {
               </div>
               <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-lime-500 rounded-full transition-all duration-500"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                   style={{ width: `${(domains.filter(d => d.isWrapped).length / domains.length) * 100}%` }}
                 />
               </div>
@@ -488,7 +457,7 @@ export function Dashboard() {
               </div>
               <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                  className="h-full bg-violet-500 rounded-full transition-all duration-500"
                   style={{ width: `${(domains.filter(d => getExpirationStatus(d.expiryDate) === 'active').length / domains.length) * 100}%` }}
                 />
               </div>

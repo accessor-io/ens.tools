@@ -1,5 +1,4 @@
 import { ViewType } from '../App';
-import { Button } from './ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -199,61 +198,44 @@ export function BottomToolbar({
   );
 
   return (
-    <div className="fixed left-0 top-0 bottom-0 z-50 flex items-center justify-center pl-3">
-      <div className="h-full mx-auto py-4">
-        <div className="relative bg-zinc-950/95 backdrop-blur-xl border border-zinc-800/80 rounded-xl shadow-2xl shadow-black/50 px-2 h-full flex flex-col">
-          {/* Top accent line */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-lime-500 to-cyan-500 rounded-full" />
+    <nav className="fixed left-0 top-0 bottom-0 z-50 w-14 bg-[#0a0a0b] border-r border-zinc-800 flex flex-col items-center py-4">
+      <div className="flex-1 flex flex-col items-center gap-1 overflow-y-auto scrollbar-hide pt-12">
+        {allItemsWithSection.map((item, index) => {
+          const Icon = item.icon;
+          const isActive = currentView === item.id;
+          const prevItem = allItemsWithSection[index - 1];
+          const showSeparator = index > 0 && item.isFirstInSection && prevItem?.section !== item.section;
           
-          <div className="relative flex flex-col items-center justify-between overflow-y-auto scrollbar-hide flex-1 py-5 gap-0.5">
-            {allItemsWithSection.map((item, index) => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
-              
-              // Show separator before first item of a new section (but not the very first item)
-              const prevItem = allItemsWithSection[index - 1];
-              const showSeparator = index > 0 && item.isFirstInSection && prevItem?.section !== item.section;
-              
-              return (
-                <div key={item.id} className="flex flex-col items-center">
-                  {showSeparator && (
-                    <div className="w-5 h-px bg-zinc-800 my-2" />
-                  )}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={() => onViewChange(item.id)}
-                        variant="ghost"
-                        className={cn(
-                          "relative h-9 w-9 rounded-lg transition-all duration-150 flex-shrink-0 p-0",
-                          isActive
-                            ? "bg-lime-500 text-zinc-900 shadow-md shadow-lime-500/30"
-                            : "hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300",
-                          "flex items-center justify-center"
-                        )}
-                      >
-                        <Icon 
-                          className="transition-colors duration-150"
-                          style={{ width: '16px', height: '16px' }} 
-                        />
-                        {isActive && (
-                          <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-full bg-lime-400" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      side="right" 
-                      className="bg-zinc-900 text-zinc-100 border border-zinc-800 text-xs px-3 py-1.5 rounded shadow-xl"
-                    >
-                      <p className="font-medium">{item.label}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+          return (
+            <div key={item.id} className="flex flex-col items-center">
+              {showSeparator && (
+                <div className="w-6 h-px bg-zinc-800 my-2" />
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => onViewChange(item.id)}
+                    className={cn(
+                      "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
+                      isActive
+                        ? "bg-zinc-800 text-white"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent 
+                  side="right" 
+                  className="bg-zinc-900 text-white border-zinc-800 text-xs"
+                >
+                  {item.label}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </nav>
   );
 }
