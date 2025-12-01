@@ -383,3 +383,8 @@ setInterval(() => {
   // watchlistService.checkPriceAlerts(currentPrices);
 }, 5 * 60 * 1000);
 
+
+
+
+
+
