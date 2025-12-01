@@ -46,6 +46,7 @@ import {
   ExternalLink,
   Calendar,
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   RefreshCw,
   Wallet,
@@ -68,6 +69,7 @@ import {
   Zap,
   Link as LinkIcon,
   Copy,
+  Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
