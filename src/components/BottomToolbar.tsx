@@ -198,7 +198,7 @@ export function BottomToolbar({
   );
 
   return (
-    <nav className="fixed left-0 top-0 bottom-0 z-50 w-14 bg-[#0a0a0b] border-r border-zinc-800 flex flex-col items-center py-4">
+    <nav className="fixed left-0 top-0 bottom-0 z-50 w-14 bg-white border-r border-gray-200 flex flex-col items-center py-4">
       <div className="flex-1 flex flex-col items-center gap-1 overflow-y-auto scrollbar-hide pt-12">
         {allItemsWithSection.map((item, index) => {
           const Icon = item.icon;
@@ -209,7 +209,7 @@ export function BottomToolbar({
           return (
             <div key={item.id} className="flex flex-col items-center">
               {showSeparator && (
-                <div className="w-6 h-px bg-zinc-800 my-2" />
+                <div className="w-6 h-px bg-gray-200 my-2" />
               )}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -218,8 +218,8 @@ export function BottomToolbar({
                     className={cn(
                       "h-9 w-9 rounded-lg flex items-center justify-center transition-colors",
                       isActive
-                        ? "bg-zinc-800 text-white"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                        ? "bg-pink-500 text-white"
+                        : "text-gray-500 hover:text-pink-500 hover:bg-pink-50"
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -227,7 +227,7 @@ export function BottomToolbar({
                 </TooltipTrigger>
                 <TooltipContent 
                   side="right" 
-                  className="bg-zinc-900 text-white border-zinc-800 text-xs"
+                  className="bg-gray-900 text-white border-gray-800 text-xs"
                 >
                   {item.label}
                 </TooltipContent>

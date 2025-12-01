@@ -287,15 +287,26 @@ export default function App() {
       <RainbowKitWrapper>
         <Web3ProviderCompat>
           <DomainProvider>
-            <div className="flex min-h-screen w-full bg-[#0a0a0b]">
+            <div className="flex min-h-screen w-full bg-[#f8f9fa]">
               <div className="flex-1 flex flex-col">
                 {/* Header */}
-                <header className="fixed top-0 left-0 right-0 z-[100] bg-[#0a0a0b] border-b border-zinc-800 px-6 h-14 flex items-center justify-between" style={{ marginLeft: '56px' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-                      <Network className="h-4 w-4 text-zinc-400" />
-                    </div>
-                    <span className="text-white font-medium">ens.tools</span>
+                <header className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-gray-200 px-6 h-14 flex items-center justify-between" style={{ marginLeft: '56px' }}>
+                  <div className="flex items-center gap-2">
+                    <svg className="h-9 w-9" viewBox="0 0 40 40" fill="none">
+                      <circle cx="20" cy="20" r="18" fill="url(#gear-gradient)" />
+                      <path d="M20 12V14M20 26V28M28 20H26M14 20H12M25.66 14.34L24.24 15.76M15.76 24.24L14.34 25.66M25.66 25.66L24.24 24.24M15.76 15.76L14.34 14.34" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                      <circle cx="20" cy="20" r="4" stroke="white" strokeWidth="2"/>
+                      <defs>
+                        <linearGradient id="gear-gradient" x1="0" y1="0" x2="40" y2="40">
+                          <stop stopColor="#e91e8c"/>
+                          <stop offset="1" stopColor="#c026d3"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <span className="text-xl font-bold">
+                      <span className="text-pink-500">ENS</span>
+                      <span className="text-gray-800">.Tools</span>
+                    </span>
                   </div>
                   <WalletConnectRainbow />
                 </header>
@@ -309,11 +320,25 @@ export default function App() {
                     height: 'calc(100vh - 56px)',
                   }}
                 >
+                  {/* Hero Banner */}
+                  <div className="hero-banner h-36 relative">
+                    <div className="hero-shape hero-shape-1" />
+                    <div className="hero-shape hero-shape-2" />
+                    <div className="hero-shape hero-shape-3" />
+                    <div className="hero-shape hero-shape-4" />
+                    <div className="relative z-10 h-full flex items-center px-8">
+                      <h1 className="text-4xl font-bold">
+                        <span className="text-cyan-300">ENS</span>
+                        <span className="text-white"> Tools</span>
+                      </h1>
+                    </div>
+                  </div>
+                  
                   <div className="p-6 max-w-6xl mx-auto">
                     <ErrorBoundary>
                       <Suspense fallback={
                         <div className="flex items-center justify-center min-h-[400px]">
-                          <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
+                          <Loader2 className="h-5 w-5 animate-spin text-pink-500" />
                         </div>
                       }>
                         {renderView()}

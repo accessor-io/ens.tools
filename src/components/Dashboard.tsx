@@ -188,14 +188,14 @@ export function Dashboard() {
     return (
       <div className="space-y-6">
         {/* Welcome */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-              <Wallet className="h-5 w-5 text-zinc-400" />
+            <div className="h-10 w-10 rounded-lg bg-pink-500 flex items-center justify-center flex-shrink-0">
+              <Wallet className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-medium text-white mb-1">Connect your wallet</h2>
-              <p className="text-zinc-400 text-sm">
+              <h2 className="text-lg font-medium text-gray-900 mb-1">Connect your wallet</h2>
+              <p className="text-gray-500 text-sm">
                 Connect to view and manage your ENS domains, track expirations, and access all features.
               </p>
             </div>
@@ -205,33 +205,33 @@ export function Dashboard() {
         {/* Stats preview */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
-            <div key={index} className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+            <div key={index} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-zinc-500">{stat.title}</span>
-                <stat.icon className="h-4 w-4 text-zinc-600" />
+                <span className="text-xs text-gray-500">{stat.title}</span>
+                <stat.icon className="h-4 w-4 text-gray-400" />
               </div>
-              <div className="text-2xl font-semibold text-zinc-600">{stat.value}</div>
-              <p className="text-xs text-zinc-600 mt-1">{stat.change}</p>
+              <div className="text-2xl font-semibold text-gray-300">{stat.value}</div>
+              <p className="text-xs text-gray-400 mt-1">{stat.change}</p>
             </div>
           ))}
         </div>
 
         {/* Features grid */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <Globe className="h-5 w-5 text-zinc-400 mb-3" />
-            <h3 className="text-white font-medium mb-1">Domain Management</h3>
-            <p className="text-zinc-500 text-sm">View and manage all your ENS names.</p>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-pink-300 hover:shadow-md transition-all">
+            <Globe className="h-5 w-5 text-pink-500 mb-3" />
+            <h3 className="text-gray-900 font-medium mb-1">Domain Management</h3>
+            <p className="text-gray-500 text-sm">View and manage all your ENS names.</p>
           </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <Shield className="h-5 w-5 text-zinc-400 mb-3" />
-            <h3 className="text-white font-medium mb-1">Security Monitoring</h3>
-            <p className="text-zinc-500 text-sm">Track expirations and get alerts.</p>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-pink-300 hover:shadow-md transition-all">
+            <Shield className="h-5 w-5 text-pink-500 mb-3" />
+            <h3 className="text-gray-900 font-medium mb-1">Security Monitoring</h3>
+            <p className="text-gray-500 text-sm">Track expirations and get alerts.</p>
           </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <Activity className="h-5 w-5 text-zinc-400 mb-3" />
-            <h3 className="text-white font-medium mb-1">Advanced Tools</h3>
-            <p className="text-zinc-500 text-sm">Metadata, analytics, and more.</p>
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-pink-300 hover:shadow-md transition-all">
+            <Activity className="h-5 w-5 text-pink-500 mb-3" />
+            <h3 className="text-gray-900 font-medium mb-1">Advanced Tools</h3>
+            <p className="text-gray-500 text-sm">Metadata, analytics, and more.</p>
           </div>
         </div>
       </div>
@@ -245,15 +245,15 @@ export function Dashboard() {
         {stats.map((stat, index) => (
           <div 
             key={index} 
-            className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 hover:border-zinc-700 transition-colors"
+            className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-pink-200 transition-all"
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-zinc-500">{stat.title}</span>
-              <stat.icon className="h-4 w-4 text-zinc-500" />
+              <span className="text-xs text-gray-500">{stat.title}</span>
+              <stat.icon className="h-4 w-4 text-pink-500" />
             </div>
-            <div className="text-3xl font-semibold text-white mb-1">{stat.value}</div>
-            <p className="text-xs text-zinc-500 flex items-center">
-              <TrendingUp className="h-3 w-3 inline mr-1.5 text-zinc-600" />
+            <div className="text-3xl font-semibold text-gray-900 mb-1">{stat.value}</div>
+            <p className="text-xs text-gray-500 flex items-center">
+              <TrendingUp className="h-3 w-3 inline mr-1.5 text-emerald-500" />
               {stat.change}
             </p>
           </div>
@@ -262,11 +262,11 @@ export function Dashboard() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Recent Domains */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
-          <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
             <div>
-              <h3 className="text-white font-medium">Your ENS Names</h3>
-              <p className="text-zinc-500 text-sm">Recently loaded domains</p>
+              <h3 className="text-gray-900 font-medium">Your ENS Names</h3>
+              <p className="text-gray-500 text-sm">Recently loaded domains</p>
             </div>
             <Button
               variant="ghost"
@@ -281,7 +281,7 @@ export function Dashboard() {
             {isLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-20 w-full bg-zinc-800" />
+                  <Skeleton key={i} className="h-20 w-full bg-gray-100" />
                 ))}
               </div>
             ) : recentDomains.length > 0 ? (
@@ -293,18 +293,18 @@ export function Dashboard() {
                   return (
                     <div 
                       key={index} 
-                      className="rounded-lg border border-zinc-800 bg-zinc-800/50 hover:bg-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer"
+                      className="rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:border-pink-200 hover:shadow-sm transition-all cursor-pointer"
                       onClick={() => setSelectedDomain(domain)}
                     >
                       <div className="flex items-center justify-between p-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="text-white font-medium">{domain.name}</p>
+                            <p className="text-gray-900 font-medium">{domain.name}</p>
                             {domain.isWrapped && (
                               <Badge variant="default">Wrapped</Badge>
                             )}
                           </div>
-                          <p className="text-zinc-500 text-sm mt-1">
+                          <p className="text-gray-500 text-sm mt-1">
                             {domain.expiryDate 
                               ? `Expires: ${domain.expiryDate.toLocaleDateString()} (${daysUntilExpiry} days)`
                               : 'No expiration data'}
@@ -322,7 +322,7 @@ export function Dashboard() {
                           )}
                         </div>
                       </div>
-                      <div className="border-t border-zinc-800 p-3 flex items-center gap-2 flex-wrap" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                      <div className="border-t border-gray-200 p-3 flex items-center gap-2 flex-wrap bg-white rounded-b-lg" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -363,7 +363,7 @@ export function Dashboard() {
               </div>
             ) : (
               <EmptyState
-                icon={<Globe className="h-8 w-8 text-zinc-600" />}
+                icon={<Globe className="h-8 w-8 text-gray-400" />}
                 title="No ENS Names Found"
                 description="This address doesn't own any ENS names yet."
                 action={{
@@ -376,22 +376,22 @@ export function Dashboard() {
         </div>
 
         {/* Security Alerts */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
-          <div className="p-5 border-b border-zinc-800">
-            <h3 className="text-white font-medium">Alerts & Notifications</h3>
-            <p className="text-zinc-500 text-sm">Important updates for your domains</p>
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div className="p-5 border-b border-gray-100">
+            <h3 className="text-gray-900 font-medium">Alerts & Notifications</h3>
+            <p className="text-gray-500 text-sm">Important updates for your domains</p>
           </div>
           <div className="p-5">
             {securityAlerts.length > 0 ? (
               <div className="space-y-3">
                 {securityAlerts.map((alert, index) => (
-                  <div key={index} className="flex items-start gap-3 p-4 rounded-lg border border-zinc-800 bg-zinc-800/50">
+                  <div key={index} className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-gray-50">
                     {alert.type === 'warning' && <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />}
                     {alert.type === 'error' && <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />}
-                    {alert.type === 'info' && <Activity className="h-5 w-5 text-cyan-500 flex-shrink-0 mt-0.5" />}
+                    {alert.type === 'info' && <Activity className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />}
                     <div className="flex-1">
-                      <p className="text-white text-sm">{alert.message}</p>
-                      <p className="text-zinc-500 text-xs flex items-center gap-1 mt-1">
+                      <p className="text-gray-900 text-sm">{alert.message}</p>
+                      <p className="text-gray-500 text-xs flex items-center gap-1 mt-1">
                         <Clock className="h-3 w-3" />
                         {alert.time}
                       </p>
@@ -400,11 +400,11 @@ export function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="flex items-center gap-3 p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
+              <div className="flex items-center gap-3 p-4 rounded-lg border border-emerald-200 bg-emerald-50">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                 <div>
-                  <p className="text-white font-medium">All Clear!</p>
-                  <p className="text-zinc-500 text-sm">No alerts for your ENS names.</p>
+                  <p className="text-gray-900 font-medium">All Clear!</p>
+                  <p className="text-gray-500 text-sm">No alerts for your ENS names.</p>
                 </div>
               </div>
             )}
@@ -414,50 +414,50 @@ export function Dashboard() {
 
       {/* Domain Statistics */}
       {domains.length > 0 && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
-          <div className="p-5 border-b border-zinc-800">
-            <h3 className="text-white font-medium">Portfolio Overview</h3>
-            <p className="text-zinc-500 text-sm">Statistics for your ENS names</p>
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div className="p-5 border-b border-gray-100">
+            <h3 className="text-gray-900 font-medium">Portfolio Overview</h3>
+            <p className="text-gray-500 text-sm">Statistics for your ENS names</p>
           </div>
           <div className="p-5 space-y-5">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-400">Wrapped Names</span>
-                <span className="text-white font-medium">
+                <span className="text-gray-600">Wrapped Names</span>
+                <span className="text-gray-900 font-medium">
                   {domains.filter(d => d.isWrapped).length} / {domains.length}
                 </span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                  className="h-full bg-pink-500 rounded-full transition-all duration-500"
                   style={{ width: `${(domains.filter(d => d.isWrapped).length / domains.length) * 100}%` }}
                 />
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-400">With Resolvers</span>
-                <span className="text-white font-medium">
+                <span className="text-gray-600">With Resolvers</span>
+                <span className="text-gray-900 font-medium">
                   {domains.filter(d => d.resolver).length} / {domains.length}
                 </span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                  className="h-full bg-purple-500 rounded-full transition-all duration-500"
                   style={{ width: `${(domains.filter(d => d.resolver).length / domains.length) * 100}%` }}
                 />
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-zinc-400">Active (Not Expiring)</span>
-                <span className="text-white font-medium">
+                <span className="text-gray-600">Active (Not Expiring)</span>
+                <span className="text-gray-900 font-medium">
                   {domains.filter(d => getExpirationStatus(d.expiryDate) === 'active').length} / {domains.length}
                 </span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-violet-500 rounded-full transition-all duration-500"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                   style={{ width: `${(domains.filter(d => getExpirationStatus(d.expiryDate) === 'active').length / domains.length) * 100}%` }}
                 />
               </div>
