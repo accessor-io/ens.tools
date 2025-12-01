@@ -1,4 +1,4 @@
-import { ViewType } from "../App";
+import { ViewType } from '../App';
 import {
   Sidebar,
   SidebarContent,
@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-} from "./ui/sidebar";
+} from './ui/sidebar';
 import {
   LayoutDashboard,
   Globe,

@@ -1,10 +1,10 @@
-import { ViewType } from "../App";
-import { Button } from "./ui/button";
+import { ViewType } from '../App';
+import { Button } from './ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "./ui/tooltip";
+} from './ui/tooltip';
 import {
   LayoutDashboard,
   Globe,
@@ -29,7 +29,8 @@ import {
   Coins,
   Server,
 } from "lucide-react";
-import { cn } from "./ui/utils";
+import { cn } from './ui/utils';
+import { isViewEnabled } from '../config/feature-flags.config';
 
 interface BottomToolbarProps {
   currentView: ViewType;
@@ -187,49 +188,69 @@ export function BottomToolbar({
     ...referenceItems,
     ...adminItems,
     ...systemItems,
-  ];
+  ].filter(item => isViewEnabled(item.id));
 
   return (
-    <div className="fixed left-0 top-0 bottom-0 z-50 flex items-center justify-center pl-2 group">
-      <div className="h-full mx-auto py-3">
-        <div className="relative bg-white/98 backdrop-blur-xl border border-slate-200/80 rounded-xl shadow-lg shadow-slate-900/5 px-2.5 h-full flex flex-col">
-          {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/8 via-purple-500/8 to-fuchsia-500/8 rounded-xl pointer-events-none" />
+    <div className="fixed left-0 top-0 bottom-0 z-50 flex items-center justify-center pl-3">
+      <div className="h-full mx-auto py-4">
+        <div className="relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-slate-900/30 px-2 h-full flex flex-col">
+          {/* Subtle top accent */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-pink-500 rounded-full opacity-60" />
           
-          <div className="relative flex flex-col items-center justify-between overflow-y-auto scrollbar-hide flex-1 py-4 gap-1">
-            {allItems.map((item) => {
+          <div className="relative flex flex-col items-center justify-between overflow-y-auto scrollbar-hide flex-1 py-5 gap-0.5">
+            {allItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
               
+              // Add separator before certain sections
+              const showSeparator = 
+                (item.id === 'domains' && index > 0) ||
+                (item.id === 'security' && index > 0) ||
+                (item.id === 'contracts' && index > 0) ||
+                (item.id === 'marketplace' && index > 0) ||
+                (item.id === 'naming' && index > 0) ||
+                (item.id === 'protocol' && index > 0) ||
+                (item.id === 'fee-management' && index > 0) ||
+                (item.id === 'settings' && index > 0);
+              
               return (
-                <Tooltip key={item.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => onViewChange(item.id)}
-                      variant={isActive ? "default" : "ghost"}
-                      className={cn(
-                        "relative !h-11 !w-11 rounded-xl transition-all duration-200 flex-shrink-0 !p-0",
-                        isActive
-                          ? "bg-gradient-to-br from-pink-600 via-rose-600 to-fuchsia-600 text-white shadow-lg shadow-pink-500/25 ring-2 ring-pink-500/10"
-                          : "hover:bg-slate-100/80 text-slate-600 hover:text-slate-900 hover:shadow-sm group-hover:text-purple-600",
-                        "flex items-center justify-center"
-                      )}
+                <div key={item.id} className="flex flex-col items-center">
+                  {showSeparator && (
+                    <div className="w-6 h-px bg-slate-700/60 my-2" />
+                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => onViewChange(item.id)}
+                        variant="ghost"
+                        className={cn(
+                          "relative h-10 w-10 rounded-xl transition-all duration-200 flex-shrink-0 p-0",
+                          isActive
+                            ? "bg-gradient-to-br from-cyan-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
+                            : "hover:bg-slate-800/80 text-slate-400 hover:text-slate-200",
+                          "flex items-center justify-center"
+                        )}
+                      >
+                        <Icon 
+                          className={cn(
+                            "transition-colors duration-200",
+                            isActive ? "text-white" : ""
+                          )} 
+                          style={{ width: '18px', height: '18px' }} 
+                        />
+                        {isActive && (
+                          <div className="absolute -right-0.5 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-cyan-400" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent 
+                      side="right" 
+                      className="bg-slate-900 text-slate-100 border border-slate-700 text-xs px-3 py-1.5 rounded-lg shadow-xl"
                     >
-                      <Icon className={cn(
-                        "transition-colors duration-200",
-                        isActive 
-                          ? "text-white" 
-                          : "text-slate-600 group-hover:text-purple-600 hover:text-purple-600"
-                      )} style={{ width: '20px', height: '20px' }} />
-                      {isActive && (
-                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-sm" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-white text-slate-900 border border-slate-200 text-xs px-2.5 py-1.5 rounded-lg shadow-lg">
-                    <p className="font-medium">{item.label}</p>
-                  </TooltipContent>
-                </Tooltip>
+                      <p className="font-medium">{item.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               );
             })}
           </div>
