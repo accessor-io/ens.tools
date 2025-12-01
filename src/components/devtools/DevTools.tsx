@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { ScrollArea } from '../ui/scroll-area';
+import { cn } from '../ui/utils';
 import { 
   Terminal, 
   Network, 
-  Code, 
-  Database, 
+  Code,
+  Database,
   ChevronDown, 
   ChevronRight,
   Trash2,

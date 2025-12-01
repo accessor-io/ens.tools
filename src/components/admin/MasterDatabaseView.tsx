@@ -3,7 +3,7 @@
  * Displays all account actions from the master database
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -28,26 +28,19 @@ import {
 import { ScrollArea } from '../ui/scroll-area';
 import {
   Search,
-  Filter,
   Download,
   RefreshCw,
   Database,
   TrendingUp,
-  Calendar,
-  User,
-  FileText,
-  ExternalLink,
   X,
-  ChevronDown,
-  ChevronUp,
   Copy,
   Check,
+  Eye,
 } from 'lucide-react';
 import { masterDatabase, MasterDatabaseEntry, QueryFilters, QueryOptions } from '../../lib/database/master-database';
 import { AuditActionType } from '../../lib/security/audit-log-service';
 import { useWeb3 } from '../../lib/services';
 import { toast } from 'sonner';
-import { formatEther } from 'viem';
 
 export function MasterDatabaseView() {
   const { address } = useWeb3();

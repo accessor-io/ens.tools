@@ -4,7 +4,6 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Badge } from '../ui/badge';
 import {
   Table,
   TableBody,
@@ -14,13 +13,10 @@ import {
   TableRow,
 } from '../ui/table';
 import {
-  Wallet,
   Download,
   Settings,
   AlertTriangle,
-  CheckCircle2,
   Loader2,
-  DollarSign,
   TrendingUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -39,6 +35,9 @@ export function FeeManagement() {
   const [newFeeAmount, setNewFeeAmount] = useState('');
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [isSettingFee, setIsSettingFee] = useState(false);
+  const [marketplaceFeeBps, setMarketplaceFeeBps] = useState<number>(0);
+  const [newMarketplaceFeeBps, setNewMarketplaceFeeBps] = useState('');
+  const [isSettingMarketplaceFee, setIsSettingMarketplaceFee] = useState(false);
 
   useEffect(() => {
     if (isConnected && publicClient && address) {

@@ -9,9 +9,9 @@ import {
   Terminal, 
   Network, 
   Code, 
-  Database, 
   ChevronDown, 
   ChevronRight,
+  ChevronLeft,
   Trash2,
   Copy,
   Download,
@@ -43,11 +43,9 @@ import {
   Eye,
   EyeOff,
   Layers,
-  Activity,
   FileCode,
   Regex,
   Gauge,
-  History,
   Plus,
   Minus
 } from 'lucide-react';

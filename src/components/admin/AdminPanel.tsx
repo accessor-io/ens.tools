@@ -6,7 +6,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription } from '../ui/alert';
 import {
@@ -18,17 +17,8 @@ import {
   TableRow,
 } from '../ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog';
-import {
   Shield,
   Lock,
-  Users,
-  FileText,
   TrendingUp,
   AlertCircle,
   CheckCircle2,
@@ -37,10 +27,10 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useWeb3 } from '../../lib/services';
-import { signMessage } from 'viem';
 import { toast } from 'sonner';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// @ts-expect-error - Vite's import.meta.env
+const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001/api';
 
 interface AdminUser {
   id: string;
@@ -122,6 +112,7 @@ export function AdminPanel() {
 
       // Request signature
       const signature = await walletClient.signMessage({
+        account: address as `0x${string}`,
         message,
       });
 
