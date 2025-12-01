@@ -96,6 +96,14 @@
             "organize:fix": "node scripts/organize-project.js --fix-errors",
             "refactor:organize": "node scripts/refactor-organize.js",
             "refactor:check": "node scripts/refactor-organize.js --check-only",
-            "refactor:dry-run": "node scripts/refactor-organize.js --dry-run"
+            "refactor:dry-run": "node scripts/refactor-organize.js --dry-run",
+            "build:continuous": "node scripts/continuous-build.js",
+            "build:continuous:all": "node scripts/continuous-build.js 'npm run build:all'",
+            "build:production": "node scripts/production-build.js",
+            "build:production:continuous": "node scripts/continuous-production-build.js",
+            "orchestrate": "node scripts/cursor-orchestrate.js",
+            "dev:orchestrate": "node scripts/cursor-orchestrate.js",
+            "ai:orchestrate": "node scripts/ai-orchestrate.js",
+            "ai:build": "node scripts/ai-orchestrate.js"
       }
 }
