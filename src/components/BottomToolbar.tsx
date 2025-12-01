@@ -178,17 +178,25 @@ export function BottomToolbar({
     },
   ];
 
-  const allItems = [
-    ...overviewItems,
-    ...domainItems,
-    ...securityItems,
-    ...registryItems,
-    ...workflowItems,
-    ...toolsItems,
-    ...referenceItems,
-    ...adminItems,
-    ...systemItems,
-  ].filter(item => isViewEnabled(item.id));
+  // Define sections with their items for proper separator logic
+  const sections = [
+    { id: 'overview', items: overviewItems },
+    { id: 'domain', items: domainItems },
+    { id: 'security', items: securityItems },
+    { id: 'registry', items: registryItems },
+    { id: 'workflow', items: workflowItems },
+    { id: 'tools', items: toolsItems },
+    { id: 'reference', items: referenceItems },
+    { id: 'admin', items: adminItems },
+    { id: 'system', items: systemItems },
+  ];
+
+  // Build flat list with section info for separator logic
+  const allItemsWithSection = sections.flatMap(section => 
+    section.items
+      .filter(item => isViewEnabled(item.id))
+      .map((item, idx) => ({ ...item, section: section.id, isFirstInSection: idx === 0 }))
+  );
 
   return (
     <div className="fixed left-0 top-0 bottom-0 z-50 flex items-center justify-center pl-3">
@@ -198,20 +206,13 @@ export function BottomToolbar({
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-cyan-500 via-violet-500 to-pink-500 rounded-full opacity-60" />
           
           <div className="relative flex flex-col items-center justify-between overflow-y-auto scrollbar-hide flex-1 py-5 gap-0.5">
-            {allItems.map((item, index) => {
+            {allItemsWithSection.map((item, index) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
               
-              // Add separator before certain sections
-              const showSeparator = 
-                (item.id === 'domains' && index > 0) ||
-                (item.id === 'security' && index > 0) ||
-                (item.id === 'contracts' && index > 0) ||
-                (item.id === 'marketplace' && index > 0) ||
-                (item.id === 'naming' && index > 0) ||
-                (item.id === 'protocol' && index > 0) ||
-                (item.id === 'fee-management' && index > 0) ||
-                (item.id === 'settings' && index > 0);
+              // Show separator before first item of a new section (but not the very first item)
+              const prevItem = allItemsWithSection[index - 1];
+              const showSeparator = index > 0 && item.isFirstInSection && prevItem?.section !== item.section;
               
               return (
                 <div key={item.id} className="flex flex-col items-center">

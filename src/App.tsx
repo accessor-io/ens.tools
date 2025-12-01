@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy, useCallback } from 'react';
+import { useState, Suspense, useCallback, useEffect, useRef } from 'react';
 import { BottomToolbar } from './components/BottomToolbar';
 import { Dashboard } from './components/Dashboard';
 import { DomainManagement, NameBrowser } from './components/domains';
@@ -24,8 +24,7 @@ import { JazzCupBackground } from './components/JazzCupBackground';
 import { TransactionStatusPanel } from './components/TransactionStatusPanel';
 import { ENSConsole } from './components/devtools/ENSConsole';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Network, Terminal, Layout, Loader2 } from 'lucide-react';
-import { Skeleton } from './components/ui/skeleton';
+import { Network, Terminal, Loader2 } from 'lucide-react';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './components/ui/tooltip';
 import { buildConfig, isViewEnabled } from './config/feature-flags.config';
@@ -33,24 +32,36 @@ import { buildConfig, isViewEnabled } from './config/feature-flags.config';
 // =============================================================================
 // BUILD CONFIGURATION: Set which view mode to use
 // =============================================================================
-// Configuration is now managed in build.config.ts
-// Set buildConfig.consoleMode to true for Console Mode (developer tools, logging, debugging)
-// Set buildConfig.consoleMode to false for App Mode (full ENS marketplace and management UI)
+// Configuration is managed in src/config/feature-flags.config.ts
+// Set consoleMode to true for Console Mode (developer tools, logging, debugging)
+// Set consoleMode to false for App Mode (full ENS marketplace and management UI)
 const ENABLE_CONSOLE_MODE = buildConfig.consoleMode;
 // =============================================================================
 
 export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel' | 'guided-workflow';
 
+// All possible views in order of priority for fallback
+const ALL_VIEWS: ViewType[] = ['dashboard', 'domains', 'name-browser', 'metadata', 'security', 'governance', 'audit', 'naming', 'protocol', 'best-practices', 'settings', 'dao-registry', 'integrations', 'metadata-tools', 'contracts', 'contract-registration', 'analytics', 'preflight-checker', 'marketplace', 'dnssec', 'fee-management', 'master-database', 'admin-panel', 'guided-workflow'];
+
+// Get the default view - stable function that only depends on feature flags
+function getDefaultView(): ViewType {
+  if (isViewEnabled('dashboard')) return 'dashboard';
+  return ALL_VIEWS.find(view => isViewEnabled(view)) || 'dashboard';
+}
+
 export default function App() {
-  // Ensure dashboard is always enabled, fallback to first enabled view
-  const getDefaultView = (): ViewType => {
-    if (isViewEnabled('dashboard')) return 'dashboard';
-    // Find first enabled view
-    const allViews: ViewType[] = ['dashboard', 'domains', 'name-browser', 'metadata', 'security', 'governance', 'audit', 'naming', 'protocol', 'best-practices', 'settings', 'dao-registry', 'integrations', 'metadata-tools', 'contracts', 'contract-registration', 'analytics', 'preflight-checker', 'marketplace', 'dnssec', 'fee-management', 'master-database', 'admin-panel', 'guided-workflow'];
-    return allViews.find(view => isViewEnabled(view)) || 'dashboard';
-  };
-  
-  const [currentView, setCurrentView] = useState<ViewType>(getDefaultView());
+  const [currentView, setCurrentView] = useState<ViewType>(getDefaultView);
+
+  // Redirect to valid view if current view becomes disabled
+  const hasRedirected = useRef(false);
+  useEffect(() => {
+    if (!isViewEnabled(currentView) && !hasRedirected.current) {
+      hasRedirected.current = true;
+      setCurrentView(getDefaultView());
+    } else {
+      hasRedirected.current = false;
+    }
+  }, [currentView]);
 
   // Keyboard shortcuts (only active in app mode)
   const handleViewChange = useCallback((view: ViewType) => {
@@ -59,11 +70,7 @@ export default function App() {
       setCurrentView(view);
     } else {
       // Redirect to dashboard if trying to access disabled view
-      if (isViewEnabled('dashboard')) {
-        setCurrentView('dashboard');
-      } else {
-        setCurrentView(getDefaultView());
-      }
+      setCurrentView(getDefaultView());
     }
   }, []);
 
@@ -79,15 +86,11 @@ export default function App() {
       </div>
     );
 
-    // Check if current view is enabled, if not redirect to dashboard
+    // If current view is disabled, show fallback while useEffect redirects
     if (!isViewEnabled(currentView)) {
-      const defaultView = getDefaultView();
-      if (currentView !== defaultView) {
-        setCurrentView(defaultView);
-      }
       return (
         <Suspense fallback={<LoadingFallback />}>
-          {isViewEnabled('dashboard') ? <Dashboard /> : <div>No views enabled. Please check build.config.ts</div>}
+          {isViewEnabled('dashboard') ? <Dashboard /> : <div>No views enabled. Please check feature-flags.config.ts</div>}
         </Suspense>
       );
     }
