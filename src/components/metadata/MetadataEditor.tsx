@@ -26,6 +26,8 @@ import { useWeb3 } from '../../lib/services';
 import { useTransactionManager } from '../../lib/hooks/useTransactionManager';
 import { fetchENSNames, getAllTextRecords, resolveENSName, type ENSDomain } from '../../lib/ens/ens-utils';
 import { setTextRecord, setAddressRecord } from '../../lib/ens/ens-write-operations';
+import { useStateRecollection } from '../../lib/adaptive-rendering/state-recollection';
+import { AIMetadataGenerator } from '../ai/AIMetadataGenerator';
 
 interface TextRecord {
   key: string;
@@ -46,6 +48,19 @@ export function MetadataEditor() {
   const [bulkRecords, setBulkRecords] = useState<Record<string, TextRecord[]>>({});
   const [bulkAddresses, setBulkAddresses] = useState<Record<string, string>>({});
   const [selectedBulkDomains, setSelectedBulkDomains] = useState<Set<string>>(new Set());
+  
+  const { stagedEdits, stageEdit, clearStagedEdits, recallState, requiresRecall } = useStateRecollection(
+    'metadata-editor',
+    'metadata-editing',
+    {
+      requiresTransactionStaging: true,
+      autoDormantOnContextSwitch: true,
+      persistenceType: 'session',
+    }
+  );
+  
+  const [previousTextRecords, setPreviousTextRecords] = useState<TextRecord[]>([]);
+  const [previousBulkRecords, setPreviousBulkRecords] = useState<Record<string, TextRecord[]>>({});
 
   // Load available domains
   useEffect(() => {
@@ -314,6 +329,7 @@ export function MetadataEditor() {
         description: `Save metadata for ${domainName} (${operationCount} record${operationCount !== 1 ? 's' : ''})`,
         onSuccess: async () => {
           await loadDomainMetadata(domainName);
+          clearStagedEdits('metadata-editor', stagedEdits.filter(e => e.domainName === domainName).map(e => e.id));
         },
       });
     } catch (error) {
@@ -364,6 +380,11 @@ export function MetadataEditor() {
         description: `Bulk save metadata (${totalOps} record${totalOps !== 1 ? 's' : ''} across ${selectedDomains.length} domain${selectedDomains.length !== 1 ? 's' : ''})`,
         onSuccess: async () => {
           await loadBulkMetadata();
+          const domainNames = selectedDomains.map(d => d.name);
+          const editIds = stagedEdits.filter(e => domainNames.includes(e.domainName)).map(e => e.id);
+          if (editIds.length > 0) {
+            clearStagedEdits(editIds);
+          }
         },
       });
     } catch (error) {
@@ -460,7 +481,14 @@ export function MetadataEditor() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-slate-900">Metadata Editor</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-slate-900">Metadata Editor</h2>
+            {stagedEdits.length > 0 && (
+              <Badge variant="secondary" className="animate-pulse">
+                {stagedEdits.length} staged
+              </Badge>
+            )}
+          </div>
           <p className="text-slate-600">
             {isBulkMode 
               ? `Editing ${selectedDomains.length} domain${selectedDomains.length !== 1 ? 's' : ''}`
@@ -584,11 +612,12 @@ export function MetadataEditor() {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="text">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="addresses">Addresses</TabsTrigger>
                   <TabsTrigger value="text">Text Records</TabsTrigger>
                   <TabsTrigger value="content">Content Hash</TabsTrigger>
                   <TabsTrigger value="abi">ABI</TabsTrigger>
+                  <TabsTrigger value="ai">AI Assistant</TabsTrigger>
                 </TabsList>
 
                 {/* Text Records */}
@@ -653,9 +682,9 @@ export function MetadataEditor() {
                       })}
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {textRecords.map((record, index) => (
-                        <div key={index} className="grid gap-3 md:grid-cols-[200px_1fr_auto] items-start p-3 border rounded-lg bg-white">
+                        <div key={index} className="grid gap-4 md:grid-cols-[200px_1fr_auto] items-start p-4 border rounded-lg bg-white hover:border-pink-200 hover:shadow-sm transition-all">
                           <Input
                             placeholder="Key (e.g., url)"
                             value={record.key}
@@ -848,6 +877,9 @@ export function MetadataEditor() {
                   <div className="text-center py-8 text-slate-500">
                     ABI editing coming soon
                   </div>
+                </TabsContent>
+                <TabsContent value="ai" className="space-y-4 mt-6">
+                  <AIMetadataGenerator domain={selectedDomain?.name} />
                 </TabsContent>
               </Tabs>
             </CardContent>

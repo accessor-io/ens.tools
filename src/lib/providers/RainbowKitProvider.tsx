@@ -21,7 +21,7 @@ if (!projectId && typeof window !== 'undefined') {
 // RainbowKit requires a project ID, but it can be a placeholder for injected wallets only
 // For production, you should set a real project ID from WalletConnect Cloud
 const config = getDefaultConfig({
-  appName: 'ens.tools',
+  appName: 'config',
   projectId: projectId || '00000000000000000000000000000000',
   chains: [mainnet, sepolia, optimism, base, arbitrum, polygon],
   ssr: false,

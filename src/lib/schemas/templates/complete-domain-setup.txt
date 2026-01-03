@@ -33,3 +33,8 @@ setText: [{{domain}}]@domain@[com.discord]@key = [{{discord}}]@value
 
 
 
+
+
+
+
+

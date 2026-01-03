@@ -225,6 +225,8 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
   const [consoleHeight, setConsoleHeight] = useState<number | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const resizeStartPos = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+  const performanceIdleCallbackRef = useRef<number | null>(null);
+  const performanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Resize handlers
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
@@ -317,7 +319,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
       
       // Detect ENS operations and map to categories
       let operation: string | undefined;
-      let category: ConsoleLog['ensContext']['category'];
+      let category: NonNullable<ConsoleLog['ensContext']>['category'];
       
       const msgLower = message.toLowerCase();
       
@@ -484,7 +486,8 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
       const [resolvedAddress, resolver, expiry, records] = await Promise.all([
         publicClient.getEnsAddress({ name: normalizedName }).catch(() => null),
         publicClient.getEnsResolver({ name: normalizedName }).catch(() => null),
-        publicClient.getEnsExpiry({ name: normalizedName }).catch(() => null),
+        // @ts-ignore - getEnsExpiry may not be available on all clients
+        (publicClient as any).getEnsExpiry?.({ name: normalizedName }).catch(() => null) ?? null,
         getAllTextRecords(publicClient, normalizedName).catch(() => []),
       ]);
       
@@ -609,7 +612,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
 
     window.fetch = async (...args: Parameters<typeof fetch>) => {
       const [resource, init] = args;
-      const url = typeof resource === 'string' ? resource : resource.url;
+      const url = typeof resource === 'string' ? resource : (resource instanceof Request ? resource.url : resource.toString());
       const method = init?.method || 'GET';
       const startTime = Date.now();
       const requestId = `req-${Date.now()}-${Math.random()}`;
@@ -673,51 +676,112 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
 
   // Performance profiling
   useEffect(() => {
-    const profiles = new Map<string, PerformanceProfile>();
-    
-    ensOperations.forEach(op => {
-      if (op.duration === undefined) return;
-      
-      const key = op.operation;
-      const existing = profiles.get(key) || {
-        operation: key,
-        count: 0,
-        totalDuration: 0,
-        minDuration: Infinity,
-        maxDuration: 0,
-        avgDuration: 0,
-        p50: 0,
-        p95: 0,
-        p99: 0,
-        errors: 0,
-        durations: [] as number[],
+    if (performanceTimeoutRef.current) {
+      clearTimeout(performanceTimeoutRef.current);
+    }
+    if (performanceIdleCallbackRef.current !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+      window.cancelIdleCallback(performanceIdleCallbackRef.current);
+    }
+
+    performanceTimeoutRef.current = setTimeout(() => {
+      const processProfiles = () => {
+        const MAX_OPERATIONS = 2000;
+        const recentOps = ensOperations
+          .slice(-MAX_OPERATIONS)
+          .filter(op => op.duration !== undefined);
+        
+        if (recentOps.length === 0) {
+          setPerformanceProfiles(new Map());
+          return;
+        }
+
+        const profiles = new Map<string, PerformanceProfile & { durations: number[] }>();
+        
+        recentOps.forEach(op => {
+          if (op.duration === undefined) return;
+          
+          const key = op.operation;
+          const existing = profiles.get(key) || {
+            operation: key,
+            count: 0,
+            totalDuration: 0,
+            minDuration: Infinity,
+            maxDuration: 0,
+            avgDuration: 0,
+            p50: 0,
+            p95: 0,
+            p99: 0,
+            errors: 0,
+            durations: [] as number[],
+          };
+
+          existing.count++;
+          existing.totalDuration += op.duration;
+          existing.minDuration = Math.min(existing.minDuration, op.duration);
+          existing.maxDuration = Math.max(existing.maxDuration, op.duration);
+          if (op.error) existing.errors++;
+          existing.durations.push(op.duration);
+
+          profiles.set(key, existing);
+        });
+
+        const calculatePercentiles = (durations: number[]): { p50: number; p95: number; p99: number } => {
+          if (durations.length === 0) {
+            return { p50: 0, p95: 0, p99: 0 };
+          }
+
+          if (durations.length > 500) {
+            const sorted = [...durations].sort((a, b) => a - b);
+            return {
+              p50: sorted[Math.floor(sorted.length * 0.5)] || 0,
+              p95: sorted[Math.floor(sorted.length * 0.95)] || 0,
+              p99: sorted[Math.floor(sorted.length * 0.99)] || 0,
+            };
+          } else {
+            const sorted = [...durations].sort((a, b) => a - b);
+            return {
+              p50: sorted[Math.floor(sorted.length * 0.5)] || 0,
+              p95: sorted[Math.floor(sorted.length * 0.95)] || 0,
+              p99: sorted[Math.floor(sorted.length * 0.99)] || 0,
+            };
+          }
+        };
+
+        const finalizeProfiles = () => {
+          const finalProfiles = new Map<string, PerformanceProfile>();
+          
+          profiles.forEach((profile) => {
+            const { durations, ...rest } = profile;
+            const percentiles = calculatePercentiles(durations);
+            
+            finalProfiles.set(profile.operation, {
+              ...rest,
+              avgDuration: profile.totalDuration / profile.count,
+              ...percentiles,
+            });
+          });
+
+          setPerformanceProfiles(finalProfiles);
+        };
+
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          performanceIdleCallbackRef.current = window.requestIdleCallback(finalizeProfiles, { timeout: 50 });
+        } else {
+          setTimeout(finalizeProfiles, 0);
+        }
       };
 
-      existing.count++;
-      existing.totalDuration += op.duration;
-      existing.minDuration = Math.min(existing.minDuration, op.duration);
-      existing.maxDuration = Math.max(existing.maxDuration, op.duration);
-      if (op.error) existing.errors++;
-      if (!(existing as any).durations) (existing as any).durations = [];
-      (existing as any).durations.push(op.duration);
+      processProfiles();
+    }, 300);
 
-      profiles.set(key, existing);
-    });
-
-    // Calculate percentiles
-    profiles.forEach((profile, key) => {
-      const durations = (profile as any).durations || [];
-      if (durations.length > 0) {
-        const sorted = [...durations].sort((a, b) => a - b);
-        profile.avgDuration = profile.totalDuration / profile.count;
-        profile.p50 = sorted[Math.floor(sorted.length * 0.5)] || 0;
-        profile.p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
-        profile.p99 = sorted[Math.floor(sorted.length * 0.99)] || 0;
-        delete (profile as any).durations;
+    return () => {
+      if (performanceTimeoutRef.current) {
+        clearTimeout(performanceTimeoutRef.current);
       }
-    });
-
-    setPerformanceProfiles(profiles);
+      if (performanceIdleCallbackRef.current !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(performanceIdleCallbackRef.current);
+      }
+    };
   }, [ensOperations]);
 
   // Domain watchlist monitoring
@@ -1332,7 +1396,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
         <div className="writing-vertical-rl text-xs transform rotate-180 whitespace-nowrap py-2" style={{ color: consoleColors.text }}>
           <span>ENS</span>
         </div>
-        <div className="flex flex-col items-center gap-1 text-[10px]" style={{ color: consoleColors.text }}>
+        <div className="flex flex-col items-center gap-1 text-2xs" style={{ color: consoleColors.text }}>
           <span>{consoleLogs.length}</span>
           <span>{ensOperations.length}</span>
         </div>
@@ -1428,7 +1492,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
               <Terminal className="h-3 w-3 mr-1.5" />
               Console
               {consoleLogs.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: consoleColors.headerBackground }}>
+                <span className="ml-1.5 px-1.5 py-0.5 rounded text-2xs" style={{ backgroundColor: consoleColors.headerBackground }}>
                   {consoleLogs.length}
                 </span>
               )}
@@ -1444,7 +1508,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
               <Zap className="h-3 w-3 mr-1.5" />
               ENS Operations
               {ensOperations.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: consoleColors.headerBackground }}>
+                <span className="ml-1.5 px-1.5 py-0.5 rounded text-2xs" style={{ backgroundColor: consoleColors.headerBackground }}>
                   {ensOperations.length}
                 </span>
               )}
@@ -1493,7 +1557,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
               <Network className="h-3 w-3 mr-1.5" />
               Network
               {networkRequests.filter(r => r.isENSRelated).length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: consoleColors.headerBackground }}>
+                <span className="ml-1.5 px-1.5 py-0.5 rounded text-2xs" style={{ backgroundColor: consoleColors.headerBackground }}>
                   {networkRequests.filter(r => r.isENSRelated).length}
                 </span>
               )}
@@ -1673,7 +1737,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                           const filter = savedFilters.find(f => f.name === e.target.value);
                           if (filter) loadFilter(filter);
                         }}
-                        className="h-6 text-[10px] rounded px-1"
+                        className="h-6 text-2xs rounded px-1"
                         style={{
                           backgroundColor: consoleColors.inputBackground,
                           borderColor: consoleColors.inputBorder,
@@ -1802,7 +1866,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                           onCopy={(text) => navigator.clipboard.writeText(text)}
                         />
                         {log.ensContext && (
-                          <div className="ml-16 mb-1 flex items-center gap-2 text-[10px]" style={{ color: consoleColors.text }}>
+                          <div className="ml-16 mb-1 flex items-center gap-2 text-2xs" style={{ color: consoleColors.text }}>
                             {log.ensContext.domain && (
                               <span className="flex items-center gap-1">
                                 <Globe className="h-2.5 w-2.5" />
@@ -2027,16 +2091,16 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                       <div className="text-xs font-semibold mb-1" style={{ color: consoleColors.text }}>
                                         {op.label}
                                       </div>
-                                      <div className="text-[10px] mb-1" style={{ color: consoleColors.textSecondary }}>
+                                      <div className="text-2xs mb-1" style={{ color: consoleColors.textSecondary }}>
                                         {op.description}
                                       </div>
-                                      <div className="text-[10px] font-mono mt-1" style={{ color: consoleColors.textSecondary }}>
+                                      <div className="text-2xs font-mono mt-1" style={{ color: consoleColors.textSecondary }}>
                                         {op.examples[0] || `${op.action}: [example.eth]@domain`}
                                       </div>
                                     </div>
                                     <Badge
                                       variant="outline"
-                                      className="text-[10px] px-1.5 py-0.5"
+                                      className="text-2xs px-1.5 py-0.5"
                                       style={{
                                         backgroundColor: consoleColors.inputBackground,
                                         color: consoleColors.textSecondary,
@@ -2060,7 +2124,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
               <ScrollArea className="flex-1">
                 <div className="font-mono text-xs">
                   <div 
-                    className="grid grid-cols-12 gap-2 px-2 py-1.5 border-b text-[10px] font-semibold"
+                    className="grid grid-cols-12 gap-2 px-2 py-1.5 border-b text-2xs font-semibold"
                     style={{
                       backgroundColor: consoleColors.inputBackground,
                       borderColor: consoleColors.border,
@@ -2097,12 +2161,12 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                           }}
                           onClick={() => setSelectedOperation(selectedOperation?.id === op.id ? null : op)}
                         >
-                          <div className="col-span-1.5 text-[10px]" style={{ color: consoleColors.textSecondary }}>
+                          <div className="col-span-1.5 text-2xs" style={{ color: consoleColors.textSecondary }}>
                             {op.timestamp.toLocaleTimeString()}
                           </div>
                           <div className="col-span-1.5">
                             <span 
-                              className={`px-1.5 py-0.5 rounded text-[10px] ${
+                              className={`px-1.5 py-0.5 rounded text-2xs ${
                                 op.type === 'resolve' ? 'bg-blue-950/30 text-blue-400' :
                                 op.type === 'query' ? 'bg-purple-950/30 text-purple-400' :
                                 op.type === 'transaction' ? 'bg-green-950/30 text-green-400' :
@@ -2126,23 +2190,23 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                 <span className="truncate">{op.domain}</span>
                               </span>
                             ) : op.address ? (
-                              <span className="font-mono text-[10px] truncate">
+                              <span className="font-mono text-2xs truncate">
                                 {formatAddress(op.address)}
                               </span>
                             ) : (
                               <span style={{ color: consoleColors.textSecondary }}>-</span>
                             )}
                           </div>
-                          <div className="col-span-1.5 text-[10px]" style={{ color: consoleColors.textSecondary }}>
+                          <div className="col-span-1.5 text-2xs" style={{ color: consoleColors.textSecondary }}>
                             {op.duration !== undefined ? `${op.duration}ms` : '-'}
                           </div>
                           <div className="col-span-2">
                             {op.error ? (
-                              <span className="text-red-400 text-[10px]">Error</span>
+                              <span className="text-red-400 text-2xs">Error</span>
                             ) : op.result ? (
-                              <span className="text-green-400 text-[10px]">Success</span>
+                              <span className="text-green-400 text-2xs">Success</span>
                             ) : (
-                              <span className="text-[10px]" style={{ color: consoleColors.textSecondary }}>Pending</span>
+                              <span className="text-2xs" style={{ color: consoleColors.textSecondary }}>Pending</span>
                             )}
                           </div>
                         </div>
@@ -2161,7 +2225,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 px-2 text-[10px]"
+                                    className="h-6 px-2 text-2xs"
                                     onClick={() => toggleBookmark(op.id)}
                                     title="Bookmark operation"
                                   >
@@ -2174,7 +2238,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 px-2 text-[10px]"
+                                    className="h-6 px-2 text-2xs"
                                     onClick={() => toggleComparison(op.id)}
                                     title="Compare operations"
                                   >
@@ -2188,7 +2252,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-6 px-2 text-[10px]"
+                                      className="h-6 px-2 text-2xs"
                                       onClick={() => replayOperation(op)}
                                       title="Replay operation"
                                     >
@@ -2206,14 +2270,14 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                               {op.error && (
                                 <div>
                                   <span style={{ color: consoleColors.textSecondary }}>Error:</span>
-                                  <div className="text-red-400 mt-1 font-mono text-[10px] break-all">{op.error}</div>
+                                  <div className="text-red-400 mt-1 font-mono text-2xs break-all">{op.error}</div>
                                 </div>
                               )}
                               {op.result && (
                                 <div>
                                   <span style={{ color: consoleColors.textSecondary }}>Result:</span>
                                   <pre 
-                                    className="mt-1 text-[10px] overflow-auto max-h-32 p-2 rounded"
+                                    className="mt-1 text-2xs overflow-auto max-h-32 p-2 rounded"
                                     style={{
                                       color: consoleColors.text,
                                       backgroundColor: consoleColors.inputBackground,
@@ -2227,7 +2291,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                 <div>
                                   <span style={{ color: consoleColors.textSecondary }}>Details:</span>
                                   <pre 
-                                    className="mt-1 text-[10px] overflow-auto max-h-32 p-2 rounded"
+                                    className="mt-1 text-2xs overflow-auto max-h-32 p-2 rounded"
                                     style={{
                                       color: consoleColors.text,
                                       backgroundColor: consoleColors.inputBackground,
@@ -2310,7 +2374,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                 <NetworkIcon className="h-3 w-3" style={{ color: consoleColors.textSecondary }} />
                                 <span style={{ color: consoleColors.text }}>{getNetworkName(chainId)}</span>
                                 {chainId && (
-                                  <span className="text-[10px]" style={{ color: consoleColors.textSecondary }}>({chainId})</span>
+                                  <span className="text-2xs" style={{ color: consoleColors.textSecondary }}>({chainId})</span>
                                 )}
                               </div>
                             </div>
@@ -2321,7 +2385,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                             className="pt-2 border-t"
                             style={{ borderColor: consoleColors.border }}
                           >
-                            <p className="text-[10px]" style={{ color: consoleColors.textSecondary }}>
+                            <p className="text-2xs" style={{ color: consoleColors.textSecondary }}>
                               Connect a wallet to interact with ENS domains
                             </p>
                           </div>
@@ -2473,7 +2537,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                         {domainDetails.resolvedAddress && (
                           <div className="flex items-start justify-between">
                             <span style={{ color: consoleColors.textSecondary }}>Resolved Address:</span>
-                            <span className="font-mono text-[10px] ml-4" style={{ color: consoleColors.text }}>
+                            <span className="font-mono text-2xs ml-4" style={{ color: consoleColors.text }}>
                               {formatAddress(domainDetails.resolvedAddress)}
                             </span>
                           </div>
@@ -2481,7 +2545,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                         {domainDetails.resolver && (
                           <div className="flex items-start justify-between">
                             <span style={{ color: consoleColors.textSecondary }}>Resolver:</span>
-                            <span className="font-mono text-[10px] ml-4" style={{ color: consoleColors.text }}>
+                            <span className="font-mono text-2xs ml-4" style={{ color: consoleColors.text }}>
                               {formatAddress(domainDetails.resolver)}
                             </span>
                           </div>
@@ -2489,7 +2553,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                         {domainDetails.expiry && (
                           <div className="flex items-start justify-between">
                             <span style={{ color: consoleColors.textSecondary }}>Expiry:</span>
-                            <span className="text-[10px] ml-4" style={{ color: consoleColors.text }}>
+                            <span className="text-2xs ml-4" style={{ color: consoleColors.text }}>
                               {new Date(Number(domainDetails.expiry) * 1000).toLocaleString()}
                             </span>
                           </div>
@@ -2497,7 +2561,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                         {domainDetails.reverseName && (
                           <div className="flex items-start justify-between">
                             <span style={{ color: consoleColors.textSecondary }}>Reverse Name:</span>
-                            <span className="text-[10px] ml-4" style={{ color: consoleColors.text }}>
+                            <span className="text-2xs ml-4" style={{ color: consoleColors.text }}>
                               {domainDetails.reverseName}
                             </span>
                           </div>
@@ -2505,7 +2569,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                         {domainDetails.textRecordsCount !== undefined && (
                           <div className="flex items-start justify-between">
                             <span style={{ color: consoleColors.textSecondary }}>Text Records:</span>
-                            <span className="text-[10px] ml-4" style={{ color: consoleColors.text }}>
+                            <span className="text-2xs ml-4" style={{ color: consoleColors.text }}>
                               {domainDetails.textRecordsCount}
                             </span>
                           </div>
@@ -2515,7 +2579,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                           style={{ borderColor: consoleColors.border }}
                         >
                           <span style={{ color: consoleColors.textSecondary }}>Inspected At:</span>
-                          <span className="text-[10px] ml-4" style={{ color: consoleColors.textSecondary }}>
+                          <span className="text-2xs ml-4" style={{ color: consoleColors.textSecondary }}>
                             {domainDetails.inspectedAt.toLocaleTimeString()}
                           </span>
                         </div>
@@ -2543,8 +2607,8 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                             className="flex items-start justify-between py-1 border-b last:border-0"
                             style={{ borderColor: `${consoleColors.border}80` }}
                           >
-                            <span className="font-mono text-[10px]" style={{ color: consoleColors.textSecondary }}>{key}:</span>
-                            <span className="text-[10px] ml-4 break-all text-right max-w-[70%]" style={{ color: consoleColors.text }}>
+                            <span className="font-mono text-2xs" style={{ color: consoleColors.textSecondary }}>{key}:</span>
+                            <span className="text-2xs ml-4 break-all text-right max-w-[70%]" style={{ color: consoleColors.text }}>
                               {value}
                             </span>
                           </div>
@@ -2576,7 +2640,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                 <span className="font-semibold" style={{ color: consoleColors.text }}>{watched.domain}</span>
                                 <Badge
                                   variant="outline"
-                                  className={`text-[10px] ${
+                                  className={`text-2xs ${
                                     watched.isActive
                                       ? 'border-green-500/30 text-green-400'
                                       : ''
@@ -2589,12 +2653,12 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                   {watched.isActive ? 'Active' : 'Paused'}
                                 </Badge>
                                 {watched.changeCount > 0 && (
-                                  <Badge variant="outline" className="text-[10px] border-yellow-500/30 text-yellow-400">
+                                  <Badge variant="outline" className="text-2xs border-yellow-500/30 text-yellow-400">
                                     {watched.changeCount} changes
                                   </Badge>
                                 )}
                               </div>
-                              <div className="text-[10px]" style={{ color: consoleColors.textSecondary }}>
+                              <div className="text-2xs" style={{ color: consoleColors.textSecondary }}>
                                 Last checked: {watched.lastChecked.toLocaleTimeString()} | 
                                 Interval: {watched.checkInterval}ms
                               </div>
@@ -2795,7 +2859,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                                 <div>Avg Duration: <span style={{ color: consoleColors.text }}>{Math.round(avgDuration)}ms</span></div>
                               )}
                             </div>
-                            <div className="text-[10px] mt-2" style={{ color: consoleColors.textSecondary }}>
+                            <div className="text-2xs mt-2" style={{ color: consoleColors.textSecondary }}>
                               Last: {domainGroup.operations[domainGroup.operations.length - 1]?.timestamp.toLocaleTimeString()}
                             </div>
                           </div>
@@ -2942,7 +3006,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                           <div className="flex items-center gap-2">
                             <Badge 
                               variant="outline"
-                              className={`text-[10px] ${
+                              className={`text-2xs ${
                                 type === 'resolve' ? 'border-blue-500/30 text-blue-400' :
                                 type === 'query' ? 'border-purple-500/30 text-purple-400' :
                                 type === 'transaction' ? 'border-green-500/30 text-green-400' :
@@ -2997,10 +3061,10 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                       <div className="space-y-2">
                         {errorPatterns.map((pattern, idx) => (
                           <div key={idx} className="flex items-center justify-between text-xs">
-                            <span className="font-mono text-[10px] truncate flex-1" style={{ color: consoleColors.textSecondary }}>
+                            <span className="font-mono text-2xs truncate flex-1" style={{ color: consoleColors.textSecondary }}>
                               {pattern.pattern}
                             </span>
-                            <Badge variant="outline" className="text-[10px] border-red-500/30 text-red-400 ml-2">
+                            <Badge variant="outline" className="text-2xs border-red-500/30 text-red-400 ml-2">
                               {pattern.count}x
                             </Badge>
                           </div>
@@ -3069,14 +3133,14 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                         .map((op) => (
                           <div key={op.id} className="flex items-center justify-between text-xs">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] w-16" style={{ color: consoleColors.textSecondary }}>
+                              <span className="text-2xs w-16" style={{ color: consoleColors.textSecondary }}>
                                 {op.timestamp.toLocaleTimeString()}
                               </span>
                               <span style={{ color: consoleColors.text }}>{op.operation}</span>
                             </div>
                             <div className="flex items-center gap-3">
                               {op.duration !== undefined && (
-                                <span className="text-[10px] w-12 text-right" style={{ color: consoleColors.textSecondary }}>
+                                <span className="text-2xs w-12 text-right" style={{ color: consoleColors.textSecondary }}>
                                   {op.duration}ms
                                 </span>
                               )}
@@ -3130,7 +3194,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
               <ScrollArea className="flex-1">
                 <div className="font-mono text-xs">
                   <div 
-                    className="grid grid-cols-12 gap-2 px-2 py-1.5 border-b text-[10px] font-semibold"
+                    className="grid grid-cols-12 gap-2 px-2 py-1.5 border-b text-2xs font-semibold"
                     style={{
                       backgroundColor: consoleColors.inputBackground,
                       borderColor: consoleColors.border,
@@ -3161,13 +3225,13 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                           e.currentTarget.style.backgroundColor = 'transparent';
                         }}
                       >
-                        <div className="col-span-2 text-[10px]" style={{ color: consoleColors.textSecondary }}>
+                        <div className="col-span-2 text-2xs" style={{ color: consoleColors.textSecondary }}>
                           {req.timestamp.toLocaleTimeString()}
                         </div>
                         <div className="col-span-1">
                           <Badge 
                             variant="outline" 
-                            className="text-[10px]"
+                            className="text-2xs"
                             style={{
                               borderColor: consoleColors.border,
                               color: consoleColors.textSecondary,
@@ -3181,24 +3245,24 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                         </div>
                         <div className="col-span-1">
                           {req.status ? (
-                            <span className={`text-[10px] ${
+                            <span className={`text-2xs ${
                               req.status >= 200 && req.status < 300 ? 'text-green-400' :
                               req.status >= 400 ? 'text-red-400' : 'text-yellow-400'
                             }`}>
                               {req.status}
                             </span>
                           ) : req.error ? (
-                            <span className="text-[10px] text-red-400">Error</span>
+                            <span className="text-2xs text-red-400">Error</span>
                           ) : (
-                            <span className="text-[10px]" style={{ color: consoleColors.textSecondary }}>Pending</span>
+                            <span className="text-2xs" style={{ color: consoleColors.textSecondary }}>Pending</span>
                           )}
                         </div>
-                        <div className="col-span-2 text-[10px]" style={{ color: consoleColors.textSecondary }}>
+                        <div className="col-span-2 text-2xs" style={{ color: consoleColors.textSecondary }}>
                           {req.duration ? `${req.duration}ms` : '-'}
                         </div>
                         <div className="col-span-1">
                           {req.isENSRelated && (
-                            <Badge variant="outline" className="text-[10px] border-blue-500/30 text-blue-400">
+                            <Badge variant="outline" className="text-2xs border-blue-500/30 text-blue-400">
                               ENS
                             </Badge>
                           )}
@@ -3233,7 +3297,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                           <div className="font-semibold text-sm" style={{ color: consoleColors.text }}>{profile.operation}</div>
                           <Badge 
                             variant="outline" 
-                            className="text-[10px]"
+                            className="text-2xs"
                             style={{
                               borderColor: consoleColors.border,
                               color: consoleColors.textSecondary,
@@ -3575,7 +3639,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
           </div>
           <ScrollArea className="h-[calc(100%-40px)]">
             <div className="p-2 space-y-1">
-              <div className="px-2 py-1.5 text-[10px] font-semibold text-slate-200 uppercase">Navigation</div>
+              <div className="px-2 py-1.5 text-2xs font-semibold text-slate-200 uppercase">Navigation</div>
               {navigationCommands.map((cmd) => (
                 <button
                   key={cmd.id}
@@ -3591,7 +3655,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                   <ArrowRight className="h-3 w-3 text-slate-300" />
                 </button>
               ))}
-              <div className="px-2 py-1.5 text-[10px] font-semibold text-slate-200 uppercase mt-4">Wallet</div>
+              <div className="px-2 py-1.5 text-2xs font-semibold text-slate-200 uppercase mt-4">Wallet</div>
               {isConnected ? (
                 <button
                   onClick={() => {
@@ -3615,7 +3679,7 @@ export function ENSConsole({ isFullScreen = false }: ENSConsoleProps) {
                   <span className="flex-1 text-left">Connect Wallet</span>
                 </button>
               )}
-              <div className="px-2 py-1.5 text-[10px] font-semibold text-slate-200 uppercase mt-4">Console Actions</div>
+              <div className="px-2 py-1.5 text-2xs font-semibold text-slate-200 uppercase mt-4">Console Actions</div>
               {commands.filter(cmd => !cmd.id.includes('wallet')).map((cmd) => (
                 <button
                   key={cmd.id}

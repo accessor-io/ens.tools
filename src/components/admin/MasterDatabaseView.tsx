@@ -228,7 +228,7 @@ export function MasterDatabaseView() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
           <Database className="h-8 w-8" />
-          Master Database
+          master database
         </h1>
         <p className="text-slate-600 mt-2">
           View all account actions and audit log entries across all accounts
@@ -511,7 +511,7 @@ export function MasterDatabaseView() {
               <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-2">
                   <Label>Page Size:</Label>
-                  <Select value={pageSize.toString()} onValueChange={(value) => {
+                  <Select value={pageSize.toString()} onValueChange={(value: string) => {
                     setPageSize(parseInt(value));
                     setCurrentPage(0);
                   }}>

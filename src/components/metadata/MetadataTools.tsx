@@ -359,7 +359,7 @@ export function MetadataTools() {
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="" disabled>No domains available</SelectItem>
+                      <SelectItem value="none" disabled>No domains available</SelectItem>
                     )}
                   </SelectContent>
                 </Select>

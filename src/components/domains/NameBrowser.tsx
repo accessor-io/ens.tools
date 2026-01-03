@@ -8,17 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { nameBrowserService } from '../../lib/services/name-browser-service';
 import { nameWatchingService } from '../../lib/services/name-watching-service';
 import { premiumPriceService, PremiumPriceInfo } from '../../lib/services/premium-price-service';
-import { ENSDomain, fetchDomainHistory, DomainHistoryEvent, generateBasicHistory } from '../../lib/ens/ens-utils';
+import { ENSDomain, fetchDomainHistory, DomainHistoryEvent } from '../../lib/ens/ens-utils';
 import { useWeb3 } from '../../lib/services';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Textarea } from '../ui/textarea';
-import { Loader2, Search, Clock, AlertCircle, XCircle, Sparkles, ArrowUpDown, Filter, X, ArrowUp, ArrowDown, ArrowDownWideNarrow, Zap, Eye, Bell, FileText, Copy, Check, ChevronDown, ChevronRight, History, RefreshCw, Wallet, Globe, ArrowRightLeft, Plus, Lock, Users, Key, FileEdit, Settings as SettingsIcon, Coins, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { Loader2, Search, Clock, AlertCircle, XCircle, Sparkles, ArrowUpDown, Filter, X, ArrowUp, ArrowDown, ArrowDownWideNarrow, Zap, Eye, FileText, Copy, Check, ChevronDown, ChevronRight, History, RefreshCw, Wallet, Globe, ArrowRightLeft, Plus, Lock, Users, Key, FileEdit, Settings as SettingsIcon, Coins, ExternalLink, Link as LinkIcon, Download, Save, Bookmark, CheckSquare, Square } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Skeleton } from '../ui/skeleton';
 import { toast } from 'sonner';
 import { DomainProfile } from './DomainProfile';
+import { WalletConnectRainbow } from '../WalletConnectRainbow';
 
 type SortField = 'name' | 'expiryDate' | 'registrationDate' | 'length';
 type SortDirection = 'asc' | 'desc';
@@ -31,7 +33,8 @@ export function NameBrowser() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const pageSize = 100; // Increased from 50 to show more domains
+  const pageSize = 50; // Reduced from 1000 for better performance
+  const [totalPages, setTotalPages] = useState(1);
   
   // Sorting state
   const [sortField, setSortField] = useState<SortField>('registrationDate');
@@ -72,6 +75,14 @@ export function NameBrowser() {
   
   // Selected domain for profile view
   const [selectedDomain, setSelectedDomain] = useState<ENSDomain | null>(null);
+  
+  // Bulk selection
+  const [selectedDomains, setSelectedDomains] = useState<Set<string>>(new Set());
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  
+  // Saved filter presets
+  const [savedPresets, setSavedPresets] = useState<Array<{ name: string; filters: any }>>([]);
+  const [presetName, setPresetName] = useState('');
 
   const loadDomains = async (reset: boolean = false) => {
     setLoading(true);
@@ -97,6 +108,10 @@ export function NameBrowser() {
       }
 
       setHasMore(fetchedDomains.length === pageSize);
+      // Estimate total pages (we don't have exact count, so estimate based on results)
+      if (fetchedDomains.length > 0) {
+        setTotalPages(Math.ceil((skip + fetchedDomains.length) / pageSize) + 1);
+      }
     } catch (error) {
       console.error('Error loading domains:', error);
       toast.error('Failed to load domains. Please try again.');
@@ -239,12 +254,10 @@ export function NameBrowser() {
         const label = domain.labelName || domain.name.split('.')[0];
         
         if (patternFilter === 'numbers') {
-          // Check if label contains only numbers
           return /^[0-9]+$/.test(label);
         }
         
         if (patternFilter === 'emoji') {
-          // Check if label contains emoji
           const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
           return emojiRegex.test(label);
         }
@@ -253,8 +266,74 @@ export function NameBrowser() {
       });
     }
 
+    // Character type filter
+    if (characterType !== 'all') {
+      filtered = filtered.filter(domain => {
+        const label = domain.labelName || domain.name.split('.')[0];
+        
+        if (characterType === 'letters-only') {
+          return /^[a-zA-Z]+$/.test(label);
+        }
+        if (characterType === 'numbers-only') {
+          return /^[0-9]+$/.test(label);
+        }
+        if (characterType === 'mixed') {
+          return /[a-zA-Z]/.test(label) && /[0-9]/.test(label);
+        }
+        if (characterType === 'punctuation') {
+          return /[^a-zA-Z0-9]/.test(label);
+        }
+        
+        return true;
+      });
+    }
+
+    // Has address filter - check if domain has an address record set
+    if (hasAddress !== 'all') {
+      filtered = filtered.filter(domain => {
+        // For now, we'll check if resolver is set as a proxy for having records
+        // In a full implementation, you'd check the actual address record
+        const hasAddr = !!domain.resolver; // Simplified check
+        return hasAddress === 'yes' ? hasAddr : !hasAddr;
+      });
+    }
+
+    // Registration date range filter
+    if (registrationDateFrom || registrationDateTo) {
+      filtered = filtered.filter(domain => {
+        if (!domain.registrationDate) return false;
+        const regDate = domain.registrationDate.getTime();
+        if (registrationDateFrom) {
+          const fromDate = new Date(registrationDateFrom).getTime();
+          if (regDate < fromDate) return false;
+        }
+        if (registrationDateTo) {
+          const toDate = new Date(registrationDateTo).getTime() + 86400000; // Add 1 day to include the end date
+          if (regDate > toDate) return false;
+        }
+        return true;
+      });
+    }
+
+    // Expiry date range filter
+    if (expiryDateFrom || expiryDateTo) {
+      filtered = filtered.filter(domain => {
+        if (!domain.expiryDate) return false;
+        const expDate = domain.expiryDate.getTime();
+        if (expiryDateFrom) {
+          const fromDate = new Date(expiryDateFrom).getTime();
+          if (expDate < fromDate) return false;
+        }
+        if (expiryDateTo) {
+          const toDate = new Date(expiryDateTo).getTime() + 86400000;
+          if (expDate > toDate) return false;
+        }
+        return true;
+      });
+    }
+
     return filtered;
-  }, [domains, searchTerm, ownerFilter, minLength, maxLength, domainType, hasResolver, subdomainFilter, patternFilter]);
+  }, [domains, searchTerm, ownerFilter, minLength, maxLength, domainType, hasResolver, subdomainFilter, patternFilter, characterType, hasAddress, registrationDateFrom, registrationDateTo, expiryDateFrom, expiryDateTo]);
 
   // Sort domains
   const sortedDomains = useMemo(() => {
@@ -300,6 +379,111 @@ export function NameBrowser() {
   };
 
   const hasActiveFilters = searchTerm || ownerFilter || minLength || maxLength || domainType !== 'all' || hasResolver !== 'all' || hasAddress !== 'all' || subdomainFilter !== 'all' || patternFilter !== 'all' || characterType !== 'all' || registrationDateFrom || registrationDateTo || expiryDateFrom || expiryDateTo;
+
+  // Export functionality
+  const exportToCSV = () => {
+    const headers = ['Name', 'Owner', 'Expiry Date', 'Registration Date', 'Type', 'Status', 'Length'];
+    const rows = sortedDomains.map(domain => {
+      const labelLength = domain.labelName?.length || domain.name.split('.')[0].length;
+      const status = nameBrowserService.getExpirationStatus(domain.expiryDate);
+      return [
+        domain.name,
+        domain.owner,
+        formatDate(domain.expiryDate),
+        formatDate(domain.registrationDate),
+        domain.isWrapped ? 'Wrapped' : 'Direct',
+        status,
+        labelLength.toString()
+      ];
+    });
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ens-names-${activeTab}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Exported to CSV');
+  };
+
+  const exportToJSON = () => {
+    const data = sortedDomains.map(domain => ({
+      name: domain.name,
+      owner: domain.owner,
+      expiryDate: domain.expiryDate?.toISOString(),
+      registrationDate: domain.registrationDate?.toISOString(),
+      isWrapped: domain.isWrapped,
+      resolver: domain.resolver,
+      labelLength: domain.labelName?.length || domain.name.split('.')[0].length
+    }));
+    
+    const jsonContent = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ens-names-${activeTab}-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Exported to JSON');
+  };
+
+  // Bulk actions
+  const handleBulkWatch = () => {
+    selectedDomains.forEach(name => {
+      if (!watchedNames.has(name.toLowerCase())) {
+        nameWatchingService.addToWatchlist(name);
+      }
+    });
+    setWatchedNames(prev => {
+      const next = new Set(prev);
+      selectedDomains.forEach(name => next.add(name.toLowerCase()));
+      return next;
+    });
+    setSelectedDomains(new Set());
+    setIsSelectMode(false);
+    toast.success(`Added ${selectedDomains.size} names to watchlist`);
+  };
+
+  const handleBulkUnwatch = () => {
+    selectedDomains.forEach(name => {
+      nameWatchingService.removeFromWatchlist(name);
+    });
+    setWatchedNames(prev => {
+      const next = new Set(prev);
+      selectedDomains.forEach(name => next.delete(name.toLowerCase()));
+      return next;
+    });
+    setSelectedDomains(new Set());
+    setIsSelectMode(false);
+    toast.success(`Removed ${selectedDomains.size} names from watchlist`);
+  };
+
+  const toggleDomainSelection = (name: string) => {
+    setSelectedDomains(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedDomains(new Set(sortedDomains.map(d => d.name)));
+  };
+
+  const deselectAll = () => {
+    setSelectedDomains(new Set());
+  };
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -534,13 +718,6 @@ export function NameBrowser() {
             Expired
           </Badge>
         );
-      case 'premium':
-        return (
-          <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
-            <Sparkles className="w-4 h-4 mr-1" />
-            Premium
-          </Badge>
-        );
       default:
         return null;
     }
@@ -591,13 +768,18 @@ export function NameBrowser() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Name Browser</h1>
-        <p className="text-slate-600 mt-2">
-          Browse ENS names by expiration status, grace period, and premium categories
-        </p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">name browser</h1>
+        <div className="flex items-center justify-between gap-6 mb-4">
+          <p className="text-slate-600">
+            Browse ENS names by expiration status, grace period, and premium categories
+          </p>
+          <div className="web3-glow">
+            <WalletConnectRainbow />
+          </div>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
+      <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as any)}>
         <TabsList className="grid w-full grid-cols-5">
           {tabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
@@ -624,16 +806,140 @@ export function NameBrowser() {
                         Showing {sortedDomains.length} of {domains.length} total
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                     <div className="relative w-64">
                       <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                       <Input
-                        placeholder="Search by name..."
+                        placeholder="Search by name or owner..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-8"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setSearchTerm('');
+                          }
+                        }}
                       />
+                      {searchTerm && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                          onClick={() => setSearchTerm('')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
+                    
+                    {/* Bulk Actions */}
+                    {isSelectMode && selectedDomains.size > 0 && (
+                      <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded-md">
+                        <span className="text-sm text-blue-900 font-medium">
+                          {selectedDomains.size} selected
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleBulkWatch}
+                          className="h-7 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Watch
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleBulkUnwatch}
+                          className="h-7 text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          Unwatch
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const selected = Array.from(selectedDomains);
+                            const data = sortedDomains
+                              .filter(d => selected.includes(d.name))
+                              .map(domain => ({
+                                name: domain.name,
+                                owner: domain.owner,
+                                expiryDate: domain.expiryDate?.toISOString(),
+                                registrationDate: domain.registrationDate?.toISOString(),
+                              }));
+                            const jsonContent = JSON.stringify(data, null, 2);
+                            const blob = new Blob([jsonContent], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `ens-names-selected-${new Date().toISOString().split('T')[0]}.json`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                            toast.success(`Exported ${selectedDomains.size} names`);
+                          }}
+                          className="h-7 text-xs"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Export
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Select Mode Toggle */}
+                    <Button
+                      variant={isSelectMode ? "default" : "outline"}
+                      onClick={() => {
+                        setIsSelectMode(!isSelectMode);
+                        if (isSelectMode) {
+                          setSelectedDomains(new Set());
+                        }
+                      }}
+                      title="Toggle selection mode"
+                    >
+                      {isSelectMode ? (
+                        <>
+                          <CheckSquare className="w-4 h-4 mr-2" />
+                          Select Mode
+                        </>
+                      ) : (
+                        <>
+                          <Square className="w-4 h-4 mr-2" />
+                          Select
+                        </>
+                      )}
+                    </Button>
+                    
+                    {/* Export Buttons */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="w-4 h-4 mr-2" />
+                          Export
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48">
+                        <div className="space-y-2">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={exportToCSV}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Export as CSV
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={exportToJSON}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Export as JSON
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     <Button
                       variant="outline"
                       onClick={() => setIsInfiniteScrolling(!isInfiniteScrolling)}
@@ -818,12 +1124,96 @@ export function NameBrowser() {
                     </div>
                   </div>
                   
-                  {/* Quick Filters */}
+                  {/* Quick Filters and Saved Presets */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <Zap className="w-5 h-5" />
                       <span className="font-medium">Quick Filters:</span>
                     </div>
+                    
+                    {/* Saved Presets */}
+                    {savedPresets.length > 0 && (
+                      <>
+                        <div className="h-6 w-px bg-slate-300" />
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <Bookmark className="w-4 h-4" />
+                          <span className="font-medium">Presets:</span>
+                        </div>
+                            {savedPresets.map((preset, idx) => (
+                          <Button
+                            key={idx}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // Apply preset filters
+                              const setters: Record<string, (value: any) => void> = {
+                                searchTerm: setSearchTerm,
+                                ownerFilter: setOwnerFilter,
+                                minLength: setMinLength,
+                                maxLength: setMaxLength,
+                                domainType: setDomainType,
+                                hasResolver: setHasResolver,
+                                subdomainFilter: setSubdomainFilter,
+                                patternFilter: setPatternFilter,
+                              };
+                              Object.entries(preset.filters).forEach(([key, value]) => {
+                                const setter = setters[key];
+                                if (setter) {
+                                  setter(value);
+                                }
+                              });
+                            }}
+                            className="h-8 text-xs"
+                          >
+                            {preset.name}
+                          </Button>
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* Save Current Filters as Preset */}
+                    {hasActiveFilters && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <Save className="w-3 h-3 mr-1" />
+                            Save Preset
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64">
+                          <div className="space-y-2">
+                            <Label>Preset Name</Label>
+                            <Input
+                              placeholder="e.g., Short Premium Names"
+                              value={presetName}
+                              onChange={(e) => setPresetName(e.target.value)}
+                            />
+                            <Button
+                              className="w-full"
+                              onClick={() => {
+                                if (presetName.trim()) {
+                                  const filters = {
+                                    searchTerm,
+                                    ownerFilter,
+                                    minLength,
+                                    maxLength,
+                                    domainType,
+                                    hasResolver,
+                                    subdomainFilter,
+                                    patternFilter,
+                                  };
+                                  setSavedPresets(prev => [...prev, { name: presetName, filters }]);
+                                  setPresetName('');
+                                  toast.success('Preset saved');
+                                }
+                              }}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
                     {quickFilters.map((filter) => (
                       <Button
                         key={filter.id}
@@ -854,8 +1244,17 @@ export function NameBrowser() {
               </CardHeader>
               <CardContent>
                 {loading && domains.length === 0 ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                  <div className="space-y-4">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+                        <Skeleton className="h-12 w-12 rounded" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-48" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                    ))}
                   </div>
                 ) : sortedDomains.length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
@@ -870,6 +1269,29 @@ export function NameBrowser() {
                       <Table>
                         <TableHeader className="sticky top-0 bg-white z-10">
                           <TableRow>
+                            {isSelectMode && (
+                              <TableHead className="w-12">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => {
+                                    if (selectedDomains.size === sortedDomains.length) {
+                                      deselectAll();
+                                    } else {
+                                      selectAll();
+                                    }
+                                  }}
+                                  title="Select all"
+                                >
+                                  {selectedDomains.size === sortedDomains.length && sortedDomains.length > 0 ? (
+                                    <CheckSquare className="h-4 w-4" />
+                                  ) : (
+                                    <Square className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TableHead>
+                            )}
                             <TableHead>
                               <Button
                                 variant="ghost"
@@ -968,9 +1390,35 @@ export function NameBrowser() {
                               <>
                               <TableRow 
                                 key={domain.id}
-                                className="cursor-pointer transition-colors hover:bg-slate-50"
-                                onClick={() => setSelectedDomain(domain)}
+                                className={`transition-colors hover:bg-slate-50 ${
+                                  isSelectMode ? '' : 'cursor-pointer'
+                                } ${
+                                  selectedDomains.has(domain.name) ? 'bg-blue-50' : ''
+                                }`}
+                                onClick={() => {
+                                  if (isSelectMode) {
+                                    toggleDomainSelection(domain.name);
+                                  } else {
+                                    setSelectedDomain(domain);
+                                  }
+                                }}
                               >
+                                {isSelectMode && (
+                                  <TableCell onClick={(e) => e.stopPropagation()}>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => toggleDomainSelection(domain.name)}
+                                    >
+                                      {selectedDomains.has(domain.name) ? (
+                                        <CheckSquare className="h-4 w-4 text-blue-600" />
+                                      ) : (
+                                        <Square className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TableCell>
+                                )}
                                 <TableCell className="font-medium">
                                   <div className="flex items-center gap-2">
                                     <button
@@ -986,7 +1434,21 @@ export function NameBrowser() {
                                         <ChevronRight className="h-5 w-5 text-slate-400" />
                                       )}
                                     </button>
-                                    {domain.name}
+                                    <span className="flex items-center gap-2">
+                                      {domain.name}
+                                      {watchedNames.has(domain.name.toLowerCase()) && (
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Eye className="h-4 w-4 text-blue-600" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>Watched</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      )}
+                                    </span>
                                   </div>
                                 </TableCell>
                                 <TableCell className="font-mono text-sm" onClick={(e) => e.stopPropagation()}>
@@ -1094,13 +1556,13 @@ export function NameBrowser() {
                               </TableRow>
                               {isExpanded && (
                                 <TableRow>
-                                  <TableCell colSpan={activeTab === 'premium' ? 9 : 7}>
+                                  <TableCell colSpan={activeTab === 'premium' ? (isSelectMode ? 10 : 9) : (isSelectMode ? 8 : 7)}>
                                     <div className="p-4 bg-slate-50 border-t border-l-4 border-l-blue-500">
                                       <div className="space-y-4">
                                         <div className="flex items-center justify-between mb-3">
                                           <div className="flex items-center gap-2">
-                                            <History className="h-6 w-6 text-blue-600" />
-                                            <h3 className="text-slate-900 font-semibold">Domain History</h3>
+                                            <History className="h-5 w-5 text-blue-600" />
+                                            <h3 className="text-lg font-semibold text-slate-900">Domain History</h3>
                                           </div>
                                           <Button
                                             variant="ghost"
@@ -1109,9 +1571,9 @@ export function NameBrowser() {
                                               e.stopPropagation();
                                               refreshDomainHistory(domain.name);
                                             }}
-                                            className="h-8"
+                                            className="h-8 text-sm"
                                           >
-                                            <RefreshCw className="h-5 w-5 mr-1" />
+                                            <RefreshCw className="h-4 w-4 mr-1.5" />
                                             Refresh
                                           </Button>
                                         </div>
@@ -1123,8 +1585,8 @@ export function NameBrowser() {
                                           if (isLoading) {
                                             return (
                                               <div className="flex items-center justify-center py-8">
-                                                <div className="flex items-center gap-2 text-slate-600">
-                                                  <RefreshCw className="h-5 w-5 animate-spin" />
+                                                <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                  <RefreshCw className="h-4 w-4 animate-spin" />
                                                   <span>Loading history...</span>
                                                 </div>
                                               </div>
@@ -1135,92 +1597,92 @@ export function NameBrowser() {
                                             return (
                                               <div className="space-y-3">
                                                 {history.map((event, eventIndex) => (
-                                                  <div key={eventIndex} className="bg-white rounded-lg border border-slate-200 p-3">
+                                                  <div key={eventIndex} className="bg-white rounded-lg border border-slate-200 p-4">
                                                     <div className="flex items-start gap-3">
                                                       <div className="flex-shrink-0">
                                                         {event.type === 'registration' && (
-                                                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                                            <Plus className="h-5 w-5 text-blue-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+                                                            <Plus className="h-4 w-4 text-blue-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'renewal' && (
-                                                          <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                                                            <RefreshCw className="h-5 w-5 text-emerald-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center">
+                                                            <RefreshCw className="h-4 w-4 text-emerald-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'transfer' && (
-                                                          <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
-                                                            <ArrowRightLeft className="h-5 w-5 text-amber-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center">
+                                                            <ArrowRightLeft className="h-4 w-4 text-amber-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'address_change' && (
-                                                          <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
-                                                            <Globe className="h-5 w-5 text-purple-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-purple-100 flex items-center justify-center">
+                                                            <Globe className="h-4 w-4 text-purple-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'text_change' && (
-                                                          <div className="h-8 w-8 rounded-full bg-cyan-100 flex items-center justify-center">
-                                                            <FileEdit className="h-5 w-5 text-cyan-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-cyan-100 flex items-center justify-center">
+                                                            <FileEdit className="h-4 w-4 text-cyan-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'resolver_change' && (
-                                                          <div className="h-8 w-8 rounded-full bg-violet-100 flex items-center justify-center">
-                                                            <SettingsIcon className="h-5 w-5 text-violet-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-violet-100 flex items-center justify-center">
+                                                            <SettingsIcon className="h-4 w-4 text-violet-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'wrapper_change' && (
-                                                          <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                                                            <Lock className="h-5 w-5 text-indigo-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                            <Lock className="h-4 w-4 text-indigo-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'approval' && (
-                                                          <div className="h-8 w-8 rounded-full bg-rose-100 flex items-center justify-center">
-                                                            <Users className="h-5 w-5 text-rose-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-rose-100 flex items-center justify-center">
+                                                            <Users className="h-4 w-4 text-rose-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'controller_change' && (
-                                                          <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
-                                                            <Key className="h-5 w-5 text-orange-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-orange-100 flex items-center justify-center">
+                                                            <Key className="h-4 w-4 text-orange-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'mint' && (
-                                                          <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                                                            <Plus className="h-5 w-5 text-green-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center">
+                                                            <Plus className="h-4 w-4 text-green-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'expired' && (
-                                                          <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-                                                            <AlertCircle className="h-5 w-5 text-red-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-red-100 flex items-center justify-center">
+                                                            <AlertCircle className="h-4 w-4 text-red-600" />
                                                           </div>
                                                         )}
                                                         {event.type === 'sale' && (
-                                                          <div className="h-8 w-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                                                            <Wallet className="h-5 w-5 text-yellow-600" />
+                                                          <div className="h-9 w-9 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                            <Wallet className="h-4 w-4 text-yellow-600" />
                                                           </div>
                                                         )}
                                                       </div>
                                                       <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center justify-between mb-1">
-                                                          <p className="text-slate-900 font-medium">{event.description}</p>
-                                                          <div className="flex items-center gap-2 text-slate-600 text-sm">
-                                                            <Clock className="h-5 w-5" />
+                                                        <div className="flex items-center justify-between mb-2">
+                                                          <p className="text-base font-medium text-slate-900">{event.description}</p>
+                                                          <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                                                            <Clock className="h-4 w-4" />
                                                             <span>{event.date.toLocaleDateString()}</span>
                                                           </div>
                                                         </div>
-                                                        <div className="space-y-1">
+                                                        <div className="space-y-1.5">
                                                           <div className="flex items-center gap-2 text-xs text-slate-600">
-                                                            <Wallet className="h-4 w-4" />
-                                                            <span className="font-mono">{event.address.slice(0, 10)}...{event.address.slice(-8)}</span>
+                                                            <Wallet className="h-3.5 w-3.5" />
+                                                            <span className="font-mono text-slate-700">{event.address.slice(0, 10)}...{event.address.slice(-8)}</span>
                                                           </div>
                                                           {event.txHash && (
                                                             <div className="flex items-center gap-2 text-xs text-slate-600">
-                                                              <Globe className="h-4 w-4" />
-                                                              <span className="font-mono">{event.txHash.slice(0, 12)}...{event.txHash.slice(-10)}</span>
+                                                              <Globe className="h-3.5 w-3.5" />
+                                                              <span className="font-mono text-slate-700">{event.txHash.slice(0, 12)}...{event.txHash.slice(-10)}</span>
                                                             </div>
                                                           )}
                                                           {event.cost && (
                                                             <div className="text-xs text-slate-600">
-                                                              Cost: {event.cost} ETH
+                                                              <span className="font-medium">Cost:</span> <span className="font-mono text-slate-700">{event.cost} ETH</span>
                                                             </div>
                                                           )}
                                                         </div>
@@ -1233,7 +1695,7 @@ export function NameBrowser() {
                                           }
                                           
                                           return (
-                                            <div className="text-center py-8 text-slate-500">
+                                            <div className="text-center py-8 text-sm text-slate-500">
                                               No history available
                                             </div>
                                           );
@@ -1335,29 +1797,54 @@ export function NameBrowser() {
                       </div>
                     )}
 
-                    {hasMore && (
-                      <div className="flex justify-center mt-4">
-                        {isInfiniteScrolling ? (
-                          <div className="flex items-center gap-2 text-sm text-slate-500">
-                            {loading && (
-                              <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                Loading more...
-                              </>
-                            )}
-                            {!loading && (
-                              <span>Scroll down to load more</span>
-                            )}
-                          </div>
-                        ) : (
+                    {/* Pagination Controls */}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                      <div className="text-sm text-slate-600">
+                        Showing {sortedDomains.length} of {domains.length} {hasMore ? '+' : ''} domains
+                        {currentPage > 0 && (
+                          <span className="ml-2">(Page {currentPage + 1})</span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (currentPage > 0) {
+                              setCurrentPage(0);
+                              loadDomains(true);
+                            }
+                          }}
+                          disabled={currentPage === 0 || loading}
+                        >
+                          First
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (currentPage > 0) {
+                              const prevPage = currentPage - 1;
+                              setCurrentPage(prevPage);
+                              loadDomains(true);
+                            }
+                          }}
+                          disabled={currentPage === 0 || loading}
+                        >
+                          Previous
+                        </Button>
+                        
+                        {hasMore && (
                           <Button
                             onClick={handleLoadMore}
                             disabled={loading}
                             variant="outline"
+                            size="sm"
                           >
                             {loading ? (
                               <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Loading...
                               </>
                             ) : (
@@ -1365,14 +1852,12 @@ export function NameBrowser() {
                             )}
                           </Button>
                         )}
+                        
+                        {!hasMore && domains.length > 0 && (
+                          <span className="text-sm text-slate-500">All loaded</span>
+                        )}
                       </div>
-                    )}
-                    
-                    {!hasMore && domains.length > 0 && (
-                      <div className="text-center mt-4 text-sm text-slate-500">
-                        No more domains to load
-                      </div>
-                    )}
+                    </div>
                   </>
                 )}
               </CardContent>

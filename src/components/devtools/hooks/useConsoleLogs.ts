@@ -113,7 +113,7 @@ export function useConsoleLogs() {
       const addressMatch = message.match(/0x[a-fA-F0-9]{40}/i);
       
       let operation: string | undefined;
-      let category: ConsoleLog['ensContext']['category'];
+      let category: NonNullable<ConsoleLog['ensContext']>['category'];
       
       const msgLower = message.toLowerCase();
       
@@ -256,6 +256,11 @@ export function useConsoleLogs() {
     copyAllLogs,
   };
 }
+
+
+
+
+
 
 
 

@@ -1,20 +1,33 @@
-import { useState, Suspense, useCallback, useEffect, useRef } from 'react';
-import { BottomToolbar } from './components/BottomToolbar';
-import { Dashboard } from './components/Dashboard';
-import { DomainManagement, NameBrowser } from './components/domains';
-import { MetadataEditor, MetadataTools } from './components/metadata';
-import { SecurityMonitor, AuditLog } from './components/security';
-import { GovernancePanel } from './components/governance';
-import { Settings } from './components/Settings';
-import { ProtocolReference, BestPracticesView, NamingToolkit } from './components/reference';
-import { DAORegistry, IntegrationRegistry, ContractRegistry } from './components/registry';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { ContractRegistration, PreflightChecker } from './components/workflows';
-import { KamikoMarketplace } from './components/marketplace';
-import { DNSSECConfig } from './components/dnssec';
-import { FeeManagement } from './components/admin';
-import { MasterDatabaseView } from './components/admin/MasterDatabaseView';
-import { AdminPanel } from './components/admin/AdminPanel';
+import { useState, Suspense, useCallback, useEffect, useRef, lazy } from 'react';
+// Lazy load heavy components for better performance
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const DomainManagement = lazy(() => import('./components/domains').then(m => ({ default: m.DomainManagement })));
+const NameBrowser = lazy(() => import('./components/domains').then(m => ({ default: m.NameBrowser })));
+const MetadataEditor = lazy(() => import('./components/metadata').then(m => ({ default: m.MetadataEditor })));
+const MetadataTools = lazy(() => import('./components/metadata').then(m => ({ default: m.MetadataTools })));
+const SecurityMonitor = lazy(() => import('./components/security').then(m => ({ default: m.SecurityMonitor })));
+const AuditLog = lazy(() => import('./components/security').then(m => ({ default: m.AuditLog })));
+const GovernancePanel = lazy(() => import('./components/governance').then(m => ({ default: m.GovernancePanel })));
+const Settings = lazy(() => import('./components/Settings').then(m => ({ default: m.Settings })));
+const ProtocolReference = lazy(() => import('./components/reference').then(m => ({ default: m.ProtocolReference })));
+const BestPracticesView = lazy(() => import('./components/reference').then(m => ({ default: m.BestPracticesView })));
+const NamingToolkit = lazy(() => import('./components/reference').then(m => ({ default: m.NamingToolkit })));
+const DAORegistry = lazy(() => import('./components/registry').then(m => ({ default: m.DAORegistry })));
+const IntegrationRegistry = lazy(() => import('./components/registry').then(m => ({ default: m.IntegrationRegistry })));
+const ContractRegistry = lazy(() => import('./components/registry').then(m => ({ default: m.ContractRegistry })));
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })));
+const ContractRegistration = lazy(() => import('./components/workflows').then(m => ({ default: m.ContractRegistration })));
+const PreflightChecker = lazy(() => import('./components/workflows').then(m => ({ default: m.PreflightChecker })));
+const KamikoMarketplace = lazy(() => import('./components/marketplace').then(m => ({ default: m.KamikoMarketplace })));
+const DNSSECConfig = lazy(() => import('./components/dnssec').then(m => ({ default: m.DNSSECConfig })));
+const FeeManagement = lazy(() => import('./components/admin').then(m => ({ default: m.FeeManagement })));
+const MasterDatabaseView = lazy(() => import('./components/admin/MasterDatabaseView').then(m => ({ default: m.MasterDatabaseView })));
+const AdminPanel = lazy(() => import('./components/admin/AdminPanel').then(m => ({ default: m.AdminPanel })));
+const AIDomainSuggestions = lazy(() => import('./components/ai').then(m => ({ default: m.AIDomainSuggestions })));
+const AIMetadataGenerator = lazy(() => import('./components/ai').then(m => ({ default: m.AIMetadataGenerator })));
+const AIRAGAssistant = lazy(() => import('./components/ai').then(m => ({ default: m.AIRAGAssistant })));
+const AIConfiguration = lazy(() => import('./components/ai').then(m => ({ default: m.AIConfiguration })));
+const DocumentationViewer = lazy(() => import('./components/documentation').then(m => ({ default: m.DocumentationViewer })));
 import { WalletConnectRainbow } from './components/WalletConnectRainbow';
 import { RainbowKitWrapper } from './lib/providers/RainbowKitProvider';
 import { Web3ProviderCompat } from './lib/services';
@@ -23,9 +36,16 @@ import { Toaster } from './components/ui/sonner';
 import { TransactionStatusPanel } from './components/TransactionStatusPanel';
 import { ENSConsole } from './components/devtools/ENSConsole';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Network, Terminal, Loader2 } from 'lucide-react';
+import { Terminal, Loader2, Globe } from 'lucide-react';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { buildConfig, isViewEnabled } from './config/feature-flags.config';
+import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
+import { AdaptiveContextProvider } from './lib/adaptive-rendering';
+import { SidebarProvider } from './components/ui/sidebar';
+import { bannerCustomizationService } from './lib/services/banner-customization-service';
+import { AppSidebar } from './components/AppSidebar';
+import { RotatingENSNames } from './components/RotatingENSNames';
+import { ParallaxBackground } from './components/ParallaxBackground';
 
 // =============================================================================
 // BUILD CONFIGURATION: Set which view mode to use
@@ -36,10 +56,10 @@ import { buildConfig, isViewEnabled } from './config/feature-flags.config';
 const ENABLE_CONSOLE_MODE = buildConfig.consoleMode;
 // =============================================================================
 
-export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel' | 'guided-workflow';
+export type ViewType = 'dashboard' | 'domains' | 'name-browser' | 'metadata' | 'security' | 'governance' | 'audit' | 'naming' | 'protocol' | 'best-practices' | 'settings' | 'dao-registry' | 'integrations' | 'metadata-tools' | 'contracts' | 'contract-registration' | 'analytics' | 'preflight-checker' | 'marketplace' | 'dnssec' | 'fee-management' | 'master-database' | 'admin-panel' | 'guided-workflow' | 'ai-tools' | 'documentation';
 
 // All possible views in order of priority for fallback
-const ALL_VIEWS: ViewType[] = ['dashboard', 'domains', 'name-browser', 'metadata', 'security', 'governance', 'audit', 'naming', 'protocol', 'best-practices', 'settings', 'dao-registry', 'integrations', 'metadata-tools', 'contracts', 'contract-registration', 'analytics', 'preflight-checker', 'marketplace', 'dnssec', 'fee-management', 'master-database', 'admin-panel', 'guided-workflow'];
+const ALL_VIEWS: ViewType[] = ['dashboard', 'domains', 'name-browser', 'metadata', 'security', 'governance', 'audit', 'naming', 'protocol', 'best-practices', 'settings', 'dao-registry', 'integrations', 'metadata-tools', 'contracts', 'contract-registration', 'analytics', 'preflight-checker', 'marketplace', 'dnssec', 'fee-management', 'master-database', 'admin-panel', 'guided-workflow', 'ai-tools', 'documentation'];
 
 // Get the default view - stable function that only depends on feature flags
 function getDefaultView(): ViewType {
@@ -49,6 +69,55 @@ function getDefaultView(): ViewType {
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>(getDefaultView);
+  const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false);
+  const [bannerCustomization, setBannerCustomization] = useState(() => 
+    bannerCustomizationService.getCustomization()
+  );
+  const [scrollY, setScrollY] = useState(0);
+
+  // Listen for customization changes (e.g., from Settings page)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setBannerCustomization(bannerCustomizationService.getCustomization());
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also listen for custom event from same window
+    window.addEventListener('bannerCustomizationChanged', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('bannerCustomizationChanged', handleStorageChange);
+    };
+  }, []);
+
+  // Parallax scroll effect for banner (throttled via requestAnimationFrame)
+  useEffect(() => {
+    let latestScrollY = window.scrollY;
+    let ticking = false;
+
+    const updateScroll = () => {
+      setScrollY(latestScrollY);
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      latestScrollY = window.scrollY;
+      if (!ticking) {
+        ticking = true;
+        window.requestAnimationFrame(updateScroll);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Initial sync
+    handleScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   // Redirect to valid view if current view becomes disabled
   const hasRedirected = useRef(false);
@@ -68,18 +137,46 @@ export default function App() {
       setCurrentView(view);
     } else {
       // Redirect to dashboard if trying to access disabled view
-      setCurrentView(getDefaultView());
+      const defaultView = getDefaultView();
+      setCurrentView(defaultView);
     }
   }, []);
 
   useKeyboardShortcuts(handleViewChange, !ENABLE_CONSOLE_MODE);
 
+  // Keyboard shortcut for help modal
+  useEffect(() => {
+    if (ENABLE_CONSOLE_MODE) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        setShortcutsHelpOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [ENABLE_CONSOLE_MODE]);
+
   const renderView = () => {
     const LoadingFallback = () => (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-          <p className="text-sm text-slate-500">Loading...</p>
+          <div className="relative">
+            <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+            <div className="absolute inset-0 blur-xl bg-cyan-500/30 rounded-full animate-pulse" />
+          </div>
+          <p className="text-sm text-slate-500">Loading component...</p>
         </div>
       </div>
     );
@@ -238,6 +335,27 @@ export default function App() {
             <DomainManagement />
           </Suspense>
         ) : null;
+      case 'ai-tools':
+        return isViewEnabled('ai-tools') ? (
+          <Suspense fallback={<LoadingFallback />}>
+            <div className="container mx-auto p-6 space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AIDomainSuggestions />
+                <AIMetadataGenerator />
+              </div>
+              <AIRAGAssistant />
+              <AIConfiguration />
+            </div>
+          </Suspense>
+        ) : null;
+      case 'documentation':
+        return isViewEnabled('documentation') ? (
+          <Suspense fallback={<LoadingFallback />}>
+            <div className="h-[calc(100vh-80px-96px)] -m-8">
+              <DocumentationViewer currentView={currentView} />
+            </div>
+          </Suspense>
+        ) : null;
       default:
         return (
           <Suspense fallback={<LoadingFallback />}>
@@ -254,7 +372,8 @@ export default function App() {
         <RainbowKitWrapper>
           <Web3ProviderCompat>
             <DomainProvider>
-              <div className="flex min-h-screen w-full relative bg-[#09090b]">
+              <AdaptiveContextProvider>
+                <div className="flex min-h-screen w-full relative bg-[#09090b]">
                 <div className="flex-1 relative z-10 flex flex-col">
                   <div className="fixed top-0 left-0 right-0 z-[100] glass border-b border-zinc-800/50 px-4 py-2.5 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -262,7 +381,7 @@ export default function App() {
                         <Terminal className="h-4 w-4 text-white" />
                       </div>
                       <div>
-                        <h1 className="text-white font-semibold text-sm leading-tight">ens.tools</h1>
+                        <h1 className="text-white font-semibold text-sm leading-tight">config</h1>
                         <p className="text-zinc-500 text-[10px] leading-tight font-mono tracking-wider">CONSOLE MODE</p>
                       </div>
                     </div>
@@ -274,6 +393,7 @@ export default function App() {
                 <ENSConsole isFullScreen={true} />
                 <Toaster />
               </div>
+              </AdaptiveContextProvider>
             </DomainProvider>
           </Web3ProviderCompat>
         </RainbowKitWrapper>
@@ -287,70 +407,88 @@ export default function App() {
       <RainbowKitWrapper>
         <Web3ProviderCompat>
           <DomainProvider>
-            <div className="flex min-h-screen w-full bg-[#f8f9fa]">
-              <div className="flex-1 flex flex-col">
-                {/* Header */}
-                <header className="fixed top-0 left-0 right-0 z-[100] bg-white border-b border-gray-200 px-6 h-14 flex items-center justify-between" style={{ marginLeft: '56px' }}>
-                  <div className="flex items-center gap-2">
-                    <svg className="h-9 w-9" viewBox="0 0 40 40" fill="none">
-                      <circle cx="20" cy="20" r="18" fill="url(#gear-gradient)" />
-                      <path d="M20 12V14M20 26V28M28 20H26M14 20H12M25.66 14.34L24.24 15.76M15.76 24.24L14.34 25.66M25.66 25.66L24.24 24.24M15.76 15.76L14.34 14.34" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                      <circle cx="20" cy="20" r="4" stroke="white" strokeWidth="2"/>
-                      <defs>
-                        <linearGradient id="gear-gradient" x1="0" y1="0" x2="40" y2="40">
-                          <stop stopColor="#e91e8c"/>
-                          <stop offset="1" stopColor="#c026d3"/>
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <span className="text-xl font-bold">
-                      <span className="text-pink-500">ENS</span>
-                      <span className="text-gray-800">.Tools</span>
-                    </span>
-                  </div>
-                  <WalletConnectRainbow />
-                </header>
-                
-                {/* Main content */}
-                <main 
-                  className="flex-1 overflow-y-auto" 
-                  style={{ 
-                    marginTop: '56px', 
-                    marginLeft: '56px', 
-                    height: 'calc(100vh - 56px)',
-                  }}
-                >
-                  {/* Hero Banner */}
-                  <div className="hero-banner h-36 relative">
-                    <div className="hero-shape hero-shape-1" />
-                    <div className="hero-shape hero-shape-2" />
-                    <div className="hero-shape hero-shape-3" />
-                    <div className="hero-shape hero-shape-4" />
-                    <div className="relative z-10 h-full flex items-center px-8">
-                      <h1 className="text-4xl font-bold">
-                        <span className="text-cyan-300">ENS</span>
-                        <span className="text-white"> Tools</span>
-                      </h1>
-                    </div>
-                  </div>
+            <AdaptiveContextProvider>
+              <SidebarProvider>
+                <ParallaxBackground />
+                <div className="flex min-h-screen w-full relative bg-background">
+                  {/* Animated Background with Parallax */}
+                  <div 
+                    className="particle-bg" 
+                    style={{
+                      transform: `translate3d(0, ${scrollY * 0.3}px, 0)`,
+                      willChange: 'transform',
+                    }}
+                  />
                   
-                  <div className="p-6 max-w-6xl mx-auto">
-                    <ErrorBoundary>
-                      <Suspense fallback={
-                        <div className="flex items-center justify-center min-h-[400px]">
-                          <Loader2 className="h-5 w-5 animate-spin text-pink-500" />
+                  <AppSidebar currentView={currentView} onViewChange={handleViewChange} />
+
+                  <div className="flex-1 flex flex-col relative z-10">
+                    {/* Premium Main Interface */}
+                    <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50/30 via-white to-sky-50/20">
+                      {/* Premium Status Panel */}
+                      <div className="mx-6 mt-6 mb-8 bg-white border border-slate-200/50 rounded-2xl p-8 shadow-xl glass-card animate-fade-in">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-8">
+                            <div className="flex items-center gap-4">
+                              <div className="h-4 w-4 rounded-full bg-gradient-to-br from-emerald-500 to-sky-500 animate-pulse shadow-xl shadow-emerald-500/50"></div>
+                              <span className="text-slate-800 font-bold text-base uppercase tracking-wider">SYSTEM STATUS</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-slate-500 text-sm font-medium">Network:</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                                <span className="text-slate-900 font-bold">Ethereum</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-slate-500 text-sm font-medium">ENS:</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></div>
+                                <span className="text-sky-700 font-bold">Active</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6">
+                            <div className="relative h-3 w-24 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+                              <div className="absolute inset-0 bg-gradient-to-r from-slate-300 to-sky-300 rounded-full animate-pulse"></div>
+                              <div className="h-full w-5/6 bg-gradient-to-r from-sky-500 via-emerald-500 to-slate-600 rounded-full animate-pulse shadow-lg"></div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-lg shadow-emerald-500/50"></div>
+                              <span className="text-sm text-emerald-700 font-bold uppercase tracking-wider">Online</span>
+                            </div>
+                          </div>
                         </div>
-                      }>
-                        {renderView()}
-                      </Suspense>
-                    </ErrorBoundary>
+                      </div>
+
+                      <div className="p-6">
+                        <ErrorBoundary>
+                          <Suspense fallback={
+                            <div className="flex items-center justify-center min-h-[400px]">
+                              <div className="relative">
+                                <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                                <div className="absolute inset-0 blur-xl bg-purple-500/30 rounded-full animate-pulse" />
+                              </div>
+                            </div>
+                          }>
+                            {renderView() || (
+                              <div className="p-8 text-center">
+                                <div className="text-white text-xl mb-4">No view available</div>
+                                <div className="text-slate-400">Please check feature flags configuration.</div>
+                                <div className="mt-4 text-sm text-slate-500">Current view: {currentView}</div>
+                              </div>
+                            )}
+                          </Suspense>
+                        </ErrorBoundary>
+                      </div>
+                    </main>
                   </div>
-                </main>
-              </div>
-              <BottomToolbar currentView={currentView} onViewChange={handleViewChange} />
-              <TransactionStatusPanel />
-              <Toaster />
-            </div>
+                  <TransactionStatusPanel />
+                  <KeyboardShortcutsHelp open={shortcutsHelpOpen} onOpenChange={setShortcutsHelpOpen} />
+                  <Toaster />
+                </div>
+              </SidebarProvider>
+            </AdaptiveContextProvider>
           </DomainProvider>
         </Web3ProviderCompat>
       </RainbowKitWrapper>

@@ -78,7 +78,7 @@ export function DNSSECConfig() {
       try {
         const node = namehash(normalizedName);
         const result = await publicClient.readContract({
-          address: ensStatus.resolverAddress!,
+          address: ensStatus.resolverAddress! as `0x${string}`,
           abi: PUBLIC_RESOLVER_ABI,
           functionName: 'text',
           args: [node, 'dnssec'],

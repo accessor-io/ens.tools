@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from './ui/sidebar';
+import { WalletConnectRainbow } from './WalletConnectRainbow';
 import {
   LayoutDashboard,
   Globe,
@@ -47,12 +48,12 @@ export function AppSidebar({
   const overviewItems = [
     {
       id: "dashboard" as ViewType,
-      label: "Dashboard",
+      label: "dashboard",
       icon: LayoutDashboard,
     },
     {
       id: "analytics" as ViewType,
-      label: "Analytics",
+      label: "analytics",
       icon: BarChart3,
     },
   ];
@@ -60,17 +61,17 @@ export function AppSidebar({
   const domainItems = [
     {
       id: "domains" as ViewType,
-      label: "Domain Management",
+      label: "domain management",
       icon: Globe,
     },
     {
       id: "name-browser" as ViewType,
-      label: "Name Browser",
+      label: "name browser",
       icon: Search,
     },
     {
       id: "metadata" as ViewType,
-      label: "Metadata Editor",
+      label: "metadata editor",
       icon: FileEdit,
     },
   ];
@@ -78,17 +79,17 @@ export function AppSidebar({
   const securityItems = [
     {
       id: "security" as ViewType,
-      label: "Security Monitor",
+      label: "security monitor",
       icon: Shield,
     },
     {
       id: "audit" as ViewType,
-      label: "Audit Log",
+      label: "audit log",
       icon: ScrollText,
     },
     {
       id: "governance" as ViewType,
-      label: "Governance",
+      label: "governance",
       icon: Vote,
     },
   ];
@@ -96,17 +97,17 @@ export function AppSidebar({
   const registryItems = [
     {
       id: "contracts" as ViewType,
-      label: "Contract Registry",
+      label: "contract registry",
       icon: FileCode,
     },
     {
       id: "dao-registry" as ViewType,
-      label: "DAO Registry",
+      label: "dao registry",
       icon: Building2,
     },
     {
       id: "integrations" as ViewType,
-      label: "Integrations",
+      label: "integrations",
       icon: Plug,
     },
   ];
@@ -136,11 +137,6 @@ export function AppSidebar({
 
   const toolsItems = [
     {
-      id: "naming" as ViewType,
-      label: "Naming Toolkit",
-      icon: Sparkles,
-    },
-    {
       id: "metadata-tools" as ViewType,
       label: "Metadata Tools",
       icon: Database,
@@ -157,6 +153,11 @@ export function AppSidebar({
       id: "best-practices" as ViewType,
       label: "Best Practices",
       icon: Lightbulb,
+    },
+    {
+      id: "documentation" as ViewType,
+      label: "Documentation",
+      icon: BookOpen,
     },
   ];
 
@@ -182,35 +183,53 @@ export function AppSidebar({
   ];
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border/60 px-6 py-5 bg-gradient-to-r from-pink-50/50 to-rose-50/30">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-pink-600 via-rose-600 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-pink-500/20 ring-2 ring-pink-500/10 transition-transform hover:scale-105">
-            <Network className="h-6 w-6 text-white" />
+    <Sidebar className="w-80 bg-white border-r border-slate-200/50 shadow-2xl glass-card">
+      <SidebarHeader className="border-b border-slate-200/50 px-8 py-8 bg-gradient-to-br from-slate-50/30 via-white to-sky-50/20">
+        <div className="flex items-center gap-5 mb-6">
+          <div className="w-14 h-14 bg-gradient-to-br from-slate-800 via-slate-700 to-sky-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-sky-500/30 glow-effect">
+            <Globe className="w-7 h-7 text-white" />
           </div>
           <div>
-            <p className="text-slate-900 font-semibold text-base tracking-tight">ens.tools</p>
-            <p className="text-slate-500 text-xs font-medium">Management Hub</p>
+            <h1 className="font-black text-2xl text-slate-900 tracking-tight bg-gradient-to-r from-slate-900 to-sky-800 bg-clip-text text-transparent">
+              ENS Tools
+            </h1>
+            <p className="text-sm text-slate-500 font-medium">Professional ENS management</p>
           </div>
+        </div>
+        <div className="bg-slate-50/50 border border-slate-200/50 rounded-2xl p-6 shadow-xl glass-card animate-fade-in">
+          <div className="text-center mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-slate-800 via-slate-700 to-sky-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-2xl shadow-sky-500/30 glow-effect">
+              <Globe className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-sm text-slate-600 uppercase font-bold tracking-wider">Wallet Connection</div>
+          </div>
+          <WalletConnectRainbow />
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4 gap-1">
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+      <SidebarContent className="px-6 py-6 gap-4 bg-gradient-to-br from-slate-50/30 via-white to-sky-50/20">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Overview
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {overviewItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span className="capitalize">{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -218,21 +237,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Domains
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {domainItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span className="capitalize">{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -240,21 +266,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Security & Governance
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {securityItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span className="capitalize">{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -262,21 +295,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Registries
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {registryItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span className="capitalize">{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -284,21 +324,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Workflows
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {workflowItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -306,21 +353,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Tools
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {toolsItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -328,21 +382,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Reference
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {referenceItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -350,21 +411,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             Admin
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {adminItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -372,21 +440,28 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="mb-2">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+        <SidebarGroup className="mb-6">
+          <SidebarGroupLabel className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-4 px-2">
             System
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5">
+            <SidebarMenu className="space-y-2">
               {systemItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     onClick={() => onViewChange(item.id)}
                     isActive={currentView === item.id}
-                    className="transition-all duration-200 hover:translate-x-0.5"
+                    className={`w-full justify-start gap-4 h-12 text-sm transition-all duration-300 rounded-xl font-semibold ${
+                      currentView === item.id
+                        ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
+                    }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="font-medium">{item.label}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                    {currentView === item.id && (
+                      <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full shadow-sm"></div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

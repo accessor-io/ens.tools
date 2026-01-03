@@ -24,6 +24,7 @@ import { permissionService, PermissionCheckResult } from '../../lib/delegation/p
 import { delegationPlanner, DelegationPlan } from '../../lib/delegation/delegation-planner';
 import { executeDelegationPlan } from '../../lib/ens/ens-write-operations';
 import { Address } from 'viem';
+import { WalletConnectRainbow } from '../WalletConnectRainbow';
 
 type Step = 'contract' | 'manager' | 'review' | 'execute' | 'complete';
 
@@ -387,10 +388,15 @@ export function PreflightChecker() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Preflight Checker</h1>
-        <p className="text-slate-600 mt-2">
-          Verify contract ownership and set up ENS management delegation
-        </p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">preflight checker</h1>
+        <div className="flex items-center justify-between gap-6 mb-4">
+          <p className="text-slate-600">
+            Verify contract ownership and set up ENS management delegation
+          </p>
+          <div className="web3-glow">
+            <WalletConnectRainbow />
+          </div>
+        </div>
       </div>
 
       <Breadcrumb

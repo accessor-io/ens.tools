@@ -5,7 +5,7 @@
  * if features are enabled based on the build configuration.
  */
 
-import { buildConfig, isFeatureEnabled, isViewEnabled } from '../../config/feature-flags.config';
+import { buildConfig, isFeatureEnabled, isViewEnabled   } from '../../config/feature-flags.config';
 
 /**
  * Re-export build config functions for convenience

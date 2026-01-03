@@ -1,5 +1,5 @@
 
-# ens.tools
+# config
 
 ENS domain management and configuration tools. The original project is available at https://www.figma.com/design/AaNSxswYsWWk70qHde0pCg/ENS-Contract-Naming-Best-Practices.
 

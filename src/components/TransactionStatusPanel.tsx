@@ -4,13 +4,14 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useTransactionManager } from '../lib/hooks/useTransactionManager';
 import { Transaction, TransactionStatus } from '../lib/services/transaction-manager';
-import { CheckCircle2, XCircle, Clock, Loader2, ExternalLink, Trash2 } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Loader2, ExternalLink, Trash2, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function TransactionStatusPanel() {
   const txManager = useTransactionManager();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [stagedEditsCount, setStagedEditsCount] = useState(0);
 
   useEffect(() => {
     const updateTransactions = () => {
@@ -83,6 +84,17 @@ export function TransactionStatusPanel() {
     }
   };
 
+  const handleReplace = async (tx: Transaction) => {
+    if (tx.status === 'submitted' && tx.hash) {
+      try {
+        await txManager.replaceTransaction(tx.id);
+        setTransactions(txManager.getAllTransactions());
+      } catch (error) {
+        console.error('Failed to replace transaction:', error);
+      }
+    }
+  };
+
   const handleClear = () => {
     txManager.clearCompleted();
     setTransactions(txManager.getAllTransactions());
@@ -90,7 +102,7 @@ export function TransactionStatusPanel() {
 
   return (
     <Card className="fixed bottom-24 right-4 w-96 max-w-[calc(100vw-2rem)] max-h-[600px] z-50 shadow-lg animate-in slide-in-from-bottom-2 duration-300 md:w-96">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-sm">Transaction Status</CardTitle>
@@ -98,9 +110,13 @@ export function TransactionStatusPanel() {
               {pendingTransactions.length > 0
                 ? `${pendingTransactions.length} pending`
                 : `${transactions.length} total`}
+              {stagedEditsCount > 0 && ` • ${stagedEditsCount} staged`}
             </CardDescription>
           </div>
           <div className="flex gap-2">
+            {stagedEditsCount > 0 && (
+              <TransactionStagingPanel />
+            )}
             {hasPending && (
               <Badge variant="secondary" className="animate-pulse">
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -118,7 +134,7 @@ export function TransactionStatusPanel() {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        <div className="space-y-3 max-h-[400px] overflow-y-auto">
           {transactions
             .sort((a, b) => {
               const aTime = a.submittedAt?.getTime() || 0;
@@ -168,6 +184,18 @@ export function TransactionStatusPanel() {
                       onClick={() => handleRetry(tx)}
                     >
                       Retry
+                    </Button>
+                  )}
+                  {tx.status === 'submitted' && tx.hash && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 h-7 text-xs"
+                      onClick={() => handleReplace(tx)}
+                      title="Replace with higher gas price to speed up confirmation"
+                    >
+                      <Zap className="h-3 w-3 mr-1" />
+                      Speed Up
                     </Button>
                   )}
                 </div>

@@ -6,9 +6,33 @@
 import { SeaportService } from './seaport-service';
 import { feeCollectionService } from './fee-collection-service';
 import { premiumPriceService } from './premium-price-service';
-import { Address } from 'viem';
 import { ENS_ADDRESSES } from '../ens/ens-addresses';
 import { marketplaceCacheService, CacheKeys, CacheTTL } from './marketplace-cache-service';
+
+const API_BASE_URL =
+  (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
+
+async function marketplaceRequest<T = any>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = localStorage.getItem('auth_token');
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Marketplace API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json() as Promise<T>;
+}
 
 export interface ENSListing {
   id: string;
@@ -54,7 +78,7 @@ export interface ENSCollectionStats {
 
 export class ENSMarketplaceService {
   private seaportService: SeaportService | null = null;
-  private readonly openseaApiUrl = 'https://api.opensea.io/api/v2';
+  private readonly openseaApiPath = '/marketplace/opensea';
 
   /**
    * Initialize Seaport service for ENS trading
@@ -73,19 +97,9 @@ export class ENSMarketplaceService {
       cacheKey,
       async () => {
         const chain = this.getChainName(chainId);
-        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/nfts?search=${encodeURIComponent(query)}`;
-        
-        const response = await fetch(url, {
-          headers: {
-            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ENS domains: ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const data = await marketplaceRequest<any>(
+          `/marketplace/search?chain=${chain}&query=${encodeURIComponent(query)}`,
+        );
         return this.transformENSListings(data.nfts || [], query);
       },
       { ttl: CacheTTL.search }
@@ -102,19 +116,8 @@ export class ENSMarketplaceService {
       cacheKey,
       async () => {
         const chain = this.getChainName(chainId);
-        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/listings?limit=50`;
-        
-        const response = await fetch(url, {
-          headers: {
-            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch listings: ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const url = `${this.openseaApiPath}/chain/${chain}/collection/ens/listings?limit=50`;
+        const data = await marketplaceRequest<any>(url);
         return this.transformENSListings(data.listings || []);
       },
       { ttl: CacheTTL.listings }
@@ -131,19 +134,8 @@ export class ENSMarketplaceService {
       cacheKey,
       async () => {
         const chain = this.getChainName(chainId);
-        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/offers?limit=50`;
-        
-        const response = await fetch(url, {
-          headers: {
-            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch offers: ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const url = `${this.openseaApiPath}/chain/${chain}/collection/ens/offers?limit=50`;
+        const data = await marketplaceRequest<any>(url);
         return this.transformENSOffers(data.offers || []);
       },
       { ttl: CacheTTL.offers }
@@ -265,19 +257,8 @@ export class ENSMarketplaceService {
       cacheKey,
       async () => {
         const chain = this.getChainName(chainId);
-        const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens/stats`;
-        
-        const response = await fetch(url, {
-          headers: {
-            'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch stats: ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const url = `${this.openseaApiPath}/chain/${chain}/collection/ens/stats`;
+        const data = await marketplaceRequest<any>(url);
         return this.transformStats(data);
       },
       { ttl: CacheTTL.stats }
@@ -345,17 +326,9 @@ export class ENSMarketplaceService {
    */
   private async fetchOpenSeaStats(): Promise<Partial<ENSCollectionStats>> {
     try {
-      const url = `${this.openseaApiUrl}/chain/ethereum/collection/ens/stats`;
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return this.transformStats(data);
-      }
+      const url = `${this.openseaApiPath}/chain/ethereum/collection/ens/stats`;
+      const data = await marketplaceRequest<any>(url);
+      return this.transformStats(data);
     } catch (error) {
       console.error('Error fetching OpenSea stats:', error);
     }

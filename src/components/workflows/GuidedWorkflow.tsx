@@ -31,18 +31,18 @@ import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
 import { ENSDomain, fetchENSNames } from '../../lib/ens';
 import {
-  setTextRecord,
   setAddressRecord,
   createSubdomain,
   transferDomainViaRegistry,
   transferWrappedName,
   wrapName,
   unwrapName,
-  setFuses,
   combineFuses,
   FUSES,
 } from '../../lib/ens';
+import { setFuses } from '../../lib/ens/ens-write-operations';
 import { Alert, AlertDescription } from '../ui/alert';
+import { TransactionConfirmationDialog } from '../TransactionConfirmationDialog';
 
 type WorkflowStep = 'select-domains' | 'select-action' | 'configure-action' | 'schedule';
 
@@ -148,6 +148,13 @@ export function GuidedWorkflow() {
   const [scheduleType, setScheduleType] = useState<'now' | 'scheduled'>('now');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
+  
+  // Confirmation dialog state
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    open: boolean;
+    action: ActionType | null;
+    domainCount: number;
+  }>({ open: false, action: null, domainCount: 0 });
 
   useEffect(() => {
     if (isConnected && address) {
@@ -306,7 +313,32 @@ export function GuidedWorkflow() {
     );
   };
 
-  const handleExecute = async () => {
+  const handleExecute = () => {
+    if (!walletClient || !publicClient) {
+      toast.error('Wallet not connected');
+      return;
+    }
+
+    if (!validateConfiguration()) {
+      return;
+    }
+
+    // Show confirmation for destructive actions
+    const destructiveActions: ActionType[] = ['transfer', 'unwrap'];
+    if (selectedAction && destructiveActions.includes(selectedAction)) {
+      setConfirmationDialog({
+        open: true,
+        action: selectedAction,
+        domainCount: selectedDomains.size,
+      });
+      return;
+    }
+
+    // Execute non-destructive actions immediately
+    executeAction();
+  };
+
+  const executeAction = async () => {
     if (!walletClient || !publicClient) {
       toast.error('Wallet not connected');
       return;
@@ -412,7 +444,7 @@ export function GuidedWorkflow() {
         case 'set-fuses':
           const fuses = combineFuses(selectedFuses as any[]);
           for (const domainName of domainArray) {
-            await setFuses(walletClient, publicClient, {
+            await setFuses(walletClient, {
               name: domainName,
               fuses,
             });
@@ -425,6 +457,7 @@ export function GuidedWorkflow() {
       setSelectedDomains(new Set());
       setCurrentStep('select-domains');
       setSelectedAction(null);
+      setConfirmationDialog({ open: false, action: null, domainCount: 0 });
     } catch (error: any) {
       console.error('Error executing action:', error);
       toast.error('Failed to execute action', {
@@ -477,7 +510,7 @@ export function GuidedWorkflow() {
                       <Checkbox
                         checked={selectedDomains.has(domain.name)}
                         onCheckedChange={() => handleDomainToggle(domain.name)}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       />
                       <Globe className="h-5 w-5 text-muted-foreground" />
                       <div className="flex-1">
@@ -686,7 +719,7 @@ export function GuidedWorkflow() {
               <div className="space-y-4">
                 <Label>Select Fuses</Label>
                 <div className="space-y-2">
-                  {Object.entries(FUSES).map(([key, value]) => {
+                  {Object.entries(FUSES).map(([key]) => {
                     const fuseDescriptions: Record<string, string> = {
                       CANNOT_UNWRAP: 'Prevents unwrapping the domain',
                       CANNOT_BURN_FUSES: 'Prevents burning additional fuses',
@@ -900,6 +933,36 @@ export function GuidedWorkflow() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialogs */}
+      {confirmationDialog.action === 'transfer' && (
+        <TransactionConfirmationDialog
+          open={confirmationDialog.open}
+          onOpenChange={(open) => setConfirmationDialog({ ...confirmationDialog, open })}
+          title="Transfer Domains"
+          description={`You are about to transfer ${confirmationDialog.domainCount} domain${confirmationDialog.domainCount !== 1 ? 's' : ''} to a new owner.`}
+          action="Confirm Transfer"
+          details={`Transferring to: ${transferAddress || 'Not specified'}`}
+          warning="This action is permanent and cannot be undone. You will lose all control over these domains."
+          destructive
+          requiresConfirmation
+          onConfirm={executeAction}
+        />
+      )}
+
+      {confirmationDialog.action === 'unwrap' && (
+        <TransactionConfirmationDialog
+          open={confirmationDialog.open}
+          onOpenChange={(open) => setConfirmationDialog({ ...confirmationDialog, open })}
+          title="Unwrap Domains"
+          description={`You are about to unwrap ${confirmationDialog.domainCount} domain${confirmationDialog.domainCount !== 1 ? 's' : ''} and return ${confirmationDialog.domainCount !== 1 ? 'them' : 'it'} to the registry.`}
+          action="Unwrap Domains"
+          warning="Unwrapping will remove enhanced security features. This action cannot be undone."
+          destructive
+          requiresConfirmation
+          onConfirm={executeAction}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronRight, ChevronDown, Copy } from 'lucide-react';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
@@ -84,7 +84,7 @@ export function ConsoleLogItem({ log, onCopy }: ConsoleLogItemProps) {
     
     return (
       <div className="space-y-1">
-        {log.data.map((item, idx) => {
+        {log.data.map((item: any, idx: number) => {
           if (typeof item === 'object' && item !== null) {
             try {
               const json = JSON.stringify(item, null, 2);
@@ -111,7 +111,7 @@ export function ConsoleLogItem({ log, onCopy }: ConsoleLogItemProps) {
     );
   };
 
-  const getCategoryColor = (category?: ConsoleLog['ensContext']['category']) => {
+  const getCategoryColor = (category?: NonNullable<ConsoleLog['ensContext']>['category']) => {
     if (!category) return null;
     
     switch (category) {
@@ -126,7 +126,7 @@ export function ConsoleLogItem({ log, onCopy }: ConsoleLogItemProps) {
     }
   };
 
-  const getCategoryBg = (category?: ConsoleLog['ensContext']['category']) => {
+  const getCategoryBg = (category?: NonNullable<ConsoleLog['ensContext']>['category']) => {
     if (!category) return null;
     
     switch (category) {
@@ -141,7 +141,7 @@ export function ConsoleLogItem({ log, onCopy }: ConsoleLogItemProps) {
     }
   };
 
-  const getCategoryBadgeBg = (category?: ConsoleLog['ensContext']['category']) => {
+  const getCategoryBadgeBg = (category?: NonNullable<ConsoleLog['ensContext']>['category']) => {
     if (!category) return null;
     
     switch (category) {
@@ -156,7 +156,7 @@ export function ConsoleLogItem({ log, onCopy }: ConsoleLogItemProps) {
     }
   };
 
-  const getLogColor = (type: ConsoleLog['type'], category?: ConsoleLog['ensContext']['category']) => {
+  const getLogColor = (type: ConsoleLog['type'], category?: NonNullable<ConsoleLog['ensContext']>['category']) => {
     // If there's a category, use category color, otherwise use type color
     const categoryColor = getCategoryColor(category);
     if (categoryColor) return categoryColor;
@@ -169,7 +169,7 @@ export function ConsoleLogItem({ log, onCopy }: ConsoleLogItemProps) {
     }
   };
 
-  const getLogBg = (type: ConsoleLog['type'], category?: ConsoleLog['ensContext']['category']) => {
+  const getLogBg = (type: ConsoleLog['type'], category?: NonNullable<ConsoleLog['ensContext']>['category']) => {
     // If there's a category, use category background, otherwise use type background
     const categoryBg = getCategoryBg(category);
     if (categoryBg) return categoryBg;

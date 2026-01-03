@@ -59,7 +59,7 @@ export function ENSConsoleRefactored() {
   const consoleLogs = useConsoleLogs();
   const operations = useENSOperations();
   const network = useNetworkRequests();
-  const domainInspector = useDomainInspector(publicClient, operations.trackENSOperation);
+  const domainInspector = useDomainInspector(publicClient || null, operations.trackENSOperation);
 
   // Replay operation handler
   const replayOperation = useCallback(async (op: any) => {
@@ -339,6 +339,9 @@ export function ENSConsoleRefactored() {
                 savedFilters={savedFilters}
                 onSaveFilter={saveFilter}
                 onLoadFilter={loadFilter}
+                onCopyAllLogs={consoleLogs.copyAllLogs}
+                onExportLogs={consoleLogs.exportLogs}
+                onClearConsole={consoleLogs.clearConsole}
               />
             </TabsContent>
 
@@ -388,6 +391,11 @@ export function ENSConsoleRefactored() {
     </ErrorBoundary>
   );
 }
+
+
+
+
+
 
 
 

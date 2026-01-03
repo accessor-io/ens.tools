@@ -104,7 +104,7 @@ export function ENSMarketplaceEnhanced() {
   const [lengthRange, setLengthRange] = useState<[number, number]>([3, 10]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
   const [selectedCategories, setSelectedCategories] = useState<DomainCategory[]>([]);
-  const [selectedPattern, setSelectedPattern] = useState<string>('');
+  const [selectedPattern, setSelectedPattern] = useState<string>('any');
   
   // Watchlist
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
@@ -135,7 +135,7 @@ export function ENSMarketplaceEnhanced() {
         max: priceRange[1].toString() 
       },
       category: selectedCategories.length > 0 ? selectedCategories : undefined,
-      pattern: selectedPattern as any || undefined,
+      pattern: selectedPattern === 'any' ? undefined : selectedPattern as any,
     });
     
     // Apply search
@@ -327,7 +327,7 @@ export function ENSMarketplaceEnhanced() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl">ENS Marketplace</CardTitle>
+              <CardTitle className="text-2xl">ens marketplace</CardTitle>
               <CardDescription>
                 Browse and trade ENS domains with advanced filtering
               </CardDescription>
@@ -415,7 +415,7 @@ export function ENSMarketplaceEnhanced() {
                           <SelectValue placeholder="Any pattern" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Any pattern</SelectItem>
+                          <SelectItem value="any">Any pattern</SelectItem>
                           <SelectItem value="numbers">Numbers only</SelectItem>
                           <SelectItem value="letters">Letters only</SelectItem>
                           <SelectItem value="alphanumeric">Alphanumeric</SelectItem>

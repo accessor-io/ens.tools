@@ -148,7 +148,7 @@ export function DevTools() {
       setNetworkRequests(prev => [...prev, request]);
 
       try {
-        const response = await originalFetch(...args);
+        const response = await originalFetch(...(args as Parameters<typeof fetch>));
         const duration = Date.now() - startTime;
         
         setNetworkRequests(prev => prev.map(req => 

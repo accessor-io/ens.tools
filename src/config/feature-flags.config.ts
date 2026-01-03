@@ -65,6 +65,7 @@ export interface FeatureConfig {
   // Reference Features
   protocolReference: boolean;
   bestPractices: boolean;
+  documentation: boolean;
   
   // Analytics Features
   analytics: boolean;
@@ -77,6 +78,9 @@ export interface FeatureConfig {
   // System Features
   settings: boolean;
   guidedWorkflow: boolean;
+  
+  // AI Features
+  aiTools: boolean;
 }
 
 /**
@@ -122,6 +126,7 @@ const defaultConfig: FeatureConfig = {
   // Reference Features
   protocolReference: true,
   bestPractices: true,
+  documentation: true,
   
   // Analytics Features
   analytics: true,
@@ -134,6 +139,9 @@ const defaultConfig: FeatureConfig = {
   // System Features
   settings: true,
   guidedWorkflow: true,
+  
+  // AI Features
+  aiTools: true,
 };
 
 /**
@@ -180,6 +188,7 @@ const marketplaceOnlyConfig: FeatureConfig = {
   // Reference Features
   protocolReference: false,
   bestPractices: false,
+  documentation: true, // Keep documentation available
   
   // Analytics Features
   analytics: true, // Keep analytics for marketplace stats
@@ -218,12 +227,14 @@ const featureDependencies: Record<keyof FeatureConfig, (keyof FeatureConfig)[]> 
   namingToolkit: [],
   protocolReference: [],
   bestPractices: [],
+  documentation: [],
   analytics: [],
   feeManagement: [],
   masterDatabase: [],
   adminPanel: [],
   settings: [],
   guidedWorkflow: [],
+  aiTools: [],
 };
 
 /**
@@ -238,10 +249,12 @@ function resolveDependencies(config: FeatureConfig): FeatureConfig {
     for (const [feature, enabled] of Object.entries(resolved) as [keyof FeatureConfig, boolean][]) {
       if (enabled) {
         const deps = featureDependencies[feature];
-        for (const dep of deps) {
-          if (!resolved[dep]) {
-            resolved[dep] = true;
-            changed = true;
+        if (deps && Array.isArray(deps)) {
+          for (const dep of deps) {
+            if (!resolved[dep]) {
+              resolved[dep] = true;
+              changed = true;
+            }
           }
         }
       }
@@ -298,6 +311,7 @@ export const viewToFeatureMap: Record<string, keyof FeatureConfig> = {
   naming: 'namingToolkit',
   protocol: 'protocolReference',
   'best-practices': 'bestPractices',
+  documentation: 'documentation',
   settings: 'settings',
   'dao-registry': 'daoRegistry',
   integrations: 'integrations',
@@ -312,6 +326,7 @@ export const viewToFeatureMap: Record<string, keyof FeatureConfig> = {
   'master-database': 'masterDatabase',
   'admin-panel': 'adminPanel',
   'guided-workflow': 'guidedWorkflow',
+  'ai-tools': 'aiTools',
 };
 
 /**

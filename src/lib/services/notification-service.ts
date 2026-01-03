@@ -114,7 +114,7 @@ class NotificationService {
     if (!this.config.webhookUrl) return;
 
     const webhookPayload = {
-      username: 'ens.tools',
+      username: 'config',
       embeds: [
         {
           title: payload.title,
@@ -216,7 +216,7 @@ class NotificationService {
                 </div>
               ` : ''}
               <div class="footer">
-                <p>ens.tools</p>
+                <p>config</p>
                 <p>Alert generated at: ${new Date(payload.timestamp).toLocaleString()}</p>
               </div>
             </div>
@@ -238,7 +238,7 @@ ${payload.domain ? `Domain: ${payload.domain}\n` : ''}
 ${payload.metadata && Object.keys(payload.metadata).length > 0 ? `\nMetadata:\n${JSON.stringify(payload.metadata, null, 2)}\n` : ''}
 
 ---
-ens.tools
+config
 Alert generated at: ${new Date(payload.timestamp).toLocaleString()}
     `.trim();
   }

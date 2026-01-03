@@ -158,7 +158,7 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
     setLoading(true);
     try {
       const executeFn = async () => {
-        return await granularPermissionService.removeDelegate(node, delegate);
+        return await granularPermissionService.removeDelegate(node, delegate) as `0x${string}`;
       };
 
       await txManager.addTransaction(executeFn, {
@@ -183,9 +183,9 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
     try {
       const executeFn = async () => {
         if (locked) {
-          return await granularPermissionService.unlockDelegate(node, delegate);
+          return await granularPermissionService.unlockDelegate(node, delegate) as `0x${string}`;
         } else {
-          return await granularPermissionService.lockDelegate(node, delegate);
+          return await granularPermissionService.lockDelegate(node, delegate) as `0x${string}`;
         }
       };
 
@@ -211,9 +211,9 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
     try {
       const executeFn = async () => {
         if (enabled) {
-          return await granularPermissionService.disableDelegate(node, delegate);
+          return await granularPermissionService.disableDelegate(node, delegate) as `0x${string}`;
         } else {
-          return await granularPermissionService.enableDelegate(node, delegate);
+          return await granularPermissionService.enableDelegate(node, delegate) as `0x${string}`;
         }
       };
 
@@ -242,7 +242,7 @@ export function GranularPermissions({ domainName, contractAddress }: GranularPer
     setLoading(true);
     try {
       const executeFn = async () => {
-        return await granularPermissionService.emergencyPause(node, !emergencyPaused);
+        return await granularPermissionService.emergencyPause(node, !emergencyPaused) as `0x${string}`;
       };
 
       await txManager.addTransaction(executeFn, {

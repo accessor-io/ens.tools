@@ -13,7 +13,7 @@ export function useNetworkRequests() {
 
     window.fetch = async (...args: Parameters<typeof fetch>) => {
       const [resource, init] = args;
-      const url = typeof resource === 'string' ? resource : resource.url;
+      const url = typeof resource === 'string' ? resource : (resource instanceof Request ? resource.url : resource.toString());
       const method = init?.method || 'GET';
       const startTime = Date.now();
       const requestId = `req-${Date.now()}-${Math.random()}`;
@@ -84,6 +84,11 @@ export function useNetworkRequests() {
     clearNetwork,
   };
 }
+
+
+
+
+
 
 
 

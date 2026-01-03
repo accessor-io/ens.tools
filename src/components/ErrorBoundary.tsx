@@ -71,7 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       const { error, errorInfo } = this.state;
-      const isDevelopment = import.meta.env.DEV;
+      const isDevelopment = (import.meta as any).env?.DEV ?? false;
 
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">

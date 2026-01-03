@@ -30,6 +30,7 @@ export function FeeManagement() {
   const [registrationFee, setRegistrationFee] = useState<bigint>(0n);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminAddress, setAdminAddress] = useState<Address | null>(null);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawRecipient, setWithdrawRecipient] = useState('');
   const [newFeeAmount, setNewFeeAmount] = useState('');
@@ -44,8 +45,19 @@ export function FeeManagement() {
       feeCollectionService.setClients(publicClient, walletClient || undefined);
       loadFeeData();
       checkAdminStatus();
+      loadAdminAddress();
     }
   }, [isConnected, publicClient, address, walletClient]);
+
+  const loadAdminAddress = async () => {
+    try {
+      const admin = await feeCollectionService.getAdminAddress();
+      setAdminAddress(admin);
+    } catch (error) {
+      console.error('Error loading admin address:', error);
+      setAdminAddress(null);
+    }
+  };
 
   const loadFeeData = async () => {
     setIsLoading(true);
@@ -71,6 +83,11 @@ export function FeeManagement() {
     try {
       const admin = await feeCollectionService.isAdmin(address as Address);
       setIsAdmin(admin);
+      if (!admin) {
+        console.warn('Not recognized as admin. Check that:');
+        console.warn('1. FeeCollection contract is deployed and VITE_FEE_COLLECTION_ADDRESS is set');
+        console.warn('2. Your connected address matches the contract admin address');
+      }
     } catch (error) {
       console.error('Error checking admin status:', error);
       setIsAdmin(false);
@@ -197,12 +214,70 @@ export function FeeManagement() {
         <p className="text-slate-600">Manage registration fees and withdrawals</p>
       </div>
 
+      {/* Debug Info - Contract Address */}
+      <Card className="border border-slate-200 bg-slate-50">
+        <CardContent className="pt-4">
+          <div className="text-xs text-slate-600 space-y-1">
+            <div>
+              <strong>Contract Address:</strong>{' '}
+              <span className="font-mono">
+                {feeCollectionService.getContractAddress() === '0x0000000000000000000000000000000000000000'
+                  ? 'Not configured (0x0000...)'
+                  : feeCollectionService.getContractAddress()}
+              </span>
+            </div>
+            {adminAddress && (
+              <div>
+                <strong>Contract Admin:</strong>{' '}
+                <span className="font-mono">{adminAddress}</span>
+              </div>
+            )}
+            {address && (
+              <div>
+                <strong>Your Address:</strong>{' '}
+                <span className="font-mono">{address}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {!isAdmin && (
         <Alert className="border-amber-200 bg-amber-50">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertTitle className="text-amber-900">Admin Access Required</AlertTitle>
           <AlertDescription className="text-amber-800">
             Only admin addresses can manage fees and withdraw collected amounts.
+            <br />
+            <br />
+            {adminAddress ? (
+              <>
+                <strong>Contract Admin Address:</strong>
+                <div className="font-mono text-sm mt-1 p-2 bg-amber-100 rounded">
+                  {adminAddress}
+                </div>
+                <div className="mt-2">
+                  <strong>Your Connected Address:</strong>
+                  <div className="font-mono text-sm mt-1 p-2 bg-amber-100 rounded">
+                    {address}
+                  </div>
+                </div>
+                <p className="mt-2 text-sm">
+                  Connect the wallet that matches the admin address above to enable withdrawals.
+                </p>
+              </>
+            ) : (
+              <>
+                <strong>To enable withdrawals:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Ensure FeeCollection contract is deployed</li>
+                  <li>Set VITE_FEE_COLLECTION_ADDRESS environment variable</li>
+                  <li>Connect the wallet address that matches the contract admin</li>
+                </ul>
+                <br />
+                Check browser console for detailed error messages.
+              </>
+            )}
           </AlertDescription>
         </Alert>
       )}

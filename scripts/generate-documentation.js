@@ -120,7 +120,7 @@ ENS Tools is a platform for managing Ethereum Name Service (ENS) domains, provid
 ## Project Structure
 
 \`\`\`
-ens.tools/
+config/
 ├── src/              # Frontend React application
 ├── server/           # Backend Express API
 ├── contracts/       # Smart contracts
@@ -1652,7 +1652,7 @@ docker run --env-file .env -p 3001:3001 ens-tools
 \`\`\`bash
 # Clone repository
 git clone <repository-url>
-cd ens.tools
+cd config
 
 # Create branch
 git checkout -b feature/new-feature

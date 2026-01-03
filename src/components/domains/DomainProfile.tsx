@@ -40,6 +40,7 @@ import {
   Code,
   Network,
   Calendar,
+  ShoppingCart,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
@@ -74,6 +75,7 @@ import {
 import { getENSStatus, validateExternalUrl, sanitizeInput } from '../../lib/ens';
 import { transferDomainViaRegistry, transferWrappedName } from '../../lib/ens';
 import { premiumPriceService } from '../../lib/services/premium-price-service';
+import { ensMarketplaceService } from '../../lib/services/ens-marketplace-service';
 import {
   ALL_SCHEMAS,
   getRecommendedSchema,
@@ -81,6 +83,7 @@ import {
   MetadataSchema,
   STANDARD_KEYS,
 } from '../../lib/metadata';
+import { useStateRecollection } from '../../lib/adaptive-rendering/state-recollection';
 
 interface DomainProfileProps {
   domain: ENSDomain;
@@ -95,12 +98,31 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
+  const { stagedEdits, stageEdit, clearStagedEdits, recallState, requiresRecall } = useStateRecollection(
+    'domain-profile',
+    'editing',
+    {
+      requiresTransactionStaging: true,
+      autoDormantOnContextSwitch: true,
+      persistenceType: 'session',
+    }
+  );
+  
+  const [previousMetadata, setPreviousMetadata] = useState<Record<string, string>>({});
+  
   // Confirmation dialog state
   const [confirmationDialog, setConfirmationDialog] = useState<{
     open: boolean;
     type: 'transfer' | 'wrap' | 'unwrap' | 'resolver' | 'reverse' | 'fuses' | 'metadata' | null;
     data?: any;
   }>({ open: false, type: null });
+
+  // Offer dialog state
+  const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [offerPrice, setOfferPrice] = useState('');
+  const [isCreatingOffer, setIsCreatingOffer] = useState(false);
+  const [isDomainForSale, setIsDomainForSale] = useState(false);
+  const [domainListing, setDomainListing] = useState<any>(null);
 
   useEffect(() => {
     eventTracker.trackDomainView(domain.name, address || undefined);
@@ -114,6 +136,19 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain.name, publicClient]);
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
 
   const loadContentHash = async () => {
     if (!publicClient) return;
@@ -215,11 +250,54 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
     loadSubdomains();
     loadENSNames();
     loadENSStatus();
+    checkIfDomainForSale();
     
     // Set recommended schema
     const recommended = getRecommendedSchema(domain.name);
     setSelectedSchema(recommended);
-  }, [domain]);
+    
+    // Recall staged edits if available
+    if (requiresRecall) {
+      const recalled = recallState();
+      if (recalled && recalled.stagedEdits.length > 0) {
+        const edit = recalled.stagedEdits.find(e => e.domainName === domain.name);
+        if (edit && edit.changes.metadata) {
+          setMetadata(edit.changes.metadata);
+          setIsEditing(true);
+        }
+      }
+    }
+  }, [domain, publicClient, requiresRecall, recallState]);
+  
+  // Stage edits when metadata changes and isEditing is true
+  useEffect(() => {
+    if (!isEditing || isSaving) {
+      setPreviousMetadata({ ...metadata });
+      return;
+    }
+    
+    const hasChanges = JSON.stringify(metadata) !== JSON.stringify(previousMetadata);
+    if (hasChanges && Object.keys(metadata).length > 0) {
+      const changes: Record<string, any> = {};
+      Object.entries(metadata).forEach(([key, value]) => {
+        if (value) {
+          changes[key] = value;
+        }
+      });
+      
+      if (Object.keys(changes).length > 0) {
+        stageEdit({
+          domainName: domain.name,
+          editType: 'metadata',
+          changes: { metadata },
+          requiresTransaction: true,
+          canAutoSubmit: false,
+        });
+      }
+    }
+    
+    setPreviousMetadata({ ...metadata });
+  }, [metadata, isEditing, isSaving, domain.name, stageEdit]);
 
   const loadDomainDetails = async () => {
     if (!publicClient) return;
@@ -293,6 +371,73 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
     }
   };
 
+  const checkIfDomainForSale = async () => {
+    if (!publicClient) return;
+    
+    try {
+      const chainId = await publicClient.getChainId();
+      const listings = await ensMarketplaceService.getActiveListings(chainId);
+      const listing = listings.find(l => l.name.toLowerCase() === domain.name.toLowerCase() && l.status === 'active');
+      
+      if (listing) {
+        setIsDomainForSale(true);
+        setDomainListing(listing);
+      } else {
+        setIsDomainForSale(false);
+        setDomainListing(null);
+      }
+    } catch (error) {
+      console.error('Error checking if domain is for sale:', error);
+      setIsDomainForSale(false);
+      setDomainListing(null);
+    }
+  };
+
+  const handleCreateOffer = async () => {
+    if (!walletClient || !publicClient || !address) {
+      toast.error('Please connect your wallet');
+      return;
+    }
+
+    if (!offerPrice || parseFloat(offerPrice) <= 0) {
+      toast.error('Please enter a valid offer price');
+      return;
+    }
+
+    // Check if user is the owner
+    if (address.toLowerCase() === domain.owner.toLowerCase()) {
+      toast.error('You cannot make an offer on your own domain');
+      return;
+    }
+
+    setIsCreatingOffer(true);
+    try {
+      const chainId = await publicClient.getChainId();
+      const normalizedName = domain.name.toLowerCase().trim();
+      const namehash = `0x${Buffer.from(normalizedName).toString('hex')}`;
+      
+      await ensMarketplaceService.createDomainOffer({
+        name: normalizedName,
+        namehash,
+        tokenId: namehash,
+        price: offerPrice,
+        publicClient,
+        walletClient,
+        chainId,
+      });
+
+      toast.success('Offer created successfully');
+      setShowOfferDialog(false);
+      setOfferPrice('');
+      onUpdate();
+    } catch (error: any) {
+      console.error('Error creating offer:', error);
+      toast.error(error.message || 'Failed to create offer');
+    } finally {
+      setIsCreatingOffer(false);
+    }
+  };
+
   const handleSaveMetadata = async () => {
     if (!walletClient || !publicClient) {
       toast.error('Wallet not connected');
@@ -349,7 +494,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
             if (key === 'name' || key === 'displayName' || key === 'eth.name') {
               auditLogService.trackAction('name_edited', `Name edited for ${domain.name}: ${key}`, {
                 domain: domain.name,
-                actor: address,
+                actor: address || undefined,
                 status: 'success',
                 metadata: {
                   field: key,
@@ -359,6 +504,10 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
             }
           }
           setIsEditing(false);
+          const editIds = stagedEdits.filter(e => e.domainName === domain.name).map(e => e.id);
+          if (editIds.length > 0) {
+            clearStagedEdits(editIds);
+          }
           onUpdate();
         },
       });
@@ -487,7 +636,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
         return await setResolver(walletClient, publicClient, {
           name: domain.name,
           resolverAddress,
-        });
+        }) as `0x${string}`;
       };
 
       await txManager.addTransaction(executeFn, {
@@ -555,7 +704,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
           owner: domain.owner as `0x${string}`,
           fuses: 0,
           expiry,
-        });
+        }) as `0x${string}`;
       };
 
       await txManager.addTransaction(executeFn, {
@@ -590,7 +739,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
         return await unwrapName(walletClient, publicClient, {
           name: domain.name,
           newController: domain.owner as `0x${string}`,
-        });
+        }) as `0x${string}`;
       };
 
       await txManager.addTransaction(executeFn, {
@@ -650,7 +799,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-200/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
@@ -693,7 +842,13 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Status Indicators */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {isDomainForSale && (
+                      <Badge variant="secondary" className="bg-pink-50 text-pink-700 border-pink-200">
+                        <ShoppingCart className="h-3 w-3 mr-1" />
+                        For Sale
+                      </Badge>
+                    )}
                     {ensStatus.isCCIPRead && (
                       <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
                         <Network className="h-3 w-3 mr-1" />
@@ -803,11 +958,12 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                     {domain.resolver && (
                       <div className="md:col-span-2">
                         <Label className="text-slate-600">Resolver</Label>
-                        <div className="flex items-center gap-2 mt-1">
-                          <code className="text-slate-900 break-all">{formatAddress(domain.resolver, resolverENSName)}</code>
+                        <div className="flex items-start gap-2 mt-1">
+                          <code className="text-slate-900 break-all flex-1 min-w-0">{formatAddress(domain.resolver, resolverENSName)}</code>
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="flex-shrink-0"
                             onClick={() => copyToClipboard(domain.resolver!)}
                           >
                             <Copy className="h-4 w-4" />
@@ -826,42 +982,56 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-3 md:grid-cols-2">
-                    <Button
-                      variant="outline"
-                      className="justify-start"
-                      onClick={() => setActiveTab('metadata')}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Edit Metadata
-                      <ChevronRight className="h-4 w-4 ml-auto" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="justify-start"
-                      onClick={() => setActiveTab('subdomains')}
-                    >
-                      <Network className="h-4 w-4 mr-2" />
-                      Manage Subdomains
-                      <ChevronRight className="h-4 w-4 ml-auto" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="justify-start"
-                      onClick={() => setActiveTab('security')}
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      Configure Security
-                      <ChevronRight className="h-4 w-4 ml-auto" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="justify-start"
-                      onClick={() => setActiveTab('transfer')}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Transfer Ownership
-                      <ChevronRight className="h-4 w-4 ml-auto" />
-                    </Button>
+                    {address && address.toLowerCase() !== domain.owner.toLowerCase() && isDomainForSale && (
+                      <Button
+                        className="justify-start bg-pink-500 hover:bg-pink-600 text-white"
+                        onClick={() => setShowOfferDialog(true)}
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Make Offer
+                        <ChevronRight className="h-4 w-4 ml-auto" />
+                      </Button>
+                    )}
+                    {address && address.toLowerCase() === domain.owner.toLowerCase() && (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="justify-start"
+                          onClick={() => setActiveTab('metadata')}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Edit Metadata
+                          <ChevronRight className="h-4 w-4 ml-auto" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="justify-start"
+                          onClick={() => setActiveTab('subdomains')}
+                        >
+                          <Network className="h-4 w-4 mr-2" />
+                          Manage Subdomains
+                          <ChevronRight className="h-4 w-4 ml-auto" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="justify-start"
+                          onClick={() => setActiveTab('security')}
+                        >
+                          <Shield className="h-4 w-4 mr-2" />
+                          Configure Security
+                          <ChevronRight className="h-4 w-4 ml-auto" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="justify-start"
+                          onClick={() => setActiveTab('transfer')}
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Transfer Ownership
+                          <ChevronRight className="h-4 w-4 ml-auto" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -873,7 +1043,14 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Metadata & Contract Information</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle>Metadata & Contract Information</CardTitle>
+                        {stagedEdits.length > 0 && (
+                          <Badge variant="secondary" className="animate-pulse">
+                            {stagedEdits.length} staged
+                          </Badge>
+                        )}
+                      </div>
                       <CardDescription>
                         Configure text records and contract metadata following ENS standards
                       </CardDescription>
@@ -909,7 +1086,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                     <Label>Metadata Schema</Label>
                     <Select
                       value={selectedSchema?.id || ''}
-                      onValueChange={(id) => {
+                      onValueChange={(id: string) => {
                         const schema = ALL_SCHEMAS.find(s => s.id === id);
                         setSelectedSchema(schema || null);
                       }}
@@ -1074,7 +1251,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                                   return await setContentHash(walletClient, publicClient, {
                                     name: domain.name,
                                     contentHash: contentHashValue.trim(),
-                                  });
+                                  }) as `0x${string}`;
                                 };
 
                                 await txManager.addTransaction(executeFn, {
@@ -1220,7 +1397,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                                 return await setTTL(walletClient, publicClient, {
                                   name: domain.name,
                                   ttl,
-                                });
+                                }) as `0x${string}`;
                               };
 
                               await txManager.addTransaction(executeFn, {
@@ -1307,7 +1484,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                     <div className="space-y-3">
                       <div className="space-y-2">
                         <Label>Content Type</Label>
-                        <Select value={abiContentType.toString()} onValueChange={(v) => setAbiContentType(parseInt(v))}>
+                        <Select value={abiContentType.toString()} onValueChange={(v: string) => setAbiContentType(parseInt(v))}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -1347,7 +1524,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                                   name: domain.name,
                                   contentType: abiContentType,
                                   data: newABI.trim(),
-                                });
+                                }) as `0x${string}`;
                               };
 
                               await txManager.addTransaction(executeFn, {
@@ -1921,7 +2098,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                     return await renewDomain(walletClient, publicClient, {
                       name: domain.name,
                       duration: 365 * 24 * 60 * 60, // 1 year in seconds
-                    });
+                    }) as `0x${string}`;
                   };
 
                   await txManager.addTransaction(executeFn, {
@@ -1944,6 +2121,70 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
                 'Loading...'
               ) : (
                 `Renew for ${renewPrice ? premiumPriceService.formatPrice(renewPrice.total) : '...'}`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Offer Dialog */}
+      <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Make an Offer</DialogTitle>
+            <DialogDescription>
+              Send an offer to the owner of {domain.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {domainListing && (
+              <div className="p-3 bg-slate-50 rounded-lg">
+                <div className="text-sm text-slate-600">Current Listing Price</div>
+                <div className="text-lg font-semibold text-slate-900">
+                  {domainListing.price} {domainListing.currency || 'ETH'}
+                </div>
+              </div>
+            )}
+            <div>
+              <Label htmlFor="offer-price">Offer Price (ETH)</Label>
+              <Input
+                id="offer-price"
+                type="number"
+                step="0.001"
+                min="0"
+                placeholder="0.0"
+                value={offerPrice}
+                onChange={(e) => setOfferPrice(e.target.value)}
+                className="mt-1"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Enter your offer amount in ETH
+              </p>
+            </div>
+            <Alert>
+              <AlertDescription className="text-xs">
+                Your offer will be sent to the domain owner. They can accept or reject your offer.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowOfferDialog(false);
+              setOfferPrice('');
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateOffer}
+              disabled={isCreatingOffer || !offerPrice || parseFloat(offerPrice) <= 0}
+            >
+              {isCreatingOffer ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Creating Offer...
+                </>
+              ) : (
+                'Send Offer'
               )}
             </Button>
           </DialogFooter>

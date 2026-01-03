@@ -112,7 +112,7 @@ export function ENSMarketplace() {
   const [showFilters, setShowFilters] = useState(false);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
   const loadMarketplaceData = useCallback(async () => {
@@ -375,7 +375,7 @@ export function ENSMarketplace() {
           publicClient,
           walletClient,
           chainId
-        );
+        ) as `0x${string}`;
       };
 
       await txManager.addTransaction(executeFn, {
@@ -432,7 +432,7 @@ export function ENSMarketplace() {
     const newFilters: FilterOption = {};
     if (minPrice) newFilters.minPrice = minPrice;
     if (maxPrice) newFilters.maxPrice = maxPrice;
-    if (statusFilter.length > 0) newFilters.status = statusFilter;
+    if (statusFilter && statusFilter !== 'all') newFilters.status = [statusFilter];
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
   }, [minPrice, maxPrice, statusFilter]);
@@ -448,13 +448,18 @@ export function ENSMarketplace() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">ENS Marketplace</h1>
-          <p className="text-slate-600 mt-1">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">ens marketplace</h1>
+        <div className="flex items-center justify-between gap-6 mb-4">
+          <p className="text-slate-600">
             Buy and sell ENS domains using Seaport protocol
           </p>
+          <div className="web3-glow">
+            <WalletConnectRainbow />
+          </div>
         </div>
+      </div>
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
             <Globe className="h-3 w-3 mr-1" />
@@ -612,7 +617,7 @@ export function ENSMarketplace() {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <Tabs value={activeTab} onValueChange={(v: string) => setActiveTab(v as any)}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="listings">
             <ShoppingCart className="h-4 w-4 mr-2" />
@@ -706,14 +711,14 @@ export function ENSMarketplace() {
                     <div>
                       <Label>Status</Label>
                       <Select
-                        value={statusFilter.join(',')}
-                        onValueChange={(v) => setStatusFilter(v ? v.split(',') : [])}
+                        value={statusFilter}
+                        onValueChange={setStatusFilter}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="All statuses" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All</SelectItem>
+                          <SelectItem value="all">All</SelectItem>
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="sold">Sold</SelectItem>
                           <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -1274,7 +1279,7 @@ export function ENSMarketplace() {
           {stats && (
             <Card>
               <CardHeader>
-                <CardTitle>ENS Marketplace Statistics</CardTitle>
+                <CardTitle>ens marketplace statistics</CardTitle>
                 <CardDescription>
                   Overview of ENS domain trading activity
                 </CardDescription>

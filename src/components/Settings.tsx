@@ -26,6 +26,9 @@ import { addressDisplayService, AddressDisplayConfig, AddressDisplayFormat } fro
 import { userConfigService, UserConfig } from '../lib/services/user-config-service';
 import { useWeb3 } from '../lib/services';
 import { auditLogService } from '../lib/security';
+import { AIConfiguration } from './ai/AIConfiguration';
+import { WalletConnectRainbow } from './WalletConnectRainbow';
+import { BannerCustomization } from './BannerCustomization';
 
 // Custom Toggle Button Component
 function ToggleButton({ checked, onCheckedChange }: { checked: boolean; onCheckedChange: (checked: boolean) => void }) {
@@ -260,16 +263,21 @@ export function Settings() {
 
   if (!address) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-slate-900">Settings</h2>
-            <p className="text-slate-600">Configure system preferences and security options</p>
+      <div className="space-y-8">
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3 leading-tight">settings</h1>
+          <div className="flex items-center justify-between gap-6">
+            <p className="text-lg text-gray-600 leading-relaxed">Configure system preferences and security options</p>
+            <div className="web3-glow">
+              <WalletConnectRainbow />
+            </div>
           </div>
         </div>
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
+        <Alert className="border-2 border-amber-200 bg-amber-50 rounded-xl p-6">
+          <div className="h-6 w-6 rounded-lg bg-amber-100 flex items-center justify-center">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+          </div>
+          <AlertDescription className="text-base text-amber-800 leading-relaxed">
             Please connect a wallet to access user-specific settings. Some settings are available without a wallet connection.
           </AlertDescription>
         </Alert>
@@ -285,14 +293,14 @@ export function Settings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-slate-900">Settings</h2>
-          <p className="text-slate-600">Configure system preferences and security options</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3 leading-tight">Settings</h1>
+          <p className="text-lg text-gray-600 leading-relaxed">Configure system preferences and security options</p>
         </div>
-        <Button onClick={handleSaveSettings}>
+        <Button onClick={handleSaveSettings} size="lg" className="px-6">
           Save Changes
         </Button>
       </div>
@@ -300,38 +308,40 @@ export function Settings() {
       <Tabs defaultValue="wallets" className="w-full">
         <div className="flex gap-6 items-start">
           <div className="flex-shrink-0">
-            <TabsList className="flex flex-col h-[calc(100vh-200px)] w-64 bg-white/95 backdrop-blur-sm border-2 border-slate-200/80 rounded-xl p-2 shadow-sm justify-start">
-              <TabsTrigger value="wallets" className="w-full justify-start">Wallets & Access</TabsTrigger>
-              <TabsTrigger value="notifications" className="w-full justify-start">Notifications</TabsTrigger>
-              <TabsTrigger value="display" className="w-full justify-start">Display</TabsTrigger>
-              <TabsTrigger value="preferences" className="w-full justify-start">Preferences</TabsTrigger>
-              <TabsTrigger value="security" className="w-full justify-start">Security</TabsTrigger>
-              <TabsTrigger value="automation" className="w-full justify-start">Automation</TabsTrigger>
+            <TabsList className="flex flex-col h-[calc(100vh-200px)] w-72 bg-white border border-gray-200 rounded-xl p-3 shadow-sm justify-start gap-1">
+              <TabsTrigger value="wallets" className="w-full justify-start px-4 py-3 text-base font-medium">Wallets & Access</TabsTrigger>
+              <TabsTrigger value="notifications" className="w-full justify-start px-4 py-3 text-base font-medium">Notifications</TabsTrigger>
+              <TabsTrigger value="display" className="w-full justify-start px-4 py-3 text-base font-medium">Display</TabsTrigger>
+              <TabsTrigger value="ai" className="w-full justify-start px-4 py-3 text-base font-medium">AI Settings</TabsTrigger>
+              <TabsTrigger value="preferences" className="w-full justify-start px-4 py-3 text-base font-medium">Preferences</TabsTrigger>
+              <TabsTrigger value="security" className="w-full justify-start px-4 py-3 text-base font-medium">Security</TabsTrigger>
+              <TabsTrigger value="automation" className="w-full justify-start px-4 py-3 text-base font-medium">Automation</TabsTrigger>
+              <TabsTrigger value="ai" className="w-full justify-start px-4 py-3 text-base font-medium">AI Settings</TabsTrigger>
             </TabsList>
           </div>
           
           <div className="flex-1 flex flex-col space-y-6 ml-4 float-right">
 
           {/* Wallets & Access */}
-          <TabsContent value="wallets" className="space-y-6 mt-0">
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle>Connected Wallets</CardTitle>
+          <TabsContent value="wallets" className="space-y-8 mt-0">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="text-xl font-bold mb-2">Connected Wallets</CardTitle>
               <CardDescription>Manage wallet access and permissions</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 border rounded-lg bg-white space-y-3">
+            <CardContent className="space-y-6 p-8">
+              <div className="p-6 border-2 border-gray-200 rounded-xl bg-white space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                      <Wallet className="h-5 w-5 text-white" />
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
+                      <Wallet className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <p className="text-slate-900">Primary Wallet</p>
-                      <p className="text-slate-600 font-mono">0x742d...35a3</p>
+                      <p className="text-base font-bold text-gray-900 mb-1">Primary Wallet</p>
+                      <p className="text-sm text-gray-600 font-mono">0x742d...35a3</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Badge variant="default" className="bg-emerald-50 text-emerald-700 border-emerald-200">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Connected
@@ -341,7 +351,7 @@ export function Settings() {
                 </div>
               </div>
 
-              <div className="p-4 border rounded-lg bg-slate-50 space-y-3">
+              <div className="p-6 border-2 border-gray-200 rounded-xl bg-slate-50 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-slate-300 flex items-center justify-center">
@@ -356,32 +366,35 @@ export function Settings() {
                 </div>
               </div>
 
-              <Alert className="border-blue-200 bg-blue-50">
-                <Shield className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800">
+              <Alert className="border-2 border-blue-200 bg-blue-50 rounded-xl p-5">
+                <div className="h-6 w-6 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                </div>
+                <AlertDescription className="text-base text-blue-800 leading-relaxed">
                   Best Practice: Use separate wallets for Owner (cold storage) and Controller (hot wallet) roles
                 </AlertDescription>
               </Alert>
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle>Multisig Configuration</CardTitle>
-              <CardDescription>Configure Gnosis Safe integration for critical operations</CardDescription>
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="text-xl font-bold mb-2">Multisig Configuration</CardTitle>
+              <CardDescription className="text-base">Configure Gnosis Safe integration for critical operations</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="multisig-address">Multisig Safe Address</Label>
+            <CardContent className="space-y-6 p-8">
+              <div className="space-y-3">
+                <Label htmlFor="multisig-address" className="text-base font-semibold">Multisig Safe Address</Label>
                 <Input 
                   id="multisig-address" 
                   placeholder="0x..."
                   defaultValue="0x742d35Cc6634C0532925a3b844Bc9e7595f35a3"
+                  className="h-11"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="threshold">Signature Threshold</Label>
+              <div className="space-y-3">
+                <Label htmlFor="threshold" className="text-base font-semibold">Signature Threshold</Label>
                 <Input 
                   id="threshold" 
                   type="number"
@@ -412,10 +425,10 @@ export function Settings() {
 
           {/* Notifications */}
           <TabsContent value="notifications" className="space-y-6 mt-0">
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle>Notification Channels</CardTitle>
-              <CardDescription>Choose how to receive alerts</CardDescription>
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="text-xl font-bold mb-2">Notification Channels</CardTitle>
+              <CardDescription className="text-base">Choose how to receive alerts</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -429,9 +442,9 @@ export function Settings() {
                 />
               </div>
 
-              {alertConfig.emailEnabled && (
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                {alertConfig.emailEnabled && (
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-base font-semibold">Email Address</Label>
                   <Input 
                     id="email" 
                     type="email"
@@ -454,8 +467,8 @@ export function Settings() {
               </div>
 
               {alertConfig.webhookEnabled && (
-                <div className="space-y-2">
-                  <Label htmlFor="webhook">Webhook URL</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="webhook" className="text-base font-semibold">Webhook URL</Label>
                   <Input 
                     id="webhook" 
                     placeholder="https://hooks.slack.com/..."
@@ -478,14 +491,14 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Alert Display Settings</CardTitle>
               <CardDescription>Configure how alerts appear in the application</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="alert-duration">Alert Duration (seconds)</Label>
+            <CardContent className="space-y-6 p-8">
+              <div className="space-y-3">
+                <Label htmlFor="alert-duration" className="text-base font-semibold">Alert Duration (seconds)</Label>
                 <Input 
                   id="alert-duration" 
                   type="number"
@@ -496,8 +509,8 @@ export function Settings() {
                 <p className="text-slate-600">How long alerts remain visible</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="max-alerts">Maximum Visible Alerts</Label>
+              <div className="space-y-3">
+                <Label htmlFor="max-alerts" className="text-base font-semibold">Maximum Visible Alerts</Label>
                 <Input 
                   id="max-alerts" 
                   type="number"
@@ -508,8 +521,8 @@ export function Settings() {
                 <p className="text-slate-600">Maximum number of alerts stacked on screen</p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="alert-position">Alert Position</Label>
+              <div className="space-y-3">
+                <Label htmlFor="alert-position" className="text-base font-semibold">Alert Position</Label>
                 <Select 
                   value={alertConfig.alertPosition}
                   onValueChange={(value: any) => updateAlertConfig({ alertPosition: value })}
@@ -529,10 +542,12 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle>Alert Preferences</CardTitle>
-              <CardDescription>Configure which events trigger notifications</CardDescription>
+          <BannerCustomization />
+
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
+            <CardHeader className="pb-4 border-b border-gray-100">
+              <CardTitle className="text-xl font-bold mb-2">Alert Preferences</CardTitle>
+              <CardDescription className="text-base">Configure which events trigger notifications</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 border rounded-lg">
@@ -584,7 +599,7 @@ export function Settings() {
 
           {/* Display */}
           <TabsContent value="display" className="space-y-6 mt-0">
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Address Display Settings</CardTitle>
               <CardDescription>Configure how Ethereum addresses are displayed throughout the application</CardDescription>
@@ -655,14 +670,14 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Theme & Appearance</CardTitle>
               <CardDescription>Customize the application theme and display preferences</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="theme">Theme</Label>
+            <CardContent className="space-y-6 p-8">
+              <div className="space-y-3">
+                <Label htmlFor="theme" className="text-base font-semibold">Theme</Label>
                 <Select
                   value={userConfig?.displayOptions.theme || 'light'}
                   onValueChange={(value: 'light' | 'dark' | 'auto') => updateDisplayOptions({ theme: value })}
@@ -701,8 +716,8 @@ export function Settings() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="refresh-interval">Data Refresh Interval (ms)</Label>
+              <div className="space-y-3">
+                <Label htmlFor="refresh-interval" className="text-base font-semibold">Data Refresh Interval (ms)</Label>
                 <Input
                   id="refresh-interval"
                   type="number"
@@ -710,12 +725,12 @@ export function Settings() {
                   value={userConfig?.displayOptions.refreshInterval || 30000}
                   onChange={(e) => updateDisplayOptions({ refreshInterval: Number(e.target.value) })}
                 />
-                <p className="text-slate-600">How often to automatically refresh data (default: 30000ms = 30 seconds)</p>
+                <p className="text-sm text-gray-600 leading-relaxed">How often to automatically refresh data (default: 30000ms = 30 seconds)</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Console Colors</CardTitle>
               <CardDescription>Customize the color scheme for the developer console</CardDescription>
@@ -1075,13 +1090,13 @@ export function Settings() {
 
           {/* Preferences */}
           <TabsContent value="preferences" className="space-y-6 mt-0">
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Transaction Preferences</CardTitle>
               <CardDescription>Default settings for blockchain transactions</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-6 p-8">
+              <div className="space-y-3">
                 <Label htmlFor="default-gas-limit">Default Gas Limit</Label>
                 <Input
                   id="default-gas-limit"
@@ -1113,13 +1128,13 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Default Resolver</CardTitle>
               <CardDescription>Preferred resolver for new records</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-6 p-8">
+              <div className="space-y-3">
                 <Label htmlFor="default-resolver">Resolver Address</Label>
                 <Input
                   id="default-resolver"
@@ -1130,7 +1145,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Data & Export</CardTitle>
               <CardDescription>Export all your data in JSON or CSV format</CardDescription>
@@ -1169,7 +1184,7 @@ export function Settings() {
 
           {/* Security */}
           <TabsContent value="security" className="space-y-6 mt-0">
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Security Monitoring</CardTitle>
               <CardDescription>Configure real-time security scanning and alerts</CardDescription>
@@ -1208,13 +1223,13 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Change Control</CardTitle>
               <CardDescription>TTL and caching configuration</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-6 p-8">
+              <div className="space-y-3">
                 <Label htmlFor="ttl">Default TTL (Time-to-Live)</Label>
                 <Input 
                   id="ttl" 
@@ -1243,7 +1258,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Audit Log Settings</CardTitle>
               <CardDescription>Configure audit logging behavior</CardDescription>
@@ -1308,7 +1323,7 @@ export function Settings() {
 
           {/* Automation */}
           <TabsContent value="automation" className="space-y-6 mt-0">
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Automated Renewals</CardTitle>
               <CardDescription>Configure gasless renewal automation</CardDescription>
@@ -1353,7 +1368,7 @@ export function Settings() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-slate-200/80 rounded-xl bg-white/95 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+          <Card className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-lg transition-all">
             <CardHeader>
               <CardTitle>Integration Services</CardTitle>
               <CardDescription>Third-party monitoring and automation</CardDescription>
@@ -1399,6 +1414,11 @@ export function Settings() {
               </div>
             </CardContent>
           </Card>
+          </TabsContent>
+
+          {/* AI Settings */}
+          <TabsContent value="ai" className="space-y-6 mt-0">
+            <AIConfiguration />
           </TabsContent>
           </div>
         </div>

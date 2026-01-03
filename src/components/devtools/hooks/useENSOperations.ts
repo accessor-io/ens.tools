@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { ENSOperation, Analytics, PerformanceProfile } from '../types';
 
 export function useENSOperations() {
@@ -132,51 +132,116 @@ export function useENSOperations() {
     window.URL.revokeObjectURL(url);
   }, [ensOperations]);
 
+  const idleCallbackRef = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    const profiles = new Map<string, PerformanceProfile>();
-    
-    ensOperations.forEach(op => {
-      if (op.duration === undefined) return;
-      
-      const key = op.operation;
-      const existing = profiles.get(key) || {
-        operation: key,
-        count: 0,
-        totalDuration: 0,
-        minDuration: Infinity,
-        maxDuration: 0,
-        avgDuration: 0,
-        p50: 0,
-        p95: 0,
-        p99: 0,
-        errors: 0,
-        durations: [] as number[],
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    if (idleCallbackRef.current !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+      window.cancelIdleCallback(idleCallbackRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      const processProfiles = () => {
+        const MAX_OPERATIONS = 2000;
+        const recentOps = ensOperations
+          .slice(-MAX_OPERATIONS)
+          .filter(op => op.duration !== undefined);
+        
+        if (recentOps.length === 0) {
+          setPerformanceProfiles(new Map());
+          return;
+        }
+
+        const profiles = new Map<string, PerformanceProfile & { durations: number[] }>();
+        
+        recentOps.forEach(op => {
+          if (op.duration === undefined) return;
+          
+          const key = op.operation;
+          const existing = profiles.get(key) || {
+            operation: key,
+            count: 0,
+            totalDuration: 0,
+            minDuration: Infinity,
+            maxDuration: 0,
+            avgDuration: 0,
+            p50: 0,
+            p95: 0,
+            p99: 0,
+            errors: 0,
+            durations: [] as number[],
+          };
+
+          existing.count++;
+          existing.totalDuration += op.duration;
+          existing.minDuration = Math.min(existing.minDuration, op.duration);
+          existing.maxDuration = Math.max(existing.maxDuration, op.duration);
+          if (op.error) existing.errors++;
+          existing.durations.push(op.duration);
+
+          profiles.set(key, existing);
+        });
+
+        const calculatePercentiles = (durations: number[]): { p50: number; p95: number; p99: number } => {
+          if (durations.length === 0) {
+            return { p50: 0, p95: 0, p99: 0 };
+          }
+
+          if (durations.length > 500) {
+            const sorted = [...durations].sort((a, b) => a - b);
+            return {
+              p50: sorted[Math.floor(sorted.length * 0.5)] || 0,
+              p95: sorted[Math.floor(sorted.length * 0.95)] || 0,
+              p99: sorted[Math.floor(sorted.length * 0.99)] || 0,
+            };
+          } else {
+            const sorted = [...durations].sort((a, b) => a - b);
+            return {
+              p50: sorted[Math.floor(sorted.length * 0.5)] || 0,
+              p95: sorted[Math.floor(sorted.length * 0.95)] || 0,
+              p99: sorted[Math.floor(sorted.length * 0.99)] || 0,
+            };
+          }
+        };
+
+        const finalizeProfiles = () => {
+          const finalProfiles = new Map<string, PerformanceProfile>();
+          
+          profiles.forEach((profile) => {
+            const { durations, ...rest } = profile;
+            const percentiles = calculatePercentiles(durations);
+            
+            finalProfiles.set(profile.operation, {
+              ...rest,
+              avgDuration: profile.totalDuration / profile.count,
+              ...percentiles,
+            });
+          });
+
+          setPerformanceProfiles(finalProfiles);
+        };
+
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          idleCallbackRef.current = window.requestIdleCallback(finalizeProfiles, { timeout: 50 });
+        } else {
+          setTimeout(finalizeProfiles, 0);
+        }
       };
 
-      existing.count++;
-      existing.totalDuration += op.duration;
-      existing.minDuration = Math.min(existing.minDuration, op.duration);
-      existing.maxDuration = Math.max(existing.maxDuration, op.duration);
-      if (op.error) existing.errors++;
-      if (!(existing as any).durations) (existing as any).durations = [];
-      (existing as any).durations.push(op.duration);
+      processProfiles();
+    }, 300);
 
-      profiles.set(key, existing);
-    });
-
-    profiles.forEach((profile, key) => {
-      const durations = (profile as any).durations || [];
-      if (durations.length > 0) {
-        const sorted = [...durations].sort((a, b) => a - b);
-        profile.avgDuration = profile.totalDuration / profile.count;
-        profile.p50 = sorted[Math.floor(sorted.length * 0.5)] || 0;
-        profile.p95 = sorted[Math.floor(sorted.length * 0.95)] || 0;
-        profile.p99 = sorted[Math.floor(sorted.length * 0.99)] || 0;
-        delete (profile as any).durations;
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    });
-
-    setPerformanceProfiles(profiles);
+      if (idleCallbackRef.current !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleCallbackRef.current);
+      }
+    };
   }, [ensOperations]);
 
   useEffect(() => {
@@ -226,6 +291,11 @@ export function useENSOperations() {
     exportToCSV,
   };
 }
+
+
+
+
+
 
 
 

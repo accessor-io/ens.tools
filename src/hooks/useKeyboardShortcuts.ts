@@ -46,7 +46,7 @@ export function useKeyboardShortcuts(
         }
       }
 
-      // Escape key to go to dashboard
+      // Escape key to go to dashboard (only if no modal is open)
       if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         const target = e.target as HTMLElement;
         if (
@@ -54,7 +54,14 @@ export function useKeyboardShortcuts(
           target.tagName !== 'TEXTAREA' &&
           !target.isContentEditable
         ) {
-          onViewChange('dashboard');
+          // Check if there's an open dialog/modal
+          const openDialog = document.querySelector('[data-state="open"][data-slot="dialog-overlay"], [data-state="open"][data-slot="alert-dialog-overlay"], [data-state="open"][role="dialog"]');
+          const openModal = document.querySelector('.fixed.inset-0.z-50[style*="display"]:not([style*="display: none"])');
+          
+          // If a modal/dialog is open, don't change view - let the modal handle the escape
+          if (!openDialog && !openModal) {
+            onViewChange('dashboard');
+          }
         }
       }
     };
@@ -70,6 +77,9 @@ export function getShortcutHelp(): Array<{ key: string; description: string }> {
     description,
   }));
 }
+
+
+
 
 
 

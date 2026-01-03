@@ -12,8 +12,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       duration={15000}
       expand={true}
-      position="top-right"
-      visibleToasts={5}
+      position="bottom-center"
+      visibleToasts={1}
       style={
         {
           "--normal-bg": "var(--popover)",

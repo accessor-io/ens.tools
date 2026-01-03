@@ -1,7 +1,7 @@
 /**
  * Kamiko-Inspired ENS Marketplace Component
  * Modern marketplace UI with Seaport 1.6 integration
- * Integrated with ens.tools design system
+ * Integrated with config design system
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -184,11 +184,11 @@ export function KamikoMarketplace() {
     const isPremium = listing.name.length <= 3;
 
     return (
-      <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-violet-300">
-        <CardHeader className="pb-3">
+      <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-violet-300 hover:-translate-y-1">
+        <CardHeader className="pb-4">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-3 mb-3">
                 <Badge 
                   variant="outline" 
                   className={cn(
@@ -208,37 +208,37 @@ export function KamikoMarketplace() {
                   </Badge>
                 )}
               </div>
-              <CardTitle className="text-xl font-bold text-slate-900 mb-1 truncate">
+              <CardTitle className="text-xl font-bold text-slate-900 mb-2 truncate leading-tight">
                 {listing.name}
               </CardTitle>
-              <CardDescription className="text-xs font-mono text-slate-500">
+              <CardDescription className="text-sm font-mono text-slate-500 leading-relaxed">
                 {truncateAddress(listing.seller)}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-3xl font-bold text-green-600 mb-1 leading-none">
                 {formatPrice(listing.price, listing.currency)}
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-sm text-slate-500 font-medium">
                 {listing.currency}
               </div>
             </div>
             <div className="text-right">
-              <div className="flex items-center gap-1 text-xs text-slate-600">
-                <Clock className="h-3 w-3" />
-                {getTimeUntilExpiry(listing.expiryDate)}
+              <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
+                <Clock className="h-4 w-4" />
+                <span>{getTimeUntilExpiry(listing.expiryDate)}</span>
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              <div className="text-sm text-slate-500 font-medium">
                 {listing.name.length} chars
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-200">
             <Button
               variant="outline"
               size="sm"
@@ -287,19 +287,24 @@ export function KamikoMarketplace() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header Section - Kamiko Style */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-              ENS Marketplace
-            </h1>
-            <p className="text-slate-600 mt-2">
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-3 leading-tight">
+            ens marketplace
+          </h1>
+          <div className="flex items-center justify-between gap-6 mb-4">
+            <p className="text-lg text-slate-600 leading-relaxed">
               Buy and sell ENS domains with Seaport 1.6 orderbook
             </p>
+            <div className="web3-glow">
+              <WalletConnectRainbow />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 px-3 py-1">
               <Zap className="h-3 w-3 mr-1" />
               Seaport 1.6
@@ -341,19 +346,19 @@ export function KamikoMarketplace() {
         </div>
 
         {/* Search and Filter Bar */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        <Card className="border border-gray-200 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-5">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
                 <Input
                   placeholder="Search domains... (e.g., example.eth)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-11"
+                  className="pl-11 h-12 text-base"
                 />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Select value={viewMode} onValueChange={(v) => setViewMode(v as 'grid' | 'table')}>
                   <SelectTrigger className="w-[120px]">
                     {viewMode === 'grid' ? <Grid3x3 className="h-4 w-4" /> : <List className="h-4 w-4" />}
@@ -469,7 +474,7 @@ export function KamikoMarketplace() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="listings" className="space-y-4 mt-6">
+        <TabsContent value="listings" className="space-y-6 mt-8">
           {loading ? (
             <div className={cn(
               "grid gap-4",
@@ -490,23 +495,23 @@ export function KamikoMarketplace() {
             </div>
           ) : paginatedListings.items.length === 0 ? (
             <EmptyState
-              icon={Search}
+              icon={<Search className="h-8 w-8 text-slate-400" />}
               title="No domains found"
               description={searchQuery ? "Try adjusting your search or filters" : "No domains are currently listed"}
             />
           ) : viewMode === 'grid' ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {paginatedListings.items.map((listing) => (
                   <DomainCard key={listing.id} listing={listing} />
                 ))}
               </div>
               {paginatedListings.totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="text-sm text-slate-600">
+                <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-200">
+                  <div className="text-base text-gray-600 font-medium">
                     Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, paginatedListings.totalItems)} of {paginatedListings.totalItems} listings
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Button
                       variant="outline"
                       size="sm"
@@ -531,16 +536,16 @@ export function KamikoMarketplace() {
               )}
             </>
           ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-2">
+            <Card className="border border-gray-200 shadow-sm">
+              <CardContent className="p-6">
+                <div className="space-y-3">
                   {paginatedListings.items.map((listing) => (
                     <div
                       key={listing.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-6 border-2 border-gray-200 rounded-xl hover:bg-slate-50 hover:border-pink-300 hover:shadow-md transition-all cursor-pointer"
                       onClick={() => setSelectedListing(listing)}
                     >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="flex items-center gap-5 flex-1 min-w-0">
                         <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                           ENS
                         </Badge>
@@ -551,16 +556,16 @@ export function KamikoMarketplace() {
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="text-right">
-                          <div className="font-bold text-green-600">{formatPrice(listing.price, listing.currency)}</div>
-                          <div className="text-xs text-slate-500">{getTimeUntilExpiry(listing.expiryDate)}</div>
+                          <div className="text-xl font-bold text-green-600 mb-1">{formatPrice(listing.price, listing.currency)}</div>
+                          <div className="text-sm text-slate-500 font-medium">{getTimeUntilExpiry(listing.expiryDate)}</div>
                         </div>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-3 w-3 mr-1" />
+                        <Button variant="outline" size="default">
+                          <Eye className="h-4 w-4 mr-2" />
                           View
                         </Button>
                         {isConnected && listing.price !== '0' && (
-                          <Button size="sm">
-                            <ShoppingCart className="h-3 w-3 mr-1" />
+                          <Button size="default">
+                            <ShoppingCart className="h-4 w-4 mr-2" />
                             Buy
                           </Button>
                         )}
@@ -590,31 +595,31 @@ export function KamikoMarketplace() {
                 </div>
               ) : paginatedOffers.items.length === 0 ? (
                 <EmptyState
-                  icon={Tag}
+                  icon={<Tag className="h-8 w-8 text-slate-400" />}
                   title="No active offers"
                   description="There are no active offers at the moment"
                 />
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {paginatedOffers.items.map((offer) => (
                     <div
                       key={offer.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors"
+                      className="flex items-center justify-between p-6 border-2 border-gray-200 rounded-xl hover:bg-slate-50 hover:border-pink-300 hover:shadow-md transition-all"
                     >
-                      <div className="flex items-center gap-4">
-                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                      <div className="flex items-center gap-5">
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-sm font-semibold">
                           ENS
                         </Badge>
                         <div>
-                          <div className="font-semibold">{offer.name}</div>
-                          <div className="text-sm text-slate-500 font-mono">
+                          <div className="text-base font-bold text-slate-900 mb-1">{offer.name}</div>
+                          <div className="text-sm text-slate-500 font-mono leading-relaxed">
                             Offer by {truncateAddress(offer.buyer)}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-blue-600">{formatPrice(offer.price, offer.currency)}</div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xl font-bold text-blue-600 mb-1">{formatPrice(offer.price, offer.currency)}</div>
+                        <div className="text-sm text-slate-500 font-medium">
                           {offer.expirationDate ? new Date(offer.expirationDate).toLocaleDateString() : 'No expiry'}
                         </div>
                       </div>
@@ -626,17 +631,19 @@ export function KamikoMarketplace() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="stats" className="space-y-4 mt-6">
+        <TabsContent value="stats" className="space-y-6 mt-8">
           {stats ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-blue-900">Total Domains</CardTitle>
-                  <Globe className="h-5 w-5 text-blue-600" />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 hover:shadow-lg transition-all">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="text-base font-semibold text-blue-900">Total Domains</CardTitle>
+                  <div className="h-12 w-12 rounded-xl bg-blue-200 flex items-center justify-center">
+                    <Globe className="h-6 w-6 text-blue-700" />
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-900">{stats.totalDomains.toLocaleString()}</div>
-                  <p className="text-xs text-blue-700 mt-1">Registered ENS domains</p>
+                <CardContent className="pt-0">
+                  <div className="text-4xl font-bold text-blue-900 mb-2 leading-none">{stats.totalDomains.toLocaleString()}</div>
+                  <p className="text-sm text-blue-700 font-medium">Registered ENS domains</p>
                 </CardContent>
               </Card>
 
@@ -674,7 +681,7 @@ export function KamikoMarketplace() {
               </Card>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {[...Array(4)].map((_, i) => (
                 <Card key={i}>
                   <CardHeader className="space-y-0 pb-2">
@@ -734,6 +741,7 @@ export function KamikoMarketplace() {
     </div>
   );
 }
+
 
 
 

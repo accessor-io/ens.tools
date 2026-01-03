@@ -284,6 +284,13 @@ export class FeeCollectionService {
   }
 
   /**
+   * Get the configured contract address
+   */
+  getContractAddress(): Address {
+    return this.config.contractAddress;
+  }
+
+  /**
    * Get current registration fee
    */
   async getRegistrationFee(): Promise<bigint> {
@@ -486,6 +493,13 @@ export class FeeCollectionService {
    */
   async getAvailableBalance(): Promise<bigint> {
     if (!this.publicClient) {
+      console.warn('getAvailableBalance: No publicClient available');
+      return 0n;
+    }
+
+    // Check if contract is configured
+    if (this.config.contractAddress === '0x0000000000000000000000000000000000000000') {
+      console.warn('getAvailableBalance: Contract address not configured (0x0000...)');
       return 0n;
     }
 
@@ -495,16 +509,20 @@ export class FeeCollectionService {
         abi: FEE_COLLECTION_ABI,
         functionName: 'getAvailableBalance',
       });
+      console.log(`getAvailableBalance: Contract balance from getAvailableBalance(): ${formatEther(balance as bigint)} ETH`);
       return balance as bigint;
     } catch (error) {
-      console.error('Error fetching available balance:', error);
-      // Fallback to contract balance
+      console.error('Error fetching available balance from contract function:', error);
+      // Fallback to contract ETH balance (this might show balance even if contract doesn't exist)
       try {
         const contractBalance = await this.publicClient!.getBalance({
           address: this.config.contractAddress,
         });
+        console.warn(`getAvailableBalance: Fallback to getBalance() - Contract ETH balance: ${formatEther(contractBalance)} ETH`);
+        console.warn('Note: This might be showing balance from a different contract or account at this address');
         return contractBalance;
-      } catch {
+      } catch (fallbackError) {
+        console.error('Error in fallback getBalance():', fallbackError);
         return 0n;
       }
     }
@@ -515,16 +533,35 @@ export class FeeCollectionService {
    */
   async getFeeBalance(): Promise<FeeBalance> {
     if (!this.publicClient) {
+      console.warn('getFeeBalance: No publicClient available');
       return {
         totalCollected: 0n,
         registrationFees: 0n,
         nameRegistrationFees: 0n,
+        subdomainCreationFees: 0n,
         transferFees: 0n,
         marketplaceFees: 0n,
         availableBalance: 0n,
         pendingWithdrawals: 0n,
       };
     }
+
+    // Check if contract is configured
+    if (this.config.contractAddress === '0x0000000000000000000000000000000000000000') {
+      console.warn('getFeeBalance: Contract address not configured (0x0000...)');
+      return {
+        totalCollected: 0n,
+        registrationFees: 0n,
+        nameRegistrationFees: 0n,
+        subdomainCreationFees: 0n,
+        transferFees: 0n,
+        marketplaceFees: 0n,
+        availableBalance: 0n,
+        pendingWithdrawals: 0n,
+      };
+    }
+
+    console.log(`getFeeBalance: Fetching balance for contract: ${this.config.contractAddress}`);
 
     try {
       const [totalCollected, availableBalance, registrationFees, nameRegistrationFees, subdomainCreationFees, transferFees, marketplaceFees] = await Promise.all([
@@ -557,7 +594,7 @@ export class FeeCollectionService {
         }).catch(() => 0n),
       ]);
 
-      return {
+      const result = {
         totalCollected: totalCollected as bigint,
         registrationFees: registrationFees as bigint,
         nameRegistrationFees: nameRegistrationFees as bigint,
@@ -567,6 +604,11 @@ export class FeeCollectionService {
         availableBalance: availableBalance as bigint,
         pendingWithdrawals: (totalCollected as bigint) - (availableBalance as bigint),
       };
+
+      console.log(`getFeeBalance: Available balance: ${formatEther(result.availableBalance)} ETH`);
+      console.log(`getFeeBalance: Total collected: ${formatEther(result.totalCollected)} ETH`);
+
+      return result;
     } catch (error) {
       console.error('Error fetching fee balance:', error);
       return {
@@ -865,10 +907,43 @@ export class FeeCollectionService {
   }
 
   /**
+   * Get the admin address from the contract
+   */
+  async getAdminAddress(): Promise<Address | null> {
+    if (!this.publicClient) {
+      return null;
+    }
+
+    // Check if contract is configured
+    if (this.config.contractAddress === '0x0000000000000000000000000000000000000000') {
+      console.warn('FeeCollection contract not deployed. Set VITE_FEE_COLLECTION_ADDRESS environment variable.');
+      return null;
+    }
+
+    try {
+      const admin = await this.publicClient.readContract({
+        address: this.config.contractAddress,
+        abi: FEE_COLLECTION_ABI,
+        functionName: 'admin',
+      });
+      return admin as Address;
+    } catch (error) {
+      console.error('Error getting admin address:', error);
+      return null;
+    }
+  }
+
+  /**
    * Check if address is admin
    */
   async isAdmin(address: Address): Promise<boolean> {
     if (!this.publicClient) {
+      return false;
+    }
+
+    // Check if contract is configured
+    if (this.config.contractAddress === '0x0000000000000000000000000000000000000000') {
+      console.warn('FeeCollection contract not deployed. Set VITE_FEE_COLLECTION_ADDRESS environment variable.');
       return false;
     }
 

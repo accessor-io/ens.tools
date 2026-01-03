@@ -5,12 +5,16 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion@1.2.3";
 import { ChevronDownIcon } from "lucide-react@0.487.0";
 
 import { cn } from './utils';
+import { createAdaptiveComponent } from '../../lib/adaptive-rendering';
+import { accordionAdaptations } from '../../lib/adaptive-rendering/state-configs/accordion.adaptive';
 
-function Accordion({
+function AccordionBase({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
   return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
 }
+
+const Accordion = createAdaptiveComponent(AccordionBase, accordionAdaptations);
 
 function AccordionItem({
   className,

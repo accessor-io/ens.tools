@@ -1,11 +1,17 @@
 /**
  * Transaction Manager Service
  * Handles transaction queue, status tracking, and execution
+ * Enhanced with patterns from Mastering Ethereum 2nd Edition:
+ * - Nonce management with pending block tag
+ * - EIP-1559 gas estimation
+ * - Better error handling for nonce/gas errors
+ * - Transaction replacement support
  */
 
 import { Hash, Address, PublicClient, WalletClient } from 'viem';
 import { toast } from 'sonner';
 import { getErrorMessage, getErrorRecovery } from '../utils/error-handler';
+import { nonceManager } from './nonce-manager';
 
 export type TransactionStatus = 'pending' | 'submitted' | 'confirmed' | 'failed' | 'replaced';
 
@@ -20,6 +26,8 @@ export interface Transaction {
   error?: string;
   retryCount: number;
   maxRetries: number;
+  nonce?: number;
+  account?: Address;
   onSuccess?: () => void;
   onFailure?: (error: Error) => void;
   execute: () => Promise<Hash>;
@@ -30,6 +38,7 @@ export interface TransactionOptions {
   maxRetries?: number;
   onSuccess?: () => void;
   onFailure?: (error: Error) => void;
+  account?: Address;
 }
 
 export class TransactionManager {
@@ -44,10 +53,15 @@ export class TransactionManager {
     if (walletClient) {
       this.walletClient = walletClient;
     }
+    // Initialize nonce manager
+    if (publicClient) {
+      nonceManager.setPublicClient(publicClient);
+    }
   }
 
   /**
    * Add a transaction to the queue
+   * Enhanced to track account and nonce for better error handling
    */
   async addTransaction(
     executeFn: () => Promise<Hash>,
@@ -61,6 +75,7 @@ export class TransactionManager {
       status: 'pending',
       retryCount: 0,
       maxRetries: options.maxRetries || 3,
+      account: options.account || this.walletClient?.account?.address,
       onSuccess: options.onSuccess,
       onFailure: options.onFailure,
       execute: executeFn,
@@ -82,7 +97,99 @@ export class TransactionManager {
   }
 
   /**
+   * Replace a pending transaction with higher gas price
+   * Useful for canceling stuck transactions or speeding up confirmation
+   */
+  async replaceTransaction(
+    id: string,
+    options?: {
+      maxFeePerGasMultiplier?: number;
+      maxPriorityFeePerGasMultiplier?: number;
+    }
+  ): Promise<string | null> {
+    const transaction = this.transactions.get(id);
+    if (!transaction || !transaction.hash || !transaction.account) {
+      throw new Error('Transaction not found or not suitable for replacement');
+    }
+
+    if (transaction.status !== 'submitted') {
+      throw new Error('Can only replace submitted transactions');
+    }
+
+    if (!this.publicClient || !this.walletClient) {
+      throw new Error('Clients not initialized');
+    }
+
+    try {
+      // Get current transaction details
+      const currentTx = await this.publicClient.getTransaction({ hash: transaction.hash });
+      
+      if (!currentTx) {
+        throw new Error('Transaction not found on chain');
+      }
+
+      // Calculate higher fees (default 10% increase)
+      const feeMultiplier = options?.maxFeePerGasMultiplier || 1.1;
+      const priorityMultiplier = options?.maxPriorityFeePerGasMultiplier || 1.1;
+
+      let maxFeePerGas: bigint;
+      let maxPriorityFeePerGas: bigint;
+
+      if (currentTx.type === 'eip1559' && currentTx.maxFeePerGas && currentTx.maxPriorityFeePerGas) {
+        maxFeePerGas = (currentTx.maxFeePerGas * BigInt(Math.floor(feeMultiplier * 100))) / 100n;
+        maxPriorityFeePerGas = (currentTx.maxPriorityFeePerGas * BigInt(Math.floor(priorityMultiplier * 100))) / 100n;
+      } else if (currentTx.gasPrice) {
+        // Legacy transaction - convert to EIP-1559
+        const newGasPrice = (currentTx.gasPrice * BigInt(Math.floor(feeMultiplier * 100))) / 100n;
+        maxFeePerGas = newGasPrice;
+        maxPriorityFeePerGas = (newGasPrice * 20n) / 100n; // 20% of max fee as priority
+      } else {
+        // Fallback: get current fee estimates
+        const feeData = await this.publicClient.estimateFeesPerGas();
+        maxFeePerGas = feeData.maxFeePerGas || 20n * 10n ** 9n; // 20 gwei default
+        maxPriorityFeePerGas = feeData.maxPriorityFeePerGas || 2n * 10n ** 9n; // 2 gwei default
+      }
+
+      // Create replacement transaction (send to self with zero value)
+      const replacementHash = await this.walletClient.sendTransaction({
+        account: transaction.account,
+        to: transaction.account, // Send to self
+        value: 0n,
+        nonce: currentTx.nonce, // Same nonce
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        gas: currentTx.gas,
+      });
+
+      // Update transaction status
+      transaction.status = 'replaced';
+      transaction.hash = replacementHash;
+      transaction.submittedAt = new Date();
+
+      toast.info('Transaction replaced', {
+        description: `Replaced with higher gas price`,
+        action: {
+          label: 'View',
+          onClick: () => this.openEtherscan(replacementHash),
+        },
+      });
+
+      // Track the replacement transaction
+      this.trackTransaction(id, replacementHash);
+
+      return replacementHash;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Failed to replace transaction', {
+        description: errorMessage,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Execute a transaction
+   * Enhanced with better error handling for nonce and gas errors
    */
   private async executeTransaction(id: string): Promise<void> {
     const transaction = this.transactions.get(id);
@@ -106,34 +213,93 @@ export class TransactionManager {
       // Start tracking this transaction
       this.trackTransaction(id, hash);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       transaction.status = 'failed';
       transaction.failedAt = new Date();
-      transaction.error = error instanceof Error ? error.message : 'Unknown error';
+      transaction.error = errorMessage;
+      
+      // Handle specific error types
+      const isNonceError = this.isNonceError(errorMessage);
+      const isGasError = this.isGasError(errorMessage);
+      const isInsufficientFundsError = this.isInsufficientFundsError(errorMessage);
+      
+      // Invalidate nonce cache on nonce errors
+      if (isNonceError && transaction.account) {
+        nonceManager.invalidateNonce(transaction.account);
+      }
       
       const shouldRetry = transaction.retryCount < transaction.maxRetries;
       
       if (shouldRetry) {
         transaction.retryCount++;
+        
+        // Longer delay for nonce errors to allow mempool to catch up
+        const retryDelay = isNonceError ? 5000 : 3000;
+        
         toast.warning('Transaction failed, retrying...', {
           description: `${transaction.description} (Attempt ${transaction.retryCount}/${transaction.maxRetries})`,
         });
         
-        // Retry after delay
         setTimeout(() => {
           this.executeTransaction(id);
-        }, 3000);
+        }, retryDelay);
       } else {
-        const errorRecovery = getErrorRecovery(new Error(transaction.error));
+        let errorDescription = errorMessage;
+        if (isNonceError) {
+          errorDescription = 'Nonce error: Transaction may be stuck. Try canceling pending transactions.';
+        } else if (isGasError) {
+          errorDescription = 'Gas estimation failed: Transaction would likely revert.';
+        } else if (isInsufficientFundsError) {
+          errorDescription = 'Insufficient funds: Not enough ETH for gas and value.';
+        }
+        
+        const errorRecovery = getErrorRecovery(new Error(errorDescription));
         toast.error('Transaction failed', {
           description: errorRecovery.message + (errorRecovery.suggestion ? ` ${errorRecovery.suggestion}` : ''),
           duration: 8000,
         });
         
         if (transaction.onFailure) {
-          transaction.onFailure(new Error(transaction.error));
+          transaction.onFailure(new Error(errorDescription));
         }
       }
     }
+  }
+
+  /**
+   * Check if error is a nonce-related error
+   */
+  private isNonceError(errorMessage: string): boolean {
+    const lowerMessage = errorMessage.toLowerCase();
+    return (
+      lowerMessage.includes('nonce') ||
+      lowerMessage.includes('replacement transaction underpriced') ||
+      lowerMessage.includes('already known')
+    );
+  }
+
+  /**
+   * Check if error is a gas-related error
+   */
+  private isGasError(errorMessage: string): boolean {
+    const lowerMessage = errorMessage.toLowerCase();
+    return (
+      lowerMessage.includes('gas') ||
+      lowerMessage.includes('execution reverted') ||
+      lowerMessage.includes('revert')
+    );
+  }
+
+  /**
+   * Check if error is an insufficient funds error
+   */
+  private isInsufficientFundsError(errorMessage: string): boolean {
+    const lowerMessage = errorMessage.toLowerCase();
+    return (
+      lowerMessage.includes('insufficient funds') ||
+      lowerMessage.includes('insufficient balance') ||
+      lowerMessage.includes('exceeds balance')
+    );
   }
 
   /**
@@ -154,6 +320,11 @@ export class TransactionManager {
       if (receipt.status === 'success') {
         transaction.status = 'confirmed';
         transaction.confirmedAt = new Date();
+        
+        // Invalidate nonce cache on confirmation
+        if (transaction.account) {
+          nonceManager.invalidateNonce(transaction.account);
+        }
         
         toast.success('Transaction confirmed', {
           description: transaction.description,

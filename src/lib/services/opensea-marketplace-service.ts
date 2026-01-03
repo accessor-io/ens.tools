@@ -4,7 +4,32 @@
  */
 
 import { Abi } from 'viem';
-import { SeaportService, signSeaportOrder, verifySeaportOrderSignature, encodeOrder } from './seaport-service';
+import { SeaportService, encodeOrder } from './seaport-service';
+
+const API_BASE_URL =
+  (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
+
+async function marketplaceRequest<T = any>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = localStorage.getItem('auth_token');
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Marketplace API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json() as Promise<T>;
+}
 
 // Seaport Contract ABI - Core functions for marketplace operations
 export const SEAPORT_ABI = [
@@ -196,7 +221,7 @@ export interface CollectionStats {
 }
 
 export class OpenSeaMarketplaceService {
-  private readonly openseaApiUrl = 'https://api.opensea.io/api/v2';
+  private readonly openseaApiPath = '/marketplace/opensea';
   private readonly etherscanApiUrl = 'https://api.etherscan.io/api';
   private seaportService: SeaportService | null = null;
 
@@ -206,19 +231,8 @@ export class OpenSeaMarketplaceService {
   async getListings(tokenAddress: string, chainId: number = 1): Promise<Listing[]> {
     try {
       const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/contract/${tokenAddress}/listings`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch listings: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const url = `${this.openseaApiPath}/chain/${chain}/contract/${tokenAddress}/listings`;
+      const data = await marketplaceRequest<any>(url);
       return this.transformListings(data.listings || []);
     } catch (error) {
       console.error('Error fetching listings:', error);
@@ -232,19 +246,8 @@ export class OpenSeaMarketplaceService {
   async getOffers(tokenAddress: string, chainId: number = 1): Promise<Offer[]> {
     try {
       const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/contract/${tokenAddress}/offers`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch offers: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const url = `${this.openseaApiPath}/chain/${chain}/contract/${tokenAddress}/offers`;
+      const data = await marketplaceRequest<any>(url);
       return this.transformOffers(data.offers || []);
     } catch (error) {
       console.error('Error fetching offers:', error);
@@ -258,19 +261,8 @@ export class OpenSeaMarketplaceService {
   async getCollectionStats(tokenAddress: string, chainId: number = 1): Promise<CollectionStats> {
     try {
       const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/contract/${tokenAddress}/stats`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stats: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const url = `${this.openseaApiPath}/chain/${chain}/contract/${tokenAddress}/stats`;
+      const data = await marketplaceRequest<any>(url);
       return this.transformStats(data);
     } catch (error) {
       console.error('Error fetching collection stats:', error);
@@ -456,19 +448,8 @@ export class OpenSeaMarketplaceService {
   async getENSListings(chainId: number = 1): Promise<Listing[]> {
     try {
       const chain = this.getChainName(chainId);
-      const url = `${this.openseaApiUrl}/chain/${chain}/collection/ens`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'X-API-KEY': process.env.VITE_OPENSEA_API_KEY || '',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ENS listings: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const url = `${this.openseaApiPath}/chain/${chain}/collection/ens`;
+      const data = await marketplaceRequest<any>(url);
       return this.transformListings(data.nfts || [], true);
     } catch (error) {
       console.error('Error fetching ENS listings:', error);

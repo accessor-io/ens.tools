@@ -15,4 +15,9 @@ export * from './name-watching-service';
 export * from './premium-price-service';
 export * from './granular-permission-service';
 export * from './transaction-manager';
+export * from './ai-input-validator';
+export * from './ai-blockchain-validator';
+export * from './ai-cache-service';
+export * from './ai-service';
+export * from './ai-domain-suggestion-service';
 

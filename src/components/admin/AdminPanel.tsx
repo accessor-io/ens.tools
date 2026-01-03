@@ -272,7 +272,7 @@ export function AdminPanel() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
             <Shield className="h-8 w-8" />
-            Admin Panel
+            admin panel
           </h1>
           <p className="text-slate-600 mt-2">
             Welcome, {adminInfo?.address.slice(0, 6)}...{adminInfo?.address.slice(-4)}

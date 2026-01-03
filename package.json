@@ -56,7 +56,11 @@
             "tailwind-merge": "*",
             "vaul": "^1.1.2",
             "viem": "*",
-            "wagmi": "^2.19.3"
+            "wagmi": "^2.19.3",
+            "@namehash/ens-utils": "github:namehash/namekit#packages/ens-utils",
+            "@namehash/nameguard-js": "github:namehash/namekit#packages/nameguard-js",
+            "@namehash/namegraph-sdk": "github:namehash/namekit#packages/namegraph-sdk",
+            "@namehash/namekit-react": "github:namehash/namekit#packages/namekit-react"
       },
       "devDependencies": {
             "@testing-library/jest-dom": "^6.1.5",
@@ -104,6 +108,7 @@
             "orchestrate": "node scripts/cursor-orchestrate.js",
             "dev:orchestrate": "node scripts/cursor-orchestrate.js",
             "ai:orchestrate": "node scripts/ai-orchestrate.js",
-            "ai:build": "node scripts/ai-orchestrate.js"
+            "ai:build": "node scripts/ai-orchestrate.js",
+            "test:delegates": "node scripts/test-delegate-tracking.js"
       }
 }

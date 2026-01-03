@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
@@ -39,9 +38,9 @@ import {
   DropdownMenuSeparator,
 } from '../ui/dropdown-menu';
 import { Label } from '../ui/label';
-import { 
-  Search, 
-  Shield, 
+import {
+  Search,
+  Shield,
   Lock,
   ExternalLink,
   Calendar,
@@ -70,6 +69,7 @@ import {
   Link as LinkIcon,
   Copy,
   Info,
+  FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWeb3 } from '../../lib/services';
@@ -90,7 +90,6 @@ import { useDomainContext } from '../../lib/contexts/DomainContext';
 import { transferDomainViaRegistry, transferWrappedName } from '../../lib/ens/transfer-domain';
 import { renewDomain as renewDomainFunction } from '../../lib/ens/ens-write-operations';
 import { premiumPriceService } from '../../lib/services/premium-price-service';
-import { formatEther } from 'viem';
 
 interface DomainGroup {
   id: string;
@@ -373,41 +372,41 @@ export function DomainManagement() {
   };
 
   const filteredDomains = domains
-    .filter(domain => {
+      .filter(domain => {
       const matchesSearch = domain.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesGroup = selectedGroupFilter === 'all' || 
-        assignments.find(a => a.domainName === domain.name)?.groupId === selectedGroupFilter;
-      const matchesProject = selectedProjectFilter === 'all' || 
-        assignments.find(a => a.domainName === domain.name)?.project === selectedProjectFilter;
-      
-      return matchesSearch && matchesGroup && matchesProject;
-    })
-    .sort((a, b) => {
-      let comparison = 0;
-      
-      if (sortBy === 'name') {
-        comparison = a.name.localeCompare(b.name);
-      } else if (sortBy === 'expiry') {
-        const aExpiry = a.expiryDate?.getTime() || 0;
-        const bExpiry = b.expiryDate?.getTime() || 0;
-        comparison = aExpiry - bExpiry;
-      } else if (sortBy === 'group') {
-        const aGroup = getDomainGroup(a.name)?.name || '';
-        const bGroup = getDomainGroup(b.name)?.name || '';
-        comparison = aGroup.localeCompare(bGroup);
-      }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
+        const matchesGroup = selectedGroupFilter === 'all' || 
+          assignments.find(a => a.domainName === domain.name)?.groupId === selectedGroupFilter;
+        const matchesProject = selectedProjectFilter === 'all' || 
+          assignments.find(a => a.domainName === domain.name)?.project === selectedProjectFilter;
+        
+        return matchesSearch && matchesGroup && matchesProject;
+      })
+      .sort((a, b) => {
+        let comparison = 0;
+        
+        if (sortBy === 'name') {
+          comparison = a.name.localeCompare(b.name);
+        } else if (sortBy === 'expiry') {
+          const aExpiry = a.expiryDate?.getTime() || 0;
+          const bExpiry = b.expiryDate?.getTime() || 0;
+          comparison = aExpiry - bExpiry;
+        } else if (sortBy === 'group') {
+          const aGroup = getDomainGroup(a.name)?.name || '';
+          const bGroup = getDomainGroup(b.name)?.name || '';
+          comparison = aGroup.localeCompare(bGroup);
+        }
+        
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
 
   const handleViewDomain = (domain: ENSDomain) => {
-    setSelectedDomain(domain);
-    selectDomain(domain);
+      setSelectedDomain(domain);
+      selectDomain(domain);
   };
 
   const handleTransfer = (domain: ENSDomain) => {
     setTransferDomain(domain);
-    setTransferAddress('');
+      setTransferAddress('');
     setTransferDialogOpen(true);
   };
 
@@ -467,23 +466,23 @@ export function DomainManagement() {
 
     // Fetch renewal price
     if (publicClient) {
-      try {
-        const duration = 365 * 24 * 60 * 60; // 1 year in seconds
-        const priceInfo = await premiumPriceService.getPremiumPrice(
-          publicClient,
-          domain.name,
-          duration
-        );
-        
-        if (priceInfo) {
+        try {
+          const duration = 365 * 24 * 60 * 60; // 1 year in seconds
+          const priceInfo = await premiumPriceService.getPremiumPrice(
+            publicClient,
+            domain.name,
+            duration
+          );
+          
+          if (priceInfo) {
           setRenewPrice(priceInfo);
-        } else {
+          } else {
+            toast.error('Failed to fetch renewal price');
+          }
+        } catch (error) {
+          console.error('Error fetching renewal price:', error);
           toast.error('Failed to fetch renewal price');
-        }
-      } catch (error) {
-        console.error('Error fetching renewal price:', error);
-        toast.error('Failed to fetch renewal price');
-      } finally {
+        } finally {
         setIsLoadingPrice(false);
       }
     }
@@ -655,7 +654,7 @@ export function DomainManagement() {
           <p className="text-slate-600">
             {isLoading ? 'Loading...' : `Managing ${domains.length} ENS name${domains.length !== 1 ? 's' : ''}`}
           </p>
-        </div>
+          </div>
         <div className="flex gap-2">
           <Dialog open={isColumnsDialogOpen} onOpenChange={setIsColumnsDialogOpen}>
             <DialogTrigger asChild>
@@ -827,18 +826,18 @@ export function DomainManagement() {
       </Card>
 
       <Tabs defaultValue="all" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="all">All Names ({domains.length})</TabsTrigger>
-          <TabsTrigger value="wrapped">
-            Wrapped ({domains.filter(d => d.isWrapped).length})
-          </TabsTrigger>
-          <TabsTrigger value="expiring">
-            Expiring Soon ({domains.filter(d => {
-              const days = getDaysUntilExpiration(d.expiryDate);
-              return days !== null && days < 90 && days > 0;
-            }).length})
-          </TabsTrigger>
-        </TabsList>
+          <TabsList>
+            <TabsTrigger value="all">All Names ({domains.length})</TabsTrigger>
+            <TabsTrigger value="wrapped">
+              Wrapped ({domains.filter(d => d.isWrapped).length})
+            </TabsTrigger>
+            <TabsTrigger value="expiring">
+              Expiring Soon ({domains.filter(d => {
+                const days = getDaysUntilExpiration(d.expiryDate);
+                return days !== null && days < 90 && days > 0;
+              }).length})
+            </TabsTrigger>
+          </TabsList>
 
         <TabsContent value="all">
           {isLoading ? (
@@ -955,8 +954,8 @@ export function DomainManagement() {
                           {visibleColumns.project && (
                             <TableCell onClick={(e) => e.stopPropagation()}>
                               {domainProject ? (
-                              <Badge variant="outline">{domainProject}</Badge>
-                            ) : (
+                                <Badge variant="outline">{domainProject}</Badge>
+                              ) : (
                               <Input
                                 placeholder="Project name"
                                 className="w-32 h-8"
@@ -966,7 +965,7 @@ export function DomainManagement() {
                                   }
                                 }}
                               />
-                            )}
+                              )}
                             </TableCell>
                           )}
                           {visibleColumns.status && (
@@ -1016,19 +1015,23 @@ export function DomainManagement() {
                             </TableCell>
                           )}
                           {visibleColumns.subdomains && (
-                            <TableCell>
+                            <TableCell className="px-6 py-4">
                               {hasSubdomains ? (
-                              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                                Subdomain
-                              </Badge>
-                            ) : isParent ? (
-                              <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
-                                <Users className="h-3 w-3 mr-1" />
-                                Has Subdomains
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline">Root</Badge>
-                            )}
+                                <div className="inline-flex items-center gap-2 bg-sky-100 text-sky-800 px-3 py-1.5 rounded-xl border border-sky-200 shadow-sm">
+                                  <div className="w-2 h-2 bg-sky-500 rounded-full"></div>
+                                  <span className="font-semibold text-sm">Subdomain</span>
+                                </div>
+                              ) : isParent ? (
+                                <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-sm">
+                                  <Users className="h-4 w-4" />
+                                  <span className="font-semibold text-sm">Has Subdomains</span>
+                                </div>
+                              ) : (
+                                <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200">
+                                  <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                                  <span className="font-semibold text-sm">Root Domain</span>
+                                </div>
+                              )}
                             </TableCell>
                           )}
                           {visibleColumns.permissions && (
@@ -1167,7 +1170,7 @@ export function DomainManagement() {
                                       <div className="flex items-center gap-2 mb-2">
                                         <Lock className="h-4 w-4 text-indigo-600" />
                                         <span className="text-xs font-semibold text-slate-700">Status</span>
-                                      </div>
+                                        </div>
                                       <div className="flex items-center gap-2">
                                         {domain.isWrapped ? (
                                           <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">Wrapped</Badge>
@@ -1525,8 +1528,8 @@ export function DomainManagement() {
                                         size="sm"
                                         className="flex-1 sm:flex-none"
                                         onClick={() => {
-                                          setSelectedDomain(domain);
-                                          selectDomain(domain);
+                                            setSelectedDomain(domain);
+                                            selectDomain(domain);
                                         }}
                                       >
                                         <SettingsIcon className="h-3 w-3 mr-1" />
@@ -1595,57 +1598,63 @@ export function DomainManagement() {
           )}
         </TabsContent>
 
-        <TabsContent value="wrapped">
-          <Card className="border-2">
-            <CardContent className="pt-6">
+        <TabsContent value="wrapped" className="animate-fade-in">
+          <div className="bg-white border border-slate-200/50 rounded-3xl shadow-2xl glass-card overflow-hidden">
+            <div className="p-8">
               {domains.filter(d => d.isWrapped).length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-6">
                   {domains.filter(d => d.isWrapped).map((domain, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 border rounded-lg"
+                      className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 hover:shadow-lg transition-all duration-300"
                     >
-                      <div className="flex items-center gap-3">
-                        <Lock className="h-5 w-5 text-blue-600" />
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                          <Lock className="h-6 w-6 text-white" />
+                        </div>
                         <div>
-                          <p className="text-slate-900">{domain.name}</p>
-                          <p className="text-slate-600">Wrapped name with enhanced security</p>
+                          <p className="text-lg font-bold text-slate-900">{domain.name}</p>
+                          <p className="text-slate-600 font-medium">Wrapped name with enhanced security features</p>
                         </div>
                       </div>
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="lg"
                         onClick={() => {
                           setSelectedDomain(domain);
                           selectDomain(domain);
                         }}
+                        className="bg-white border-blue-300 hover:bg-blue-50 hover:border-blue-400 text-blue-700 font-semibold px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
                       >
+                        <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </Button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <Alert>
-                  <Shield className="h-4 w-4" />
-                  <AlertTitle>No wrapped names</AlertTitle>
-                  <AlertDescription>
-                    You don't have any wrapped ENS names. Wrapping provides enhanced security features.
-                  </AlertDescription>
-                </Alert>
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gradient-to-br from-slate-400 to-slate-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl">
+                    <Shield className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">No Wrapped Names</h3>
+                  <p className="text-slate-600 max-w-md mx-auto">
+                    You don't have any wrapped ENS names yet. Wrapping provides enhanced security features and advanced functionality.
+                  </p>
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
-        <TabsContent value="expiring">
-          <Card className="border-2">
-            <CardContent className="pt-6">
+        <TabsContent value="expiring" className="animate-fade-in">
+          <div className="bg-white border border-slate-200/50 rounded-3xl shadow-2xl glass-card overflow-hidden">
+            <div className="p-8">
               {domains.filter(d => {
                 const days = getDaysUntilExpiration(d.expiryDate);
                 return days !== null && days < 90 && days > 0;
               }).length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-6">
                   {domains
                     .filter(d => {
                       const days = getDaysUntilExpiration(d.expiryDate);
@@ -1656,22 +1665,26 @@ export function DomainManagement() {
                       return (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-3 border rounded-lg bg-amber-50"
+                          className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/50 hover:shadow-lg transition-all duration-300"
                         >
-                          <div className="flex items-center gap-3">
-                            <Calendar className="h-5 w-5 text-amber-600" />
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                              <Calendar className="h-6 w-6 text-white" />
+                            </div>
                             <div>
-                              <p className="text-slate-900">{domain.name}</p>
-                              <p className="text-amber-700">
-                                Expires in {daysUntilExpiry} days ({domain.expiryDate?.toLocaleDateString()})
+                              <p className="text-lg font-bold text-slate-900">{domain.name}</p>
+                              <p className="text-amber-700 font-medium">
+                                Expires in <span className="font-bold">{daysUntilExpiry}</span> days ({domain.expiryDate?.toLocaleDateString()})
                               </p>
                             </div>
                           </div>
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="lg"
                             onClick={() => handleRenew(domain)}
+                            className="bg-white border-amber-300 hover:bg-amber-50 hover:border-amber-400 text-amber-700 font-semibold px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
                           >
+                            <Zap className="w-4 h-4 mr-2" />
                             Renew
                           </Button>
                         </div>
@@ -1679,16 +1692,18 @@ export function DomainManagement() {
                     })}
                 </div>
               ) : (
-                <Alert className="border-emerald-200 bg-emerald-50">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  <AlertTitle className="text-emerald-900">All names are current</AlertTitle>
-                  <AlertDescription className="text-emerald-800">
-                    None of your ENS names are expiring in the next 90 days.
-                  </AlertDescription>
-                </Alert>
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-sky-500 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl">
+                    <CheckCircle2 className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">All Names Are Current</h3>
+                  <p className="text-slate-600 max-w-md mx-auto">
+                    None of your ENS names are expiring in the next 90 days. Great job staying on top of renewals!
+                  </p>
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 
