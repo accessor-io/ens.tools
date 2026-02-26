@@ -20,7 +20,7 @@ interface FeePreviewProps {
 }
 
 export function FeePreview({ operation, salePrice, gasEstimate, showGas = false }: FeePreviewProps) {
-  const { publicClient, address } = useWeb3();
+  const { publicClient } = useWeb3();
   const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -3,14 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { TrendingUp, TrendingDown, DollarSign, Calendar, Loader2, ExternalLink, AlertCircle, ChevronDown, ChevronRight, Search } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Line } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Loader2, ExternalLink, AlertCircle, ChevronDown, ChevronRight, Search } from 'lucide-react'
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Line } from 'recharts'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { dataService, type DiscourseReportsSummary, type DiscourseBudgetReports, type SpendingSummary, type TransactionsByApprover } from '@/services/governance/dataService';
 import { TransactionFlowDetail } from '@/components/shared/TransactionFlowDetail';
 import { ResponsiveChartContainer } from '@/components/shared/ResponsiveChartContainer';
 import { useResponsiveChart } from '@/hooks/governance/useResponsiveChart';
-import { extractAmounts, extractBudgetItems, parseProposalData } from '@/utils/governance/proposalParser';
+import { parseProposalData } from '@/utils/governance/proposalParser'
 
 interface DetailedTransaction {
   'Approver EP': string;
@@ -141,14 +141,14 @@ export function BudgetAnalysis() {
             const parsed = parseProposalData(text);
             
             // Use extracted amounts (prefer USDC/USD)
-            parsed.amounts.forEach(amt => {
+            parsed.amounts.forEach((amt: any) => {
               if (amt.currency === 'USDC' || amt.currency === 'USD') {
                 budget += amt.value;
               }
             });
             
             // Also check budget items for line-item totals
-            parsed.budgetItems.forEach(item => {
+            parsed.budgetItems.forEach((item: any) => {
               if (item.currency === 'USDC' || item.currency === 'USD') {
                 budget += item.amount;
               }

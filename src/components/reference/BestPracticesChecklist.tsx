@@ -141,7 +141,7 @@ export function BestPracticesChecklist({
                 >
                   <Checkbox
                     checked={isChecked}
-                    onCheckedChange={(checked) => handleCheckChange(rule.id, checked as boolean)}
+                    onCheckedChange={(checked: boolean) => handleCheckChange(rule.id, checked as boolean)}
                     className="mt-1"
                   />
                   <div className="flex-1 min-w-0">
@@ -242,7 +242,7 @@ export function BestPracticesChecklist({
                       >
                         <Checkbox
                           checked={isChecked}
-                          onCheckedChange={(checked) => handleCheckChange(rule.id, checked as boolean)}
+                          onCheckedChange={(checked: boolean) => handleCheckChange(rule.id, checked as boolean)}
                           className="mt-1"
                         />
                         <Icon className={cn(

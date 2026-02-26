@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { ScrollArea } from '../../ui/scroll-area';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
 import { Search, Download, Trash2, FileText, RefreshCw, Globe, Bookmark, BookmarkCheck, Settings as SettingsIcon, CheckCircle2, Play } from 'lucide-react';
 import { formatAddress } from '../../../lib/ens/ens-utils';
 import type { ENSOperation } from '../types';

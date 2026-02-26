@@ -659,7 +659,7 @@ export function MasterBalanceSheet() {
               type="text"
               placeholder="Search by address, ENS name, tx hash, or amount..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: React.SyntheticEvent) => setSearchQuery(e.target.value)}
               className="pl-10 pr-10"
             />
             {searchQuery && (

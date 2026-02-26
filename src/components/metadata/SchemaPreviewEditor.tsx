@@ -353,7 +353,7 @@ export function SchemaPreviewEditor({
                     <Label>Category</Label>
                     <Select
                       value={metadata.category || ''}
-                      onValueChange={(value) => updateField(['category'], value)}
+                      onValueChange={(value: any) => updateField(['category'], value)}
                       disabled={readOnly}
                     >
                       <SelectTrigger>
@@ -519,7 +519,7 @@ export function SchemaPreviewEditor({
                     <Label>Upgradeability Type</Label>
                     <Select
                       value={metadata.security?.upgradeability || ''}
-                      onValueChange={(value) => updateField(['security', 'upgradeability'], value)}
+                      onValueChange={(value: any) => updateField(['security', 'upgradeability'], value)}
                       disabled={readOnly}
                     >
                       <SelectTrigger>
@@ -553,7 +553,7 @@ export function SchemaPreviewEditor({
                     <Label>Status</Label>
                     <Select
                       value={metadata.lifecycle?.status || ''}
-                      onValueChange={(value) => updateField(['lifecycle', 'status'], value)}
+                      onValueChange={(value: any) => updateField(['lifecycle', 'status'], value)}
                       disabled={readOnly}
                     >
                       <SelectTrigger>

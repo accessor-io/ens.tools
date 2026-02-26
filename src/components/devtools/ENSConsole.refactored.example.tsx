@@ -45,7 +45,7 @@ import { WalletSelectionModal } from '../WalletSelectionModal';
 import type { ViewType } from '../../App';
 
 export function ENSConsoleRefactored() {
-  const { address, isConnected, publicClient, walletClient, connect, disconnect, chainId } = useWeb3();
+  const { address, isConnected, publicClient, connect, disconnect } = useWeb3();
   const [activeTab, setActiveTab] = useState('console');
   const [isMinimized, setIsMinimized] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);

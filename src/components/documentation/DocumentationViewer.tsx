@@ -4,7 +4,7 @@ import { Search, BookOpen, ExternalLink, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 import {
   DocumentationService,
   type DocumentationEntry,
@@ -22,7 +22,7 @@ export function DocumentationViewer({ currentView, initialDocId }: Documentation
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [iframeKey, setIframeKey] = useState(0);
 
-  const categories = ['All', ...DocumentationService.getAllCategories()];
+  const _categories = ['All', ...DocumentationService.getAllCategories()];
   
   const allDocs = DocumentationService.searchDocumentation(searchQuery);
   const filteredDocs = selectedCategory === 'All'

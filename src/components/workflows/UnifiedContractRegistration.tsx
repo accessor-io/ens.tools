@@ -568,7 +568,7 @@ export function UnifiedContractRegistration() {
         </CardContent>
       </Card>
 
-      <Tabs value={step} onValueChange={(v) => setStep(v as WorkflowStep)}>
+      <Tabs value={step} onValueChange={(v: any) => setStep(v as WorkflowStep)}>
         {/* Contract Info Step */}
         <TabsContent value="contract">
           <Card className="border-2">
@@ -856,7 +856,7 @@ export function UnifiedContractRegistration() {
                     <Label htmlFor="chainId">
                       Chain ID <span className="text-red-600">*</span>
                     </Label>
-                    <Select value={chainId.toString()} onValueChange={(v) => setChainId(parseInt(v))}>
+                    <Select value={chainId.toString()} onValueChange={(v: any) => setChainId(parseInt(v))}>
                       <SelectTrigger id="chainId">
                         <SelectValue />
                       </SelectTrigger>
@@ -879,7 +879,7 @@ export function UnifiedContractRegistration() {
                     <Label htmlFor="category">
                       Primary Category <span className="text-red-600">*</span>
                     </Label>
-                    <Select value={category} onValueChange={(v) => {
+                    <Select value={category} onValueChange={(v: any) => {
                       setCategory(v as ENSIPXCategory);
                       setSubcategory('');
                     }}>
@@ -988,7 +988,7 @@ export function UnifiedContractRegistration() {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="proxy-type">Proxy Type</Label>
-                  <Select value={proxyType} onValueChange={(v) => setProxyType(v as ProxyType)}>
+                  <Select value={proxyType} onValueChange={(v: any) => setProxyType(v as ProxyType)}>
                     <SelectTrigger id="proxy-type">
                       <SelectValue />
                     </SelectTrigger>
@@ -1092,7 +1092,7 @@ export function UnifiedContractRegistration() {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="status">Lifecycle Status</Label>
-                  <Select value={lifecycleStatus} onValueChange={(v) => setLifecycleStatus(v as LifecycleStatus)}>
+                  <Select value={lifecycleStatus} onValueChange={(v: any) => setLifecycleStatus(v as LifecycleStatus)}>
                     <SelectTrigger id="status">
                       <SelectValue />
                     </SelectTrigger>

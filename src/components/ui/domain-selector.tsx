@@ -73,7 +73,7 @@ export function DomainSelector({
     <div className="space-y-2">
       <Select
         value={isCustomValue ? 'custom' : value}
-        onValueChange={(val) => {
+        onValueChange={(val: any) => {
           if (val === 'custom') {
             setCustomValue(value || '');
           } else {

@@ -45,7 +45,7 @@ export function ResponsiveChartContainer({
     onSwipeRight,
     enablePinchZoom,
     onPinchZoom: enablePinchZoom
-      ? (scale) => {
+      ? (scale: any) => {
           setZoom((prev) => Math.max(0.5, Math.min(3, prev * scale)));
         }
       : undefined,

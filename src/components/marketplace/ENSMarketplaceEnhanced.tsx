@@ -85,7 +85,7 @@ import { cn } from '../ui/utils';
 import { MarketplaceAnalytics } from './MarketplaceAnalytics';
 
 export function ENSMarketplaceEnhanced() {
-  const { address, isConnected, publicClient, walletClient, chainId } = useWeb3();
+  const { chainId } = useWeb3();
   const [activeTab, setActiveTab] = useState<'listings' | 'offers' | 'stats' | 'analytics'>('listings');
   const [listings, setListings] = useState<ENSListing[]>([]);
   const [offers, setOffers] = useState<ENSOffer[]>([]);
@@ -433,7 +433,7 @@ export function ENSMarketplaceEnhanced() {
                             <Checkbox
                               id={cat}
                               checked={selectedCategories.includes(cat)}
-                              onCheckedChange={(checked) => {
+                              onCheckedChange={(checked: boolean) => {
                                 if (checked) {
                                   setSelectedCategories([...selectedCategories, cat]);
                                 } else {
@@ -458,7 +458,7 @@ export function ENSMarketplaceEnhanced() {
                           <Switch
                             id="listed-only"
                             checked={advancedFilters.listedOnly || false}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked: boolean) => 
                               setAdvancedFilters({ ...advancedFilters, listedOnly: checked })
                             }
                           />
@@ -468,7 +468,7 @@ export function ENSMarketplaceEnhanced() {
                           <Switch
                             id="has-avatar"
                             checked={advancedFilters.hasAvatar || false}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked: boolean) => 
                               setAdvancedFilters({ ...advancedFilters, hasAvatar: checked })
                             }
                           />
@@ -478,7 +478,7 @@ export function ENSMarketplaceEnhanced() {
                           <Switch
                             id="premium"
                             checked={advancedFilters.premium || false}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked: boolean) => 
                               setAdvancedFilters({ ...advancedFilters, premium: checked })
                             }
                           />
@@ -525,7 +525,7 @@ export function ENSMarketplaceEnhanced() {
                 className="pl-9"
               />
             </div>
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+            <Select value={sortBy} onValueChange={(v: any) => setSortBy(v as any)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue />
               </SelectTrigger>
@@ -542,7 +542,7 @@ export function ENSMarketplaceEnhanced() {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v as any)}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="listings">
             <ShoppingCart className="h-4 w-4 mr-2" />

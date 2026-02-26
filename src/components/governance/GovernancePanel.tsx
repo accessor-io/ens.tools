@@ -6,14 +6,14 @@ import { SpendingAnalysis } from './SpendingAnalysis';
 import { Grants } from './Grants';
 
 export function GovernancePanel() {
-  const votingPower = {
+  const _votingPower = {
     total: '150,000 ENS',
     delegated: '100,000 ENS',
     available: '50,000 ENS',
     votingWeight: '0.015%'
   };
 
-  const activeProposals = [
+  const _activeProposals = [
     {
       id: 'EP-124',
       title: 'Update .eth Registrar Controller',
@@ -49,19 +49,19 @@ export function GovernancePanel() {
     }
   ];
 
-  const recentVotes = [
+  const _recentVotes = [
     { proposal: 'EP-123: Name Wrapper v2 Deployment', vote: 'For', weight: '50,000 ENS', time: '2 days ago' },
     { proposal: 'EP-122: Grant for Community Tools', vote: 'For', weight: '50,000 ENS', time: '1 week ago' },
     { proposal: 'EP-121: DNS Integration Update', vote: 'Abstain', weight: '0 ENS', time: '2 weeks ago' }
   ];
 
-  const delegates = [
+  const _delegates = [
     { name: 'nick.eth', votingPower: '8.2M ENS', proposals: 23, participation: '94%' },
     { name: 'brantly.eth', votingPower: '6.1M ENS', proposals: 18, participation: '89%' },
     { name: 'validator.dao', votingPower: '4.5M ENS', proposals: 31, participation: '97%' }
   ];
 
-  const treasuryStats = [
+  const _treasuryStats = [
     { label: 'Treasury Balance', value: '$42.3M', change: '+8.2%' },
     { label: 'Registration Revenue (30d)', value: '$1.2M', change: '+12%' },
     { label: 'Grants Allocated', value: '$3.5M', change: 'YTD' },

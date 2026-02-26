@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Area, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, Calendar, Filter, FileText, ExternalLink, Loader2, FolderOpen, Table2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Area, ResponsiveContainer } from 'recharts'
+import { TrendingUp, TrendingDown, Calendar, Filter, FileText, ExternalLink, Loader2, FolderOpen, Table2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -86,7 +86,7 @@ export function SpendingAnalysis() {
     return Object.entries(spendingData.by_year_quarter)
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-7)
-      .map(([quarter, data]) => {
+      .map(([quarter, _data]) => {
         const ecosystem = spendingData.by_category.Ecosystem?.by_year_quarter[quarter]?.usd || 0;
         const publicGoods = spendingData.by_category['Public Goods']?.by_year_quarter[quarter]?.usd || 0;
         const metaGov = spendingData.by_category['Meta-Governance']?.by_year_quarter[quarter]?.usd || 0;
@@ -104,10 +104,10 @@ export function SpendingAnalysis() {
   const walletSpending = useMemo(() => {
     if (!spendingData) return [];
     return spendingData.all_wallets
-      .filter(w => (w.transaction_count || 0) > 0)
-      .sort((a, b) => b.total_usd_sent - a.total_usd_sent)
+      .filter((w: any) => (w.transaction_count || 0) > 0)
+      .sort((a: any, b: any) => b.total_usd_sent - a.total_usd_sent)
       .slice(0, 8)
-      .map(w => {
+      .map((w: any) => {
         const walletInfo = w.wallet || w;
         const totalUSD = w.total_usd_sent || 0;
         const txCount = w.transaction_count || 0;
@@ -418,7 +418,7 @@ export function SpendingAnalysis() {
           <InteractiveChart
             title="Historical Spending Growth"
             description="Year-over-year spending by category (2017-2024). Click on bars to see details."
-            detailView={(data) => (
+            detailView={(data: any) => (
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold text-lg mb-2">Year: {data.year}</h3>
@@ -545,7 +545,7 @@ export function SpendingAnalysis() {
                 })
                 .filter((point) => point.date <= new Date())
                 .slice(-365)} // Last year
-              formatValue={(value) => `$${(value / 1000).toFixed(0)}K`}
+              formatValue={(value: any) => `$${(value / 1000).toFixed(0)}K`}
             />
           )}
         </TabsContent>
@@ -633,7 +633,7 @@ export function SpendingAnalysis() {
                     </tr>
                   </thead>
                   <tbody>
-                    {walletSpending.slice(0, 25).map((wallet, index) => (
+                    {walletSpending.slice(0, 25).map((wallet: any, index: number) => (
                       <tr key={index} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="py-3 px-4 text-sm font-medium text-slate-900">{wallet.wallet}</td>
                         <td className="py-3 px-4">
@@ -967,7 +967,7 @@ export function SpendingAnalysis() {
               <CardContent>
                 <div className="space-y-4">
                   {Object.entries(
-                    quarterlyTransactions.data.reduce((acc, item) => {
+                    quarterlyTransactions.data.reduce((acc: any, item: any) => {
                       if (!acc[item.quarter]) {
                         acc[item.quarter] = [];
                       }
@@ -989,28 +989,28 @@ export function SpendingAnalysis() {
                           <div>
                             <div className="text-slate-600">Total Spending</div>
                             <div className="font-semibold text-lg">
-                              ${(items.reduce((sum, item) => sum + item.total_usd, 0) / 1000000).toFixed(2)}M
+                              ${(items.reduce((sum: any, item: any) => sum + item.total_usd, 0) / 1000000).toFixed(2)}M
                             </div>
                           </div>
                           <div>
                             <div className="text-slate-600">Total Transactions</div>
                             <div className="font-semibold text-lg">
-                              {items.reduce((sum, item) => sum + item.transaction_count, 0).toLocaleString()}
+                              {items.reduce((sum: any, item: any) => sum + item.transaction_count, 0).toLocaleString()}
                             </div>
                           </div>
                           <div>
                             <div className="text-slate-600">Active Wallets</div>
                             <div className="font-semibold text-lg">
-                              {items.filter(item => item.transaction_count > 0).length}
+                              {items.filter((item: any) => item.transaction_count > 0).length}
                             </div>
                           </div>
                         </div>
                         <div className="mt-3 space-y-2">
                           {items
-                            .filter(item => item.total_usd > 0)
-                            .sort((a, b) => b.total_usd - a.total_usd)
+                            .filter((item: any) => item.total_usd > 0)
+                            .sort((a: any, b: any) => b.total_usd - a.total_usd)
                             .slice(0, 5)
-                            .map((item, idx) => (
+                            .map((item: any, idx: number) => (
                               <div key={idx} className="flex items-center justify-between text-sm py-1 border-b last:border-b-0">
                                 <div>
                                   <div className="font-medium">{item.wallet_label}</div>
@@ -1100,7 +1100,7 @@ export function SpendingAnalysis() {
       </Tabs>
       
       {/* Detailed Proposal Transactions Dialog */}
-      <Dialog open={selectedProposalEP !== null} onOpenChange={(open) => {
+      <Dialog open={selectedProposalEP !== null} onOpenChange={(open: any) => {
         if (!open) {
           setSelectedProposalEP(null);
           setDetailedProposalTransactions(null);

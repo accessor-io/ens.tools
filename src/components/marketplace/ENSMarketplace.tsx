@@ -63,7 +63,7 @@ import { ensMarketplaceService, type ENSListing, type ENSOffer, type ENSCollecti
 import { premiumPriceService } from '../../lib/services/premium-price-service';
 import { TransactionConfirmationDialog } from '../TransactionConfirmationDialog';
 import { getErrorMessage } from '../../lib/utils/error-handler';
-import { Sparkles, Info, ArrowUpDown, Filter, Grid3x3, List } from 'lucide-react';
+import { Sparkles, ArrowUpDown, Filter, Grid3x3, List } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Skeleton } from '../ui/skeleton';
 import { EmptyState } from '../ui/empty-state';
@@ -437,7 +437,7 @@ export function ENSMarketplace() {
     setCurrentPage(1); // Reset to first page when filters change
   }, [minPrice, maxPrice, statusFilter]);
 
-  const formatExpiryDate = (date: Date | null): string => {
+  const _formatExpiryDate = (date: Date | null): string => {
     if (!date) return 'N/A';
     const daysUntilExpiry = Math.floor((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
     if (daysUntilExpiry < 0) return 'Expired';
@@ -662,7 +662,7 @@ export function ENSMarketplace() {
                       <Grid3x3 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                  <Select value={sortBy} onValueChange={(v: any) => setSortBy(v as SortOption)}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                       <ArrowUpDown className="h-4 w-4 mr-2" />
                       <SelectValue placeholder="Sort by" />
@@ -1096,7 +1096,7 @@ export function ENSMarketplace() {
                     {paginatedOffers.totalItems} active offers on ENS domains
                   </CardDescription>
                 </div>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <Select value={sortBy} onValueChange={(v: any) => setSortBy(v as SortOption)}>
                   <SelectTrigger className="w-[180px]">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Sort by" />

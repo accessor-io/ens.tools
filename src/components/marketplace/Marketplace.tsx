@@ -468,7 +468,7 @@ export function Marketplace() {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v as any)}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="listings">
             <ShoppingBag className="h-4 w-4 mr-2" />
@@ -498,7 +498,7 @@ export function Marketplace() {
                     {paginatedListings.totalItems} active listings found
                   </CardDescription>
                 </div>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <Select value={sortBy} onValueChange={(v: any) => setSortBy(v as SortOption)}>
                   <SelectTrigger className="w-[180px]">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Sort by" />
@@ -671,7 +671,7 @@ export function Marketplace() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredOffers.map((offer) => (
+                    {filteredOffers.map((offer: any) => (
                       <TableRow key={offer.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -757,7 +757,7 @@ export function Marketplace() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredENSListings.map((listing) => (
+                    {filteredENSListings.map((listing: any) => (
                       <TableRow key={listing.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">

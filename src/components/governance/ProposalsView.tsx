@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,11 +7,11 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { ExternalLink, Search, Loader2, FileText, Calendar, Users, TrendingUp, ChevronLeft, ChevronRight, Download, RefreshCw, Wallet, DollarSign, CheckCircle2, Clock, AlertCircle, Info } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { dataService, type ProposalsByYear, type ProposalByYear, type TransactionsByApprover } from '@/services/governance/dataService';
 import { exportToCSV, exportToJSON } from '@/utils/governance/export';
 import { discourseService } from '@/services/governance/discourseService';
-import { parseProposalData, matchProposalToTransactions } from '@/utils/governance/proposalParser';
+import { parseProposalData } from '@/utils/governance/proposalParser'
 
 export function ProposalsView() {
   const [proposalsByYear, setProposalsByYear] = useState<ProposalsByYear | null>(null);
@@ -222,7 +222,7 @@ export function ProposalsView() {
                 <Input
                   placeholder="Search proposals..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e: React.SyntheticEvent) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -286,7 +286,7 @@ export function ProposalsView() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-slate-600">Rows per page:</span>
-              <Select value={pageSize.toString()} onValueChange={(v) => {
+              <Select value={pageSize.toString()} onValueChange={(v: any) => {
                 setPageSize(Number(v));
                 setCurrentPage(1);
               }}>
@@ -430,7 +430,7 @@ export function ProposalsView() {
       </Card>
 
       {/* Proposal Details Dialog */}
-      <Dialog open={selectedProposal !== null} onOpenChange={(open) => !open && setSelectedProposal(null)}>
+      <Dialog open={selectedProposal !== null} onOpenChange={(open: any) => !open && setSelectedProposal(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -503,7 +503,7 @@ export function ProposalsView() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {proposalDetails.amounts.slice(0, 5).map((amt, idx) => (
+                        {proposalDetails.amounts.slice(0, 5).map((amt: any, idx: number) => (
                           <div key={idx} className="flex items-center justify-between">
                             <span className="text-sm text-slate-600">{amt.currency}</span>
                             <span className="font-medium">
@@ -534,7 +534,7 @@ export function ProposalsView() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {proposalDetails.addresses.map((addr, idx) => (
+                        {proposalDetails.addresses.map((addr: any, idx: number) => (
                           <div key={idx} className="flex items-center justify-between">
                             <code className="text-xs font-mono text-slate-600">
                               {addr.slice(0, 10)}...{addr.slice(38)}
@@ -599,7 +599,7 @@ export function ProposalsView() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {proposalDetails.budgetItems.map((item, idx) => (
+                      {proposalDetails.budgetItems.map((item: any, idx: number) => (
                         <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
                           <span className="text-sm font-medium">{item.category}</span>
                           <span className="text-sm">
@@ -623,7 +623,7 @@ export function ProposalsView() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {proposalDetails.transactionHashes.map((hash, idx) => (
+                      {proposalDetails.transactionHashes.map((hash: any, idx: number) => (
                         <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
                           <code className="text-xs font-mono text-slate-600">
                             {hash.slice(0, 10)}...{hash.slice(58)}

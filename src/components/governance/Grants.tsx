@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ExternalLink, Search, Loader2, Award, Calendar, DollarSign, Users, TrendingUp, Filter, FolderOpen, FileText, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart } from 'recharts';
+import { BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart } from 'recharts'
 import { dataService, type TransactionsByApprover, type Proposal } from '@/services/governance/dataService';
 
 interface GrantRound {
@@ -95,8 +95,8 @@ export function Grants() {
         const proposals = Object.values(data.topics);
         const grants = proposals
           .filter((proposal) => {
-            const categories = proposal.categories?.map((c) => c.toLowerCase()) ?? [];
-            const categoryMatch = categories.some((category) => category.includes('grant'));
+            const categories = proposal.categories?.map((c: any) => c.toLowerCase()) ?? [];
+            const categoryMatch = categories.some((category: any) => category.includes('grant'));
             const titleMatch = proposal.title?.toLowerCase().includes('grant');
             return categoryMatch || titleMatch;
           })
@@ -450,7 +450,7 @@ export function Grants() {
                     <Input
                       placeholder="Search rounds..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e: React.SyntheticEvent) => setSearchQuery(e.target.value)}
                       className="pl-10 w-[300px]"
                     />
                   </div>
@@ -475,7 +475,7 @@ export function Grants() {
                       <SelectItem value="scholarship">Scholarships</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select value={roundSortBy} onValueChange={(v) => setRoundSortBy(v as 'date' | 'allocation' | 'grants')}>
+                  <Select value={roundSortBy} onValueChange={(v: any) => setRoundSortBy(v as 'date' | 'allocation' | 'grants')}>
                     <SelectTrigger className="w-[180px]">
                       <ArrowUpDown className="w-4 h-4 mr-2" />
                       <SelectValue />
@@ -851,7 +851,7 @@ export function Grants() {
                           </p>
                           {proposal.categories?.length > 0 && (
                             <div className="flex flex-wrap gap-1 mb-2">
-                              {proposal.categories.map((category) => (
+                              {proposal.categories.map((category: any) => (
                                 <Badge key={category} variant="outline" className="text-[11px]">
                                   {category}
                                 </Badge>
@@ -905,7 +905,7 @@ export function Grants() {
                     <Input
                       placeholder="Search initiatives..."
                       value={initiativeSearchQuery}
-                      onChange={(e) => setInitiativeSearchQuery(e.target.value)}
+                      onChange={(e: React.SyntheticEvent) => setInitiativeSearchQuery(e.target.value)}
                       className="pl-10 w-[300px]"
                     />
                   </div>
@@ -921,7 +921,7 @@ export function Grants() {
                       <SelectItem value="metagov">Meta-Governance</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Select value={initiativeSortBy} onValueChange={(v) => setInitiativeSortBy(v as 'spending' | 'transactions' | 'name')}>
+                  <Select value={initiativeSortBy} onValueChange={(v: any) => setInitiativeSortBy(v as 'spending' | 'transactions' | 'name')}>
                     <SelectTrigger className="w-[180px]">
                       <ArrowUpDown className="w-4 h-4 mr-2" />
                       <SelectValue />

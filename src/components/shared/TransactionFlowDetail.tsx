@@ -316,7 +316,7 @@ export function TransactionFlowDetail({ transactionHash, onClose }: TransactionF
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {flow.transfers.map((transfer, idx) => {
+                      {flow.transfers.map((transfer: any, idx: number) => {
                         const isExpanded = expandedTransfers.has(transfer.uniqueId);
                         return (
                           <>
@@ -347,7 +347,7 @@ export function TransactionFlowDetail({ transactionHash, onClose }: TransactionF
                               <TableCell>
                                 <Badge variant="secondary">{transfer.category}</Badge>
                               </TableCell>
-                              <TableCell onClick={(e) => e.stopPropagation()}>
+                              <TableCell onClick={(e: React.SyntheticEvent) => e.stopPropagation()}>
                                 <a
                                   href={`https://etherscan.io/tx/${transfer.hash}`}
                                   target="_blank"
@@ -453,7 +453,7 @@ export function TransactionFlowDetail({ transactionHash, onClose }: TransactionF
                 <div className="space-y-2">
                   <Textarea
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={(e: React.SyntheticEvent) => setNewComment(e.target.value)}
                     placeholder="Add a comment about this transaction..."
                     rows={3}
                   />

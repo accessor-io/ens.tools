@@ -250,7 +250,7 @@ export function WalletManager() {
                         <DropdownMenuSeparator />
                         {!wallet.isActive && (
                           <DropdownMenuItem
-                            onClick={(e) => {
+                            onClick={(e: React.SyntheticEvent) => {
                               e.stopPropagation();
                               handleSwitchWallet(wallet.id);
                             }}
@@ -260,7 +260,7 @@ export function WalletManager() {
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
-                          onClick={(e) => {
+                          onClick={(e: React.SyntheticEvent) => {
                             e.stopPropagation();
                             copyAddress(wallet.address);
                           }}
@@ -269,7 +269,7 @@ export function WalletManager() {
                           Copy Address
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={(e) => {
+                          onClick={(e: React.SyntheticEvent) => {
                             e.stopPropagation();
                             viewOnExplorer(wallet.address, wallet.chainId);
                           }}
@@ -279,7 +279,7 @@ export function WalletManager() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={(e) => {
+                          onClick={(e: React.SyntheticEvent) => {
                             e.stopPropagation();
                             handleRemoveWallet(wallet.id);
                           }}

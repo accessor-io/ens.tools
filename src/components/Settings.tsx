@@ -1302,7 +1302,7 @@ export function Settings() {
                 </div>
                 <Switch
                   checked={userConfig?.auditLogEnabled !== false}
-                  onCheckedChange={(checked) => updateUserConfig({ auditLogEnabled: checked })}
+                  onCheckedChange={(checked: boolean) => updateUserConfig({ auditLogEnabled: checked })}
                 />
               </div>
 

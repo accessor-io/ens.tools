@@ -23,7 +23,7 @@ import { Badge } from '../ui/badge';
 import { Checkbox } from '../ui/checkbox';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { Lock, Unlock, Trash2, Edit, Plus, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Lock, Unlock, Trash2, Plus, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
-import { Textarea } from '../ui/textarea';
 
 interface GranularPermissionsProps {
   domainName: string;

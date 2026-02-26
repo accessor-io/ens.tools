@@ -72,7 +72,7 @@ import {
   getActiveFuses,
   COIN_TYPES,
 } from '../../lib/ens';
-import { getENSStatus, validateExternalUrl, sanitizeInput } from '../../lib/ens';
+import { getENSStatus, validateExternalUrl } from '../../lib/ens'
 import { transferDomainViaRegistry, transferWrappedName } from '../../lib/ens';
 import { premiumPriceService } from '../../lib/services/premium-price-service';
 import { ensMarketplaceService } from '../../lib/services/ens-marketplace-service';
@@ -556,7 +556,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
     }
   };
 
-  const handleTransfer = async () => {
+  const _handleTransfer = async () => {
     if (!walletClient || !publicClient || !transferAddress) {
       toast.error('Please enter a valid address');
       return;
@@ -1926,7 +1926,7 @@ export function DomainProfile({ domain, onClose, onUpdate }: DomainProfileProps)
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {Object.entries(FUSES).map(([fuseName, fuseValue]) => (
+            {Object.entries(FUSES).map(([fuseName, _fuseValue]) => (
               <div key={fuseName} className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
                   <p className="text-slate-900">{fuseName}</p>

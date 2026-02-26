@@ -52,7 +52,7 @@ export function BannerCustomization() {
           <Switch
             id="show-banner"
             checked={customization.showBanner}
-            onCheckedChange={(checked) =>
+            onCheckedChange={(checked: boolean) =>
               setCustomization({ ...customization, showBanner: checked })
             }
           />

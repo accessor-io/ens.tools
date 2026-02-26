@@ -20,7 +20,7 @@ import {
   Info,
   ExternalLink
 } from 'lucide-react';
-import { checkDNSSECStatus, getENSStatus } from '../../lib/ens/ens-status-indicators';
+import { getENSStatus } from '../../lib/ens/ens-status-indicators'
 import { normalize } from 'viem/ens';
 import { namehash } from '../../lib/ens/ens-helpers';
 import { PUBLIC_RESOLVER_ABI } from '../../lib/ens/ens-contracts';
@@ -98,7 +98,7 @@ export function DNSSECConfig() {
       // Generate the expected TXT record value
       if (normalizedName.includes('.')) {
         const parts = normalizedName.split('.');
-        const tld = parts[parts.length - 1];
+        const _tld = parts[parts.length - 1];
         const subdomain = parts.slice(0, -1).join('.');
         setTxtRecordValue(`_ens.${subdomain}`);
         setDnsName(normalizedName);

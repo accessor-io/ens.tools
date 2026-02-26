@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Skeleton } from './ui/skeleton';
 import { EmptyState } from './ui/empty-state';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { 
@@ -23,7 +22,6 @@ import { fetchENSNames, getExpirationStatus, getDaysUntilExpiration, ENSDomain }
 import { wrapName, unwrapName } from '../lib/ens';
 import { toast } from 'sonner';
 import { DomainProfile } from './domains/DomainProfile';
-import { WalletConnectRainbow } from './WalletConnectRainbow';
 
 export function Dashboard() {
   const { address, isConnected, publicClient, walletClient } = useWeb3();

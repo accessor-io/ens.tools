@@ -36,7 +36,7 @@ import { Toaster } from './components/ui/sonner';
 import { TransactionStatusPanel } from './components/TransactionStatusPanel';
 import { ENSConsole } from './components/devtools/ENSConsole';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Terminal, Loader2, Globe } from 'lucide-react';
+import { Terminal, Loader2 } from 'lucide-react'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { buildConfig, isViewEnabled } from './config/feature-flags.config';
 import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
@@ -44,7 +44,6 @@ import { AdaptiveContextProvider } from './lib/adaptive-rendering';
 import { SidebarProvider } from './components/ui/sidebar';
 import { bannerCustomizationService } from './lib/services/banner-customization-service';
 import { AppSidebar } from './components/AppSidebar';
-import { RotatingENSNames } from './components/RotatingENSNames';
 import { ParallaxBackground } from './components/ParallaxBackground';
 
 // =============================================================================

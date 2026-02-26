@@ -76,7 +76,7 @@ function drawBackground(ctx: CanvasRenderingContext2D, width: number, height: nu
   drawGlowOrbs(ctx, width, height, time);
 }
 
-function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, time: number) {
+function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number, _time: number) {
   const gridSize = 60;
   const lineWidth = 0.5;
   

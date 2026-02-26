@@ -120,7 +120,7 @@ export function TreasuryView() {
   // Asset allocation (token category)
   const assetAllocation = useMemo(() => {
     if (latestKPKSummary?.fundsByTokenCategory?.length) {
-      return latestKPKSummary.fundsByTokenCategory.map(item => ({
+      return latestKPKSummary.fundsByTokenCategory.map((item: any) => ({
         asset: item.label,
         amount: item.funds,
         value: item.funds,
@@ -168,7 +168,7 @@ export function TreasuryView() {
   // Fund type breakdown
   const fundTypeAllocation = useMemo(() => (
     latestKPKSummary?.fundsByType?.length
-      ? latestKPKSummary.fundsByType.map(item => ({
+      ? latestKPKSummary.fundsByType.map((item: any) => ({
           type: item.label,
           funds: item.funds,
           percentage: (item.allocation * 100).toFixed(2),
@@ -180,7 +180,7 @@ export function TreasuryView() {
   // Protocol allocation
   const protocolAllocation = useMemo(() => (
     latestKPKSummary?.fundsByProtocol?.length
-      ? latestKPKSummary.fundsByProtocol.map(item => ({
+      ? latestKPKSummary.fundsByProtocol.map((item: any) => ({
           protocol: item.label,
           funds: item.funds,
           percentage: (item.allocation * 100).toFixed(2),
@@ -496,7 +496,7 @@ export function TreasuryView() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {assetAllocation.map((asset, idx) => (
+                {assetAllocation.map((asset: any, idx: number) => (
                   <div key={idx} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -540,7 +540,7 @@ export function TreasuryView() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    {fundTypeAllocation.map((item, idx) => (
+                    {fundTypeAllocation.map((item: any, idx: number) => (
                       <div key={idx} className="space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -576,7 +576,7 @@ export function TreasuryView() {
                           paddingAngle={2}
                           dataKey="funds"
                         >
-                          {fundTypeAllocation.map((entry, idx) => (
+                          {fundTypeAllocation.map((entry: any, idx: number) => (
                             <Cell key={`cell-${idx}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -600,7 +600,7 @@ export function TreasuryView() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    {protocolAllocation.map((item, idx) => (
+                    {protocolAllocation.map((item: any, idx: number) => (
                       <div key={idx} className="space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -636,7 +636,7 @@ export function TreasuryView() {
                           paddingAngle={2}
                           dataKey="funds"
                         >
-                          {protocolAllocation.map((entry, idx) => (
+                          {protocolAllocation.map((entry: any, idx: number) => (
                             <Cell key={`cell-${idx}`} fill={entry.color} />
                           ))}
                         </Pie>

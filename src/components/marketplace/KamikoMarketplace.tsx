@@ -359,7 +359,7 @@ export function KamikoMarketplace() {
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Select value={viewMode} onValueChange={(v) => setViewMode(v as 'grid' | 'table')}>
+                <Select value={viewMode} onValueChange={(v: any) => setViewMode(v as 'grid' | 'table')}>
                   <SelectTrigger className="w-[120px]">
                     {viewMode === 'grid' ? <Grid3x3 className="h-4 w-4" /> : <List className="h-4 w-4" />}
                   </SelectTrigger>
@@ -368,7 +368,7 @@ export function KamikoMarketplace() {
                     <SelectItem value="table">Table</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <Select value={sortBy} onValueChange={(v: any) => setSortBy(v as SortOption)}>
                   <SelectTrigger className="w-[180px]">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue />
@@ -448,7 +448,7 @@ export function KamikoMarketplace() {
       )}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v as any)}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="listings" className="flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />

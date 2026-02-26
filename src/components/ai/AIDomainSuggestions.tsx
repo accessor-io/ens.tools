@@ -6,7 +6,6 @@
 import { useState } from 'react';
 import { useAIDomainSuggestions } from '../../lib/hooks/useAIDomainSuggestions';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
