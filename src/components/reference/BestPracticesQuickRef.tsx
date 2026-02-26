@@ -4,7 +4,6 @@ import { Button } from '../ui/button';
 import { Copy, Check, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { cn } from '../ui/utils';
 
 interface QuickRefCard {
   title: string;

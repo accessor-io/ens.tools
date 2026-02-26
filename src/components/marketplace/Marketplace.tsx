@@ -68,7 +68,7 @@ import {
 } from '../../lib/utils/marketplace-utils';
 
 export function Marketplace() {
-  const { address, isConnected, publicClient, walletClient, chainId } = useWeb3();
+  const { isConnected, publicClient, walletClient, chainId } = useWeb3();
   const [activeTab, setActiveTab] = useState<'listings' | 'offers' | 'ens' | 'stats'>('listings');
   const [searchQuery, setSearchQuery] = useState('');
   const [tokenAddress, setTokenAddress] = useState('');
@@ -303,11 +303,11 @@ export function Marketplace() {
     return paginate(processedListings, currentPage, pageSize);
   }, [processedListings, currentPage, pageSize]);
 
-  const paginatedOffers = useMemo(() => {
+  const _paginatedOffers = useMemo(() => {
     return paginate(processedOffers, currentPage, pageSize);
   }, [processedOffers, currentPage, pageSize]);
 
-  const paginatedENSListings = useMemo(() => {
+  const _paginatedENSListings = useMemo(() => {
     return paginate(processedENSListings, currentPage, pageSize);
   }, [processedENSListings, currentPage, pageSize]);
 

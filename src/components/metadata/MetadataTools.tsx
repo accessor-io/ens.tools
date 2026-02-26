@@ -227,7 +227,7 @@ export function MetadataTools() {
     },
   ];
 
-  const standardFields = [
+  const _standardFields = [
     'avatar',
     'description',
     'url',
@@ -288,7 +288,7 @@ export function MetadataTools() {
   };
 
   const handleBulkExport = () => {
-    const exportData = {
+    const _exportData = {
       domain: selectedDomain,
       timestamp: new Date().toISOString(),
       metadata: metadataFields,

@@ -170,7 +170,7 @@ export function BestPracticeRecommendations({
           <CollapsibleContent>
             <CardContent className="pt-0">
               <div className="space-y-3">
-                {filteredRecommendations.slice(0, 3).map(({ rule, result }, index) => {
+                {filteredRecommendations.slice(0, 3).map(({ rule, result }, _index) => {
                   const Icon = severityIcons[result.severity];
                   return (
                     <div

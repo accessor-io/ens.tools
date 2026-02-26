@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Badge } from '../ui/badge';
@@ -25,7 +24,7 @@ import { useDomainContext } from '../../lib/contexts/DomainContext';
 import { useWeb3 } from '../../lib/services';
 import { useTransactionManager } from '../../lib/hooks/useTransactionManager';
 import { fetchENSNames, getAllTextRecords, resolveENSName, type ENSDomain } from '../../lib/ens/ens-utils';
-import { setTextRecord, setAddressRecord } from '../../lib/ens/ens-write-operations';
+import { setAddressRecord } from '../../lib/ens/ens-write-operations'
 import { useStateRecollection } from '../../lib/adaptive-rendering/state-recollection';
 import { AIMetadataGenerator } from '../ai/AIMetadataGenerator';
 
@@ -49,7 +48,7 @@ export function MetadataEditor() {
   const [bulkAddresses, setBulkAddresses] = useState<Record<string, string>>({});
   const [selectedBulkDomains, setSelectedBulkDomains] = useState<Set<string>>(new Set());
   
-  const { stagedEdits, stageEdit, clearStagedEdits, recallState, requiresRecall } = useStateRecollection(
+  const { stagedEdits, clearStagedEdits } = useStateRecollection(
     'metadata-editor',
     'metadata-editing',
     {

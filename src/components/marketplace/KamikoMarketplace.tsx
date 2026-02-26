@@ -72,7 +72,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { cn } from '../ui/utils';
 
 export function KamikoMarketplace() {
-  const { address, isConnected, publicClient, walletClient, chainId } = useWeb3();
+  const { isConnected, publicClient, walletClient, chainId } = useWeb3();
   const [activeTab, setActiveTab] = useState<'listings' | 'offers' | 'stats'>('listings');
   const [searchQuery, setSearchQuery] = useState('');
   const [listings, setListings] = useState<ENSListing[]>([]);
@@ -131,7 +131,7 @@ export function KamikoMarketplace() {
 
   // Debounced search
   const debouncedSearch = useMemo(
-    () => debounce((query: string) => {
+    () => debounce((_query: string) => {
       setCurrentPage(1);
     }, 500),
     []
