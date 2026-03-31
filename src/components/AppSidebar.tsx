@@ -111,41 +111,36 @@ const sections = [
 
 export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
   return (
-    <Sidebar className="w-64 bg-white border-r border-gray-200">
-      <SidebarHeader className="border-b border-gray-200 px-4 py-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Globe className="w-4 h-4 text-white" />
+    <Sidebar className="bg-white border-r border-gray-200">
+      <SidebarHeader className="border-b border-gray-200 px-3 py-3">
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shrink-0">
+            <Globe className="w-3.5 h-3.5 text-white" />
           </div>
-          <div>
-            <h1 className="font-semibold text-sm text-gray-900 leading-none">ENS Tools</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Domain Management</p>
+          <div className="min-w-0">
+            <h1 className="font-semibold text-[13px] text-gray-900 leading-none truncate">ENS Tools</h1>
+            <p className="text-[11px] text-gray-400 mt-0.5">Management</p>
           </div>
         </div>
         <WalletConnectRainbow />
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-3 overflow-y-auto">
+      <SidebarContent className="px-1 py-2 overflow-y-auto">
         {sections.map((section) => (
-          <SidebarGroup key={section.label} className="mb-1">
-            <SidebarGroupLabel className="text-[11px] text-gray-400 uppercase tracking-wider font-medium px-2 mb-1">
+          <SidebarGroup key={section.label}>
+            <SidebarGroupLabel className="text-[11px] text-gray-400 uppercase tracking-wider font-medium px-2">
               {section.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-0.5">
+              <SidebarMenu>
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       onClick={() => onViewChange(item.id)}
                       isActive={currentView === item.id}
-                      className={`w-full justify-start gap-3 h-8 text-[13px] rounded-md px-2 transition-colors ${
-                        currentView === item.id
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.label}</span>
+                      <span className="truncate">{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

@@ -226,11 +226,11 @@ export function Dashboard() {
           ) : (
             <div className="divide-y divide-gray-100">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_100px_100px_120px] gap-2 px-4 py-2 text-[11px] font-medium text-gray-400 uppercase tracking-wider">
-                <span>Name</span>
-                <span>Status</span>
-                <span>Expiry</span>
-                <span className="text-right">Actions</span>
+              <div className="flex items-center gap-3 px-4 py-2 text-[11px] font-medium text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50">
+                <span className="flex-1 min-w-0">Name</span>
+                <span className="w-[70px] shrink-0">Status</span>
+                <span className="w-[50px] shrink-0 text-right">Days</span>
+                <span className="w-[90px] shrink-0 text-right">Actions</span>
               </div>
               {domains.map((domain, i) => {
                 const status = getExpirationStatus(domain.expiryDate);
@@ -239,55 +239,53 @@ export function Dashboard() {
                 return (
                   <div
                     key={i}
-                    className="grid grid-cols-[1fr_100px_100px_120px] gap-2 items-center px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => setSelectedDomain(domain)}
                   >
                     {/* Name */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 bg-blue-50 rounded flex items-center justify-center shrink-0">
-                        <Globe className="h-3.5 w-3.5 text-blue-600" />
+                    <div className="flex-1 min-w-0 flex items-center gap-2">
+                      <div className="w-6 h-6 bg-blue-50 rounded flex items-center justify-center shrink-0">
+                        <Globe className="h-3 w-3 text-blue-600" />
                       </div>
-                      <div className="min-w-0">
-                        <span className="text-sm font-medium text-gray-900 truncate block">{domain.name}</span>
-                        {domain.isWrapped && (
-                          <Badge variant="secondary" className="text-[10px] h-4 px-1 mt-0.5">Wrapped</Badge>
-                        )}
-                      </div>
+                      <span className="text-[13px] font-medium text-gray-900 truncate">{domain.name}</span>
+                      {domain.isWrapped && (
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1 shrink-0">Wrapped</Badge>
+                      )}
                     </div>
 
                     {/* Status */}
-                    <div>
+                    <div className="w-[70px] shrink-0">
                       {status === 'active' && (
-                        <span className="inline-flex items-center gap-1 text-xs text-green-700">
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1 text-[11px] text-green-700 font-medium">
+                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full shrink-0" />
                           Active
                         </span>
                       )}
                       {status === 'expiring-soon' && (
-                        <span className="inline-flex items-center gap-1 text-xs text-amber-700">
-                          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 font-medium">
+                          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0" />
                           Expiring
                         </span>
                       )}
                       {status === 'expired' && (
-                        <span className="inline-flex items-center gap-1 text-xs text-red-700">
-                          <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                        <span className="inline-flex items-center gap-1 text-[11px] text-red-600 font-medium">
+                          <span className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0" />
                           Expired
                         </span>
                       )}
                     </div>
 
-                    {/* Expiry */}
-                    <div className="text-xs text-gray-500">
+                    {/* Days */}
+                    <div className="w-[50px] shrink-0 text-right text-[12px] text-gray-500 tabular-nums">
                       {days !== null ? `${days}d` : '—'}
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
+                    <div className="w-[90px] shrink-0 flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 text-xs px-2"
+                        className="h-6 text-[11px] px-2"
                         disabled={processingDomain === domain.name}
                         onClick={() => domain.isWrapped ? handleUnwrap(domain) : handleWrap(domain)}
                       >
@@ -303,7 +301,7 @@ export function Dashboard() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 text-xs px-2"
+                        className="h-6 w-6 p-0"
                         onClick={() => setSelectedDomain(domain)}
                       >
                         <ArrowRight className="h-3 w-3" />
